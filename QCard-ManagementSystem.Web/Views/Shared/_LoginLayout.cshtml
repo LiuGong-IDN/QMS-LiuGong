@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<!-- begin::Head -->
+<head>
+    <!--begin::Base Path (base relative path for assets of this page) -->
+    <meta charset="utf-8" />
+
+    <title>QCard - ManagementSystem</title>
+    <meta name="description" content="Login">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    @*<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">*@
+    <!--end:: Global Optional Vendors -->
+    <!--begin:: Global Optional Vendors -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Poppins" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <link href="~/css/login.css" rel="stylesheet" type="text/css" />
+	<link href="~/css/style.bundle.css" rel="stylesheet" type="text/css" />
+	<link href="~/vendors/general/sweetalert2/dist/sweetalert2.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+	<link href="~/vendors/general/fontawesome/css/all.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+	<link href="~/Content/custom.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+	<partial name="Styles/_Common" />
+	@RenderSection("styles", false)
+    <!--end:: Global Optional Vendors -->
+    @* <script src="~/Content/theme/Metronic/global/plugins/jquery.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/js/xhr-helper.js" type="text/javascript" asp-append-version="true"></script> *@
+    <script src="~/Content/theme/Metronic/global/plugins/jquery.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/vendors/general/sweetalert2/dist/sweetalert2.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/vendors/general/sweetalert2/dist/sweetalert2.js" asp-append-version="true"></script>
+	<script src="~/vendors/custom/js/vendors/sweetalert2.init.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/js/jquery-migrate-3.4.0.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/vendors/Kendo/jszip.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/vendors/kendo.all.min.js" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/jquery.blockui.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/jquery-idle-timeout/jquery.idletimeout.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/jquery-idle-timeout/jquery.idletimer.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/bootstrap-tagsinput/bootstrap-tagsinput.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/sweetalert.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/scripts/app.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/layout/scripts/layout.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/layout/scripts/quick-sidebar.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/layout/scripts/quick-nav.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/select2/js/select2.full.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/jquery-validation/js/jquery.validate.min.js" type="text/javascript" asp-append-version="true"></script>
+	<script src="~/Content/theme/Metronic/global/plugins/jquery-validation/js/additional-methods.min.js" type="text/javascript" asp-append-version="true"></script>
+    @RenderSection("scripts", false)
+</head>
+<!-- end::Head -->
+<!-- begin::Body -->
+<body class="kt-page--loading-enabled kt-page--loading kt-header--fixed kt-header--minimize-topbar kt-header-mobile--fixed kt-quick-panel--right kt-demo-panel--right kt-offcanvas-panel--right kt-subheader--enabled kt-subheader--transparent kt-page--loading"
+      style="
+    background-image: url(@Url.Content("~/img/liugong-bg-new.png"));
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+">
+    <!-- begin::Page loader -->
+    @RenderBody()
+    <!-- end::Page Loader -->
+    <style>
+		* {
+			box-sizing: border-box;
+		}
+
+		label {
+			display: block;
+			font-weight: 600;
+		}
+
+		.reset-password-form label::before {
+			content: none !important;
+			display: none !important;
+		}
+
+		body {
+			color: #000;
+			display: flex;
+			justify-content: center; /* Horizontal center */
+			align-items: center; /* Vertical center */
+			min-height: 100vh; /* Tinggi layar penuh */
+			background: url('img/new-bg-5.jpg') no-repeat center center/cover;
+		}
+
+		.hint {
+			font-size: 13px;
+			color: #666;
+			margin-top: 6px;
+		}
+
+		.msg {
+			margin-top: 12px;
+			padding: 10px;
+			border-radius: 6px;
+			display: none;
+		}
+
+			.msg.success {
+				background: #e6ffed;
+				color: #0b662e;
+				border: 1px solid #b7f0c9;
+			}
+
+			.msg.error {
+				background: #fff1f0;
+				color: #7a1512;
+				border: 1px solid #f5c2c2;
+			}
+
+		.form-box {
+			background-color: rgba(255, 255, 255, 0.8);
+			padding: 40px;
+			border-radius: 5px;
+			box-shadow: 0 0 7px #ccc;
+			width: 35%;
+			height: auto; /* otomatis menyesuaikan isi */
+			backdrop-filter: blur(5px);
+			margin: 0 auto;
+		}
+
+			.form-box .header-text1 {
+				font-size: 28px;
+				font-weight: 600;
+				padding-bottom: 0px;
+				text-align: center;
+			}
+
+			.form-box .header-text2 {
+				font-size: 20px;
+				font-weight: 600;
+				padding-bottom: 20px;
+				text-align: center;
+			}
+
+			.form-box .text {
+				font-size: 14px;
+				padding-bottom: 0px;
+			}
+
+				.form-box .text a {
+					font-weight: 600;
+					text-decoration: underline;
+				}
+
+			.form-box input {
+				margin: 10px 0px;
+				border: none;
+				padding: 10px;
+				border-radius: 5px;
+				width: 100%;
+			}
+
+				.form-box input[type=checkbox] {
+					display: none;
+				}
+
+			.form-box input[type=checkbox]:checked + label:before {
+				content: "\2713";
+				color: #000;
+				text-align: center;
+				line-height: 20px;
+			}
+
+			.form-box span {
+			}
+
+			.form-box button {
+				background-color: deepskyblue;
+				color: #fff;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				width: 100%;
+				/* padding: 10px;
+				margin: 20px 0px; */
+			}
+
+			.form-box .logo img {
+				width: 100%; /* Penuhi lebar .form-box */
+				height: auto; /* Tinggi otomatis agar tidak terdistorsi */
+				max-width: 100%; /* Pastikan tidak melewati kontainer */
+				display: block; /* Hilangkan space bawah gambar */
+				margin: 0 auto; /* Opsional: center kalau gambar lebih kecil */
+			}
+
+		span a {
+			color: #BBB;
+		}
+
+		.box {
+			padding: 40px;
+			background: rgba(0, 0, 0, 0.5);
+			-webkit-box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
+			box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
+			border-radius: 5px;
+			background-color: rgba(0, 0, 0, 0.5);
+			margin: auto auto;
+		}
+
+		.input-container {
+			position: relative;
+			border-radius: 5px;
+			box-shadow: 0 0 3px #ccc;
+		}
+
+			.input-container .icon {
+				position: absolute;
+				left: 10px;
+				top: 50%;
+				transform: translateY(-50%);
+				color: #000;
+				font-size: 14px;
+			}
+
+			.input-container input {
+				padding-left: 35px; /* memberi jarak teks agar tidak menabrak ikon */
+			}
+
+			.input-container:focus-within {
+				border-color: deepskyblue; /* warna border saat input fokus */
+				box-shadow: 0 0 5px rgba(0,191,255,0.5);
+			}
+
+		.qcard-wrapper {
+			display: flex;
+			align-items: center;
+			width: 100%;
+		}
+
+			.qcard-wrapper input {
+				flex: 1;
+				border-radius: 5px 0 0 5px;
+				margin: 0;
+			}
+
+		.btn-check-qcard {
+			padding: 10px 15px;
+			background-color: deepskyblue;
+			color: #fff;
+			border: none;
+			border-radius: 0 5px 5px 0;
+			cursor: pointer;
+			white-space: nowrap;
+		}
+
+			.btn-check-qcard:hover {
+				background-color: #0aa3d4;
+			}
+
+    </style>
+
+	<div class="ajax-loading"></div>
+
+	<script type="text/javascript">
+		$(document).ajaxStart(function () {
+			$("body").addClass("loading");
+		}).ajaxStop(function () {
+			$("body").removeClass("loading");
+		});
+	</script>
+</body>
+<!-- end::Body -->
+
+</html>

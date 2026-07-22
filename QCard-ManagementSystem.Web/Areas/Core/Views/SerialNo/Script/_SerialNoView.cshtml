@@ -1,0 +1,87 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function SerialNoAddManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                
+                // back button
+                $(document).on("click", "#btnBack", function (e) {
+                    e.preventDefault();
+                    window.history.back();
+                });
+                $("#btnDownloadEvidence").click(function () {
+                    var filename = $("#evidencePjb").text().trim();
+                    if (!filename || filename === "No file") {
+                        alert("Tidak ada evidence untuk didownload.");
+                        return;
+                    }
+
+                    var url = "/img/ApprovalEvidence/" + filename;
+
+                    // Trigger browser download
+                    var a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+            if (excludeIds && excludeIds.includes(id)) {
+                return;
+            }
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+
+    function setParameter() {
+        var machineId = $("#machineID").val();
+        return {
+            machineId: machineId,
+        };
+    }
+    function formatRupiahInputWithPrefix(inputId) {
+        const el = document.getElementById(inputId);
+
+        el.addEventListener("input", function (e) {
+            let value = e.target.value.replace(/[^0-9]/g, "");
+
+            if (value) {
+                e.target.value = "Rp " + new Intl.NumberFormat("id-ID").format(value);
+            } else {
+                e.target.value = "";
+            }
+        });
+    }
+
+    function formatRupiah(value) {
+        value = value.toString().replace(/[^0-9]/g, "");
+        if (!value) return "";
+        return "Rp " + new Intl.NumberFormat("id-ID").format(value);
+    }
+
+    function getNumericValue(inputId) {
+        const el = document.getElementById(inputId);
+        return el.value.replace(/[^0-9]/g, "");
+    }
+</script>

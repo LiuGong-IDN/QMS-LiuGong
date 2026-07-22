@@ -1,0 +1,187 @@
+﻿<script>
+    function CustomerUploadManager(){
+        return{
+            InitManagement: function () {
+                this.InitControl();
+                this.InitHandlers();
+            },
+            InitControl: function () {
+            },
+            InitHandlers: function () {
+                $("#fileUploadCustomer").kendoUpload({
+                    async: {
+                        saveUrl: "@Url.Content("~/Core/DataSource/UploadExcel")",
+                        autoUpload: true
+                    },
+                    validation: {
+                        allowedExtensions: [".xlsx"],
+                        messages: {
+                            extension: "Invalid file format. Only .xlsx files are allowed."
+                        }
+                    },
+                    select: function (e) {
+                        // Validasi file extension
+                        var invalidFiles = [];
+                        for (var i = 0; i < e.files.length; i++) {
+                            var file = e.files[i];
+                            var extension = file.extension.toLowerCase();
+                            if (extension !== ".xlsx") {
+                                invalidFiles.push(file.name);
+                            }
+                        }
+
+                        if (invalidFiles.length > 0) {
+                            e.preventDefault();
+                            Swal.fire({
+                                icon: "error",
+                                title: "File Type Not Allowed",
+                                html: `<p>File yang tidak didukung: <strong>${invalidFiles.join(", ")}</strong></p>`
+                            });
+                            return;
+                        }
+
+                        if (e.files.length == 0) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "No File Selected",
+                                text: "Pilih minimal satu file untuk diupload."
+                            });
+                            return;
+                        }
+
+                        var data = new FormData();
+                        for (var i = 0; i < e.files.length; i++) {
+                            data.append("Upload", e.files[i].rawFile);
+                        }
+
+                        $.ajax({
+                            url: "@Url.Content("~/Core/Customer/UploadProcess")",
+                            type: 'POST',
+                            contentType: false,
+                            processData: false,
+                            data: data,
+                            success: function (res) {
+                                if (res.isSaved == true) {
+                                    $("#TempCode").val(res.tempCode);
+                                    $('#CustomerUploadGrid').data("kendoGrid").dataSource.read();
+
+                                    // Tampilkan pesan error jika ada (tetapi jangan sembunyikan tombol)
+                                    if (res.message != null && res.message.trim() !== '') {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Upload Validation Error",
+                                            html: `<p>${res.message}</p>`
+                                        });
+                                    }
+
+                                    // Atur tombol berdasarkan canSubmit
+                                    if (res.canSubmit == true) {
+                                        $("#btnSubmitUpload").show();
+                                        $("#btnDownloadErrorUpload").hide();
+                                    } else {
+                                        $("#btnDownloadErrorUpload").show();
+                                        $("#btnSubmitUpload").hide();
+                                    }
+                                } else {
+                                    $("#btnSubmitUpload").hide();
+                                    $("#btnDownloadErrorUpload").hide();
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Upload Failed",
+                                        text: res.message || "Terjadi error saat upload."
+                                    });
+                                }
+                            },
+                            error: function (xhr, status, err) {
+                                $("#btnSubmitUpload").hide();
+                                $("#btnDownloadErrorUpload").hide();
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Upload Error",
+                                    text: `${xhr.status}: ${xhr.responseText || err}`
+                                });
+                            }
+                        });
+                    },
+                    success: function (e) {
+                        console.log("Upload successful:", e);
+                    },
+                    error: function (e) {
+                        if (e.files && e.files.length > 0) {
+                            var invalidFiles = e.files.map(f => f.name).join(", ");
+                            Swal.fire({
+                                icon: "error",
+                                title: "File Validation Error",
+                                html: `<p>File tidak valid: <strong>${invalidFiles}</strong></p>`
+                            });
+                        }
+                    },
+                    multiple: false,
+                });
+
+                // ✅ EVENT DELEGATION - Handler untuk tombol di dalam grid toolbar
+                $("#CustomerUploadGrid").on('click', '#btnSubmitUpload', function (event) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal");
+
+                    var tempCode = $("#TempCode").val();
+                    $.post("@Url.Content("~/Core/Customer/SubmitExcelUpload")", { tempCode: tempCode }, function (d) {
+                        if (d.status === "Success") {
+                            $modal.modal("hide");
+                            Swal.fire("Success!", d.message || "Berhasil", "success");
+                            $.helper.grid.refresh("CustomerGrid");
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: d.message || "Upload gagal. Periksa data Anda."
+                            });
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    })
+                    .always(function () {
+                        $el.prop("disabled", false);
+                    });
+                });
+
+                // ✅ EVENT DELEGATION - Handler untuk tombol download error
+                $("#CustomerUploadGrid").on('click', '#btnDownloadErrorUpload', function (event) {
+                    var tempCode = $("#TempCode").val();
+                    if (!tempCode || tempCode.trim() === '') {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Tidak ada data error untuk didownload."
+                        });
+                        return;
+                    }
+                    window.location.href = "@Url.Content("~/Core/Customer/DownloadExcelError?tempCode=")" + tempCode;
+                });
+            },
+        };
+    }
+
+    function sendTempCode() {
+        return {
+            tempCode: $("#TempCode").val()
+        };
+    }
+
+    $(document).ready(function () {
+        CustomerUploadManager = new CustomerUploadManager();
+        CustomerUploadManager.InitManagement();
+
+        // Pastikan grid sudah di-render terlebih dahulu
+        var grid = $("#CustomerUploadGrid").data("kendoGrid");
+        if (grid) {
+            var templateHtml = $("#CustomerUploadButtons").html();
+            grid.element.find(".k-grid-toolbar").html(templateHtml);
+        }
+    });
+</script>

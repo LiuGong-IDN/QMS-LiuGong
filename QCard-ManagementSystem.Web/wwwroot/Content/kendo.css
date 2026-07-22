@@ -1,0 +1,54 @@
+﻿#grid .k-grid-header
+{
+   padding: 0 !important;
+}
+
+#grid .k-grid-content
+{
+   overflow-y: visible;
+}
+
+.k-grid tr td {
+    border-color: #ddd;
+}
+.k-filter-row th, .k-grid-header th.k-header {
+    /*font-size: 13px;*/
+    font-weight: bold;
+    /*background-color: #FFF;*/
+}
+
+.k-grid-header .k-link:link, .k-grid-header .k-link:visited, 
+.k-grid-header .k-nav-current.k-state-hover .k-link, 
+.k-grouping-header .k-link {
+    color: #666;
+}
+
+.k-block, .k-content, .k-dropdown .k-input, .k-popup, .k-toolbar, .k-widget {
+    color: #666;
+}
+
+.k-gantt-toolbar .k-state-default, .k-grid .k-grouping-header, .k-grid-header, .k-grid-header-wrap, .k-grouping-header .k-group-indicator, .k-header, .k-pager-wrap, .k-pager-wrap .k-link, .k-pager-wrap .k-textbox {
+    border-color: #ddd;
+}
+
+.k-button, .k-widget {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+}
+
+.k-editor, .k-grid, .k-menu, .k-scheduler {
+    border-radius: 0px;
+}
+
+.k-autocomplete, .k-block, .k-button-group .k-tool, .k-calendar th, .k-content, .k-dropdown-wrap, .k-dropzone-active, .k-editable-area, .k-filter-row>th, .k-footer-template td, .k-grid td, .k-grid td.k-state-selected, .k-grid-content-locked, .k-grid-footer, .k-grid-footer-locked, .k-grid-footer-wrap, .k-grid-header, .k-grid-header-locked, .k-grid-header-wrap, .k-group, .k-group-footer td, .k-grouping-header, .k-grouping-header .k-group-indicator, .k-header, .k-input, .k-pager-refresh, .k-pager-wrap, .k-pager-wrap .k-link, .k-panel>.k-item>.k-link, .k-panelbar .k-content, .k-panelbar .k-panel, .k-panelbar>.k-item>.k-link, .k-popup.k-align .k-list .k-item:last-child, .k-separator, .k-slider-track, .k-splitbar, .k-state-default, .k-state-default .k-select, .k-state-disabled, .k-textbox, .k-textbox>input, .k-tiles, .k-toolbar, .k-tooltip, .k-treemap-tile, .k-upload-files, .k-widget {
+    border-color: #ddd;
+}
+
+.k-autocomplete, .k-block, .k-button, .k-calendar .k-link, .k-calendar td, .k-calendar-container, .k-colorpicker, .k-combobox, .k-datepicker, .k-datetimepicker, .k-drag-clue, .k-dropdown, .k-dropdown-wrap, .k-editor-inline, .k-grid .k-filter-options, .k-grouping-header .k-group-indicator, .k-inline-block, .k-list-container, .k-multiselect, .k-notification, .k-numeric-wrap, .k-numerictextbox, .k-picker-wrap, .k-slider-selection, .k-slider-track, .k-split-button, .k-textbox, .k-tile, .k-timepicker, .k-tooltip, .k-touch-scrollbar, .k-treeview .k-in, .k-upload, .k-window, .k-window-action, .k-window-titleless .k-window-content {
+    border-radius: 0px;
+}
+
+.k-window-content * {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}

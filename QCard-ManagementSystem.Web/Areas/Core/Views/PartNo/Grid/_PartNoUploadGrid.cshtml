@@ -1,0 +1,30 @@
+﻿@using Kendo.Mvc.UI;
+@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.PartNoUpload>()
+    .Name("PartNoUploadGrid")
+    .ToolBar(toolbar => { toolbar.Custom().Text(" "); })
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.ACTION).Title("Action").Width(100);
+        columns.Bound(o => o.NO).Title("No").Width(70);
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(150);
+        columns.Bound(o => o.PART_NAME).Title("Part Name").Width(300);
+        columns.Bound(o => o.RETAIL_PRICE).Title("Retail Price").HtmlAttributes(new { @class = "text-right", style = "overflow: visible;" }).Width(200).ClientTemplate("Rp #= kendo.toString(RETAIL_PRICE, 'n0').replace(/,/g, '.') #");
+        columns.Bound(o => o.STATUS).Title("Status").Width(100);
+        columns.Bound(o => o.MESSAGE).Title("Message").Width(500);
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Data List to display"))
+    .Pageable(pageable => pageable.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/Core/PartNo/ReadUploadedData")).Data("sendTempCode"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("NO").Ascending())
+    )
+    .AutoBind(false)
+)

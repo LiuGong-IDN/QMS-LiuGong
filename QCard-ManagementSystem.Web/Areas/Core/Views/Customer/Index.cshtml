@@ -1,0 +1,108 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/Customer/Script/_Customer.cshtml")
+    @Html.Partial("~/Areas/Core/Views/Customer/Script/_CustomerUpload.cshtml")
+}
+
+@section modals {
+    @Html.Partial("~/Areas/Core/Views/Customer/Component/_CustomerForm.cshtml")
+    @Html.Partial("~/Areas/Core/Views/Customer/Component/_CustomerUploadForm.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Customer Maintenance</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+           <form data-grid="CustomerGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="companyCode"><b>Company Code</b></label>
+                                <input id="companyCode" type="text" class="form-control" data-filter='{ "operator": "contains", "field": "COMPANY_CODE" }' />
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="companyName"><b>Company Name</b></label>
+                                <input id="companyName" type="text" class="form-control" data-filter='{ "operator": "contains", "field": "COMPANY_NAME" }' />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                            <div class="form-group" style="margin-top:10px;">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("CustomerMaintenance", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+                                </text>
+                            </div>
+                        </div>
+                            <div class="col-md-6 text-right">
+                                <div class="form-group" style="margin-top: 10px;">
+
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("CustomerMaintenance", Feature.CREATE_FEATURE))
+                                {
+                                     <a href="#" class="btn btn-success" id="btnAddCustomer">
+                                            <i class ="fa fa-plus"></i> Add Customer
+                                     </a>
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("CustomerMaintenance", Feature.UPDATE_FEATURE))
+                                {
+                                    <a href="#" class="btn blue trigger" id="btnUploadCustomer" style="background-color:#002F75; border-color:#002F75;color:white; margin-left: 5px;">
+                                        <i class="fa fa-upload"></i> Upload Customer
+                                    </a>
+
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("CustomerMaintenance", Feature.DOWNLOAD_FEATURE))
+                                {
+                                    <a href="@Url.Content("~/Core/Customer/DownloadTemplate")"
+                                       class="btn btn-reset clear-trigger"
+                                       id="btnTemplateCustomer">
+                                        <i class="fa fa-download"></i> Download Template
+                                    </a>
+                                }
+                                </div>
+                            </div>
+                        </div>
+                </div>
+           </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/Core/Views/Customer/Grid/_CustomerGrid.cshtml")
+    </div>
+
+</div>
+<style>
+    .no-space {
+        margin: 0px !important;
+        padding: 10px !important;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        App.CustomerManagement = new CustomerManagement();
+        App.CustomerManagement.InitManagement();
+    });
+</script> 

@@ -1,0 +1,224 @@
+﻿@await Html.PartialAsync("~/Areas/Dashboard/Views/Style/_StyleDashboard.cshtml")
+<div class="portlet light margin-bottom-0">
+    <!-- === 1. Summary Cards === -->
+    <div class="portlet light bordered">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span class="section-title">Claim Status</span></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row mb-4 summary-card">
+            <!--Card Submitted-->
+            <div class="col-md-2 flex-item">
+                <a href="@Url.Action("Index", "ClaimProcess", new { area = "QCard", status = 2 })">
+                    <div class="portlet light bordered interactive-card">
+                        <div class="portlet-body">
+                            <div class="card shadow-sm rounded-3 p-3 custom-card">
+                                <div class="card-text">
+                                    <div id="submitted" style="text-align:center;" class="card-number">0</div>
+                                    <div class="card-label">Verified</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!--Card Reject-->
+            <div class="col-md-2 flex-item">
+                <a href="@Url.Action("Index", "ClaimProcess", new { area = "QCard", status = 3 })">
+                    <div class="portlet light bordered interactive-card">
+                        <div class="portlet-body">
+                            <div class="card shadow-sm rounded-3 p-3 custom-card">
+                                <div class="card-text">
+                                    <div id="partialPickUp" style="text-align:center;" class="card-number">0</div>
+                                    <div class="card-label">Rejected</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!--Card Pending-->
+            <div class="col-md-2 flex-item">
+                <a href="@Url.Action("Index", "ClaimProcess", new { area = "QCard", status = 7 })">
+                    <div class="portlet light bordered interactive-card">
+                        <div class="portlet-body">
+                            <div class="card shadow-sm rounded-3 p-3 custom-card">
+                                <div class="card-text">
+                                    <div id="pending" style="text-align:center;" class="card-number">0</div>
+                                    <div class="card-label">Pending</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!--Card Partial Pick-up-->
+            <div class="col-md-2 flex-item">
+                <a href="@Url.Action("Index", "ClaimProcess", new { area = "QCard", status = 8 })">
+                    <div class="portlet light bordered interactive-card">
+                        <div class="portlet-body">
+                            <div class="card shadow-sm rounded-3 p-3 custom-card">
+                                <div class="card-text">
+                                    <div id="pickedUp" style="text-align:center;" class="card-number">0</div>
+                                    <div class="card-label">Partial Pick-up</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!--Card Preparing-->
+            <div class="col-md-2 flex-item">
+                <a href="@Url.Action("Index", "ClaimProcess", new { area = "QCard", status = 4 })">
+                    <div class="portlet light bordered interactive-card">
+                        <div class="portlet-body">
+                            <div class="card shadow-sm rounded-3 p-3 custom-card">
+                                <div class="card-text">
+                                    <div id="preparing" style="text-align:center;" class="card-number">0</div>
+                                    <div class="card-label">Preparing</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!--Card Ready For Pick-up-->
+            <div class="col-md-2 flex-item">
+                <a href="@Url.Action("Index", "ClaimProcess", new { area = "QCard", status = 5 })">
+                    <div class="portlet light bordered interactive-card">
+                        <div class="portlet-body">
+                            <div class="card shadow-sm rounded-3 p-3 custom-card">
+                                <div class="card-text">
+                                    <div id="readyForPickedUp" style="text-align:center;" class="card-number">0</div>
+                                    <div class="card-label">Ready For Pick-up</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- === 2. Claim Statistics Charts=== -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div id="divClaimChart" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Claim Statistics</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="claimPeriod">Select Period</label>
+                                <div class="col-auto">
+                                    <div style="gap:0;" id="claimPeriod" name="claimPeriod"></div>
+                                </div>
+                            </div>
+                            <div class="chart-text">
+                                <div class="chart-label">Total Claim</div>
+                                <div>
+                                    <span id="totalClaimStatistic" class="chart-value">...</span>
+                                    <span id="backgroundClaimScore">
+                                        <span id="avgClaimScore"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="claim-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === 3. Most Claimed Program, Top Customers, Top Product Group === -->
+    <div class="row mb-4">
+        <!-- Most Claimed Program -->
+        <div class="col-md-6">
+            <div id="divClaimedProgram" class="portlet light bordered" style="min-height:300px;">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Most Claimed Program</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="claimedProgramPeriod" class="col-auto">Select Month</label>
+                                <div class="col-auto">
+                                    <input id="claimedProgramPeriod" name="claimedProgramPeriod" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="div-list">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <ul id="listClaimedProgram" class="item-list"></ul>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 3 Customers -->
+        <div class="col-md-6">
+            <div id="divTopCustomer" class="portlet light bordered" style="min-height:300px;">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Top 3 Customers</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="topCustomersPeriod" class="col-auto">Select Month</label>
+                                <div class="col-auto">
+                                    <input id="topCustomersPeriod" name="topCustomersPeriod" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="div-list">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <ul id="listTopCustomer" class="item-list"></ul>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="hr-darkblue" />

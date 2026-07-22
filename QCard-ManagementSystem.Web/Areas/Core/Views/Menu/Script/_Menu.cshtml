@@ -1,0 +1,451 @@
+@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+<script type="text/javascript">
+
+    function MenuManagement() {
+        return {
+            InitManagement: function () {
+                this.InitValidation();
+                this.InitHandlers();
+                this.InitTree();
+                this.InitControls();
+            },
+
+            InitControls: function () {
+                MenuManagement.ShowTree(0);
+            },
+
+            InitValidation: function () {
+            },
+
+            InitHandlers: function () {
+                $('.iconpicker').iconpicker({
+                    fullClassFormatter: function (val) {
+                        if (val.match(/^fa-/)) {
+                            return 'fa ' + val;
+                        } else {
+                            return 'glyphicon ' + val;
+                        }
+                    }
+                });
+
+                $("#btnSaveMenu").on('click', function (event) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var data = $.helper.form.serializeObject($form);
+                    data.STATUS = $('#Status').prop('checked');
+                    datasend = JSON.stringify(data);
+
+                    var formData = new FormData();
+                    formData.append("data", datasend);
+                    console.log(formData)
+                    console.log(datasend)
+                    $el.prop("disabled", true);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Menu/Save")",
+                        type: "POST",
+                        data: formData,
+                        dataType: 'json',
+                        contentType: false,
+                        processData: false,
+                        success: function (d) {
+                            if (d.Success === true) {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                MenuManagement.ShowTree(0);
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: d.Message
+                                });
+                                MenuManagement.ShowTree(0);
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnEditMenu").on('click', function (event) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var data = $.helper.form.serializeObject($form);
+                    data.STATUS = $("#Status").is(":checked"); // true atau false
+                    datasend = JSON.stringify(data);
+
+                    var formData = new FormData();
+                    formData.append("data", datasend);
+
+                    $el.prop("disabled", true);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Menu/Update")",
+                        type: "POST",
+                        data: formData,
+                        dataType: 'json',
+                        contentType: false,
+                        processData: false,
+                        success: function (d) {
+                            if (d.Success === true) {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                MenuManagement.ShowTree(0);
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: d.Message
+                                });
+                                MenuManagement.ShowTree(0);
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+
+                    $el.prop("disabled", false);
+                });
+            },
+
+            InitTree: function () {
+                function getModal() {
+                    return $("#MenuModal");
+                }
+
+                function getForm() {
+                    return getModal().find("form");
+                }
+
+                $(".tree").jstree({
+                    "plugins": ["contextmenu", "dnd", "state", "types"],
+                    "core": {
+                        "check_callback": function (o, n, p, i, m) {
+                            return !(m && m.dnd && (m.pos === 'b' || m.pos === 'a') && m.ref.parent == "#");
+                        },
+                        "themes": {
+                            "responsive": false
+                        },
+                    },
+                    "contextmenu": {
+                        "items": function ($node) {
+                            var contextMenu = {
+                                "Create": {
+                                    "label": "Create new menu",
+                                    "action": function (obj) {
+                                        var IsCreate = @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("MenuMaintenance", Feature.CREATE_FEATURE).ToString().ToLower();
+                                        if (IsCreate) {
+                                            var inst = $.jstree.reference(obj.reference),
+                                                data = inst.get_node(obj.reference),
+                                                isRoot = data.id,
+                                                id = data.original.ID,
+                                                $form = getForm();
+
+                                            $.helper.form.clear($form);
+
+                                            if (isRoot == "root") {
+                                                $("#ParentID").val(null);
+                                            } else {
+                                                $("#ParentID").val(id);
+                                            }
+
+                                            $("#ID").val(0);
+
+                                            getModal().modal("show");
+                                            $("#btnSaveMenu").show();
+                                            $("#btnEditMenu").hide();
+                                        }
+                                        else {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Error",
+                                                text: "You do not have create permission"
+                                            });
+                                        }
+                                    }
+                                },
+                                "Edit": {
+                                    "label": "Edit",
+                                    "action": function (obj) {
+                                        var IsUpdate = @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("MenuMaintenance", Feature.UPDATE_FEATURE).ToString().ToLower();
+                                        if (IsUpdate) {
+                                            var id = obj.reference.closest("li").attr("id");
+                                            var inst = $.jstree.reference(obj.reference),
+                                                data = inst.get_node(obj.reference),
+                                                dataItem = data.original,
+                                                $form = getForm();
+                                            console.log(dataItem);
+                                            $.helper.form.clear($form);
+                                            $.helper.form.fill($form, dataItem);
+
+                                            if (dataItem.STATUS === true || dataItem.STATUS === "true") {
+                                                $("#Status").prop("checked", true);
+                                            } else {
+                                                $("#Status").prop("checked", false);
+                                            }
+
+                                            getModal().modal("show");
+                                            $("#btnSaveMenu").hide();
+                                            $("#btnEditMenu").show();
+                                        } else {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Error",
+                                                text: "You do not have create permission"
+                                            });
+                                        }
+                                    }
+                                },
+                                "Remove": {
+                                    "label": "Remove",
+                                    "action": function (obj) {
+                                        Swal.fire({
+                                            title: "Confirmation",
+                                            text: "Are you sure you want to deactivate this menu?",
+                                            icon: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#3085d6",
+                                            cancelButtonColor: "#d33",
+                                            confirmButtonText: "Yes, delete it!"
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                var IsDelete = @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("MenuMaintenance", Feature.DELETE_FEATURE).ToString().ToLower();
+                                                if (IsDelete) {
+                                                    var id = obj.reference.closest("li").attr("id");
+                                                    var inst = $.jstree.reference(obj.reference),
+                                                        data = inst.get_node(obj.reference),
+                                                        dataItem = data.original,
+                                                        $form = getForm();
+
+                                                    datasend = JSON.stringify(dataItem);
+
+                                                    var formData = new FormData();
+                                                    formData.append("data", datasend);
+
+                                                    $.ajax({
+                                                        url: "@Url.Content("~/Core/Menu/Delete")",
+                                                        type: "POST",
+                                                        data: formData,
+                                                        dataType: 'json',
+                                                        contentType: false,
+                                                        processData: false,
+                                                        success: function (d) {
+                                                            if (d.Success === true) {
+                                                                Swal.fire("Success!", "", "success");
+                                                                MenuManagement.ShowTree(0);
+                                                            } else {
+                                                                Swal.fire({
+                                                                    icon: "error",
+                                                                    title: "Error",
+                                                                    text: d.Message
+                                                                });
+                                                                MenuManagement.ShowTree(0);
+                                                            }
+                                                        }
+                                                    })
+                                                    .fail(function (xhr, status, err) {
+                                                        Swal.fire({
+                                                            icon: "error",
+                                                            title: "Error",
+                                                            text: `${status}: ${xhr.responseText || err}`
+                                                        });
+                                                    });
+                                                }
+                                                else {
+                                                    Swal.fire({
+                                                        icon: "error",
+                                                        title: "Error",
+                                                        text: "You do not have delete permission"
+                                                    });
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            };
+
+                            if ($node.type == 'root') {
+                                delete contextMenu["ToggleVisible"];
+                                delete contextMenu["Rename"];
+                                delete contextMenu["Edit"];
+                                delete contextMenu["Remove"];
+                            }
+
+                            return contextMenu;
+                        }
+                    },
+                    "types": {
+                        "default": {
+                            "valid_children": ["default", "hidden"],
+                            "icon": "fa fa-folder icon-state-warning icon-lg"
+                        },
+                        "hidden": {
+                            "valid_children": ["default", "hidden"],
+                            "icon": "fa fa-folder icon-state-warning icon-lg"
+                        },
+                        "root": {
+                            "valid_children": ["default"],
+                            "icon": "fa fa-folder icon-state-warning icon-lg"
+                        }
+                    }
+                }).on("move_node.jstree rename_node.jstree", function (e, data) {
+                    var type = e.type,
+                        dataItem = data.node.original;
+
+                    if (type == "move_node") {
+                        dataItem.PARENT_ID = data.parent == "root" ? null : data.parent;
+                        dataItem.ORDER_INDEX = data.old_position < data.position ? data.position + 1 : data.position;
+
+                        datasend = JSON.stringify(dataItem);
+
+                        var formData = new FormData();
+                        formData.append("data", datasend);
+
+                        $.ajax({
+                            url: "@Url.Content("~/Core/Menu/MoveMenu")",
+                            type: "POST",
+                            data: formData,
+                            dataType: 'json',
+                            contentType: false,
+                            processData: false,
+                            success: function (d) {
+                                if (d.Success === true) {
+                                    Swal.fire("Success!", "", "success");
+                                    MenuManagement.ShowTree(0);
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: d.Message
+                                    });
+                                    MenuManagement.ShowTree(0);
+                                }
+                            }
+                        })
+                        .fail(function (xhr, status, err) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: `${status}: ${xhr.responseText || err}`
+                            });
+                        });
+                    }
+                });
+            },
+
+            ShowTree: function (id) {
+                var $tree = $(".tree").jstree(true);
+
+                $.ajax({
+                    url: "@Url.Content("~/Core/Menu/GetListMenu")",
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (d) {
+                        var dataSource = toJsTree(d);
+
+                        $tree.settings.core.data = dataSource;
+                        $tree.refresh();
+                    }
+                })
+                .fail(function (xhr, status, err) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: `${status}: ${xhr.responseText || err}`
+                    });
+                });
+
+                function toJsTree(d) {
+                    var root = {
+                        "id": "root",
+                        "text": "Sidebar",
+                        "type": "root",
+                        "state": { opened: true },
+                        "children": []
+                    };
+
+                    var map = $.map(d, function (input) {
+                        var cssClass = (!input.Status ? " font-black" : "");
+
+                        return { 
+                            id: input.MenuId,
+                            parentId: input.ParentId,
+                            text: input.MenuTitle,
+                            orderIndex: input.OrderIndex,
+                            icon: input.IconClass,
+
+                            ID: input.MenuId, 
+                            PARENT_ID: input.ParentId,
+                            TITLE: input.MenuTitle,
+                            URL: input.Url,
+                            ICON_CLASS: input.IconClass, 
+                            DESCRIPTION: input.Description, 
+                            FUNCTION_ID: input.FunctionID,
+                            ORDER_INDEX: input.OrderIndex,
+                            STATUS: input.Status,
+                        };
+                    });
+
+                    var hierarchyData = toHierarchy(map, "id", "parentId", "children");
+
+                    root.children = hierarchyData;
+
+                    return [root];
+                }
+
+                function toHierarchy(data, idField, parentField, childrenField) {
+                    var roots = [];
+                    var all = {};
+
+                    data.forEach(function (item) {
+                        all[item[idField]] = item;
+                    })
+
+                    Object.keys(all).forEach(function (idField) {
+                        var item = all[idField];
+
+                        if (item[parentField] == null) {
+                            roots.push(item);
+                        } 
+                        else if (item[parentField] in all) {
+                            var p = all[item[parentField]];
+
+                            if (!(childrenField in p)) {
+                                p[childrenField] = []
+                            }
+
+                            p[childrenField].push(item);
+                        }
+                    })
+
+                    return roots;
+
+                }
+            },
+        }
+    }
+
+    // On document ready
+    $(document).ready(function () {
+        MenuManagement = new MenuManagement();
+        MenuManagement.InitManagement();
+    });
+
+
+</script>

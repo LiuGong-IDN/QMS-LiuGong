@@ -1,0 +1,76 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="ClosedXML" Version="0.105.0" />
+    <PackageVersion Include="Dapper" Version="2.0.123" />
+    <PackageVersion Include="Dapper.Contrib" Version="2.0.78" />
+    <PackageVersion Include="EPPlus" Version="6.1.2" />
+    <PackageVersion Include="ExcelDataReader" Version="3.7.0" />
+    <PackageVersion Include="ExcelDataReader.DataSet" Version="3.6.0" />
+    <PackageVersion Include="FluentFTP" Version="46.0.2" />
+    <PackageVersion Include="FluentValidation" Version="11.4.0" />
+    <PackageVersion Include="Handlebars.Net" Version="2.1.2" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.21" />
+    <PackageVersion Include="Hangfire.Core" Version="1.8.21" />
+    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.21" />
+    <PackageVersion Include="itext" Version="9.5.0" />
+    <PackageVersion Include="itext7" Version="9.5.0" />
+    <PackageVersion Include="itext7.bouncy-castle-adapter" Version="9.5.0" />
+    <PackageVersion Include="itext7.pdfhtml" Version="6.3.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authorization" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection" Version="8.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.Hosting.WindowsServices" Version="8.0.21" />
+    <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.4.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Windows.Compatibility" Version="8.0.11" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="NPOI" Version="2.6.0" />
+    <PackageVersion Include="PdfiumViewer" Version="2.13.0" />
+    <PackageVersion Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
+    <PackageVersion Include="Rotativa.AspNetCore" Version="1.4.0" />
+    <PackageVersion Include="Scrutor" Version="6.1.0" />
+    <PackageVersion Include="Serilog" Version="2.12.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="6.1.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="5.0.1" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="3.4.0" />
+    <PackageVersion Include="Serilog.Sinks.MSSqlServer" Version="6.0.0" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <PackageVersion Include="SkiaSharp" Version="3.119.1" />
+    <PackageVersion Include="SSH.NET" Version="2023.0.0" />
+    <PackageVersion Include="Svg.Skia" Version="0.5.2" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="8.1.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
+    <PackageVersion Include="System.Data.SqlClient" Version="4.9.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
+    <PackageVersion Include="System.Runtime.Caching" Version="8.0.1" />
+    <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <PackageVersion Include="Telerik.UI.for.AspNet.Core" Version="2023.1.117" />
+    <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <PackageVersion Include="ZXing.Net" Version="0.16.10" />
+    <PackageVersion Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.13" />
+  </ItemGroup>
+</Project>

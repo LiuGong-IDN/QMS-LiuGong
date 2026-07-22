@@ -1,0 +1,43 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.MachineProgram>()
+    .Name("ProgramGrid")
+    .Columns(columns =>
+    {
+        // kolom checkbox
+        columns.Template("<input type='checkbox' class='row-checkbox form-check-input' value='#: PROGRAM_ID #' style='width:20px; height:20px;' />")
+             .Title("<input type='checkbox' id='checkAll' style='width:20px; height:20px;' />")
+             .Width(50)
+             .HtmlAttributes(new { @class = "text-center" });
+        columns.Bound(o => o.PROGRAM_ID).Title("Action").Sortable(false).Width(60).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate(
+                @"<a class=""k-grid-edit cursor-pointer btnDetail"" data-ID='#: PROGRAM_ID#' data-name='#: PROGRAM_NAME#' title=""Programs"">
+                        <i class=""fa fa-edit fa-lg""></i>
+                    </a>&nbsp;"
+            );
+        columns.Bound(o => o.PROGRAM_CODE).Title("Program Category");
+        columns.Bound(o => o.PROGRAM_NAME).Title("Program Name");
+        columns.Bound(o => o.PACKAGE_QTY).Title("Package Qty").Width(100)
+            .HtmlAttributes(new { style = "text-align:right; white-space:normal" });
+        columns.Bound(o => o.CLAIMED_QTY).Title("Claimed Qty").Width(100)
+            .HtmlAttributes(new { style = "text-align:right; white-space:normal" });
+        columns.Bound(o => o.CLAIM_QTY).Title("Claim Qty").Sortable(false).Width(110)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible; padding-left: 0px;padding-right: 0px;" })
+            .Filterable(false)
+            .ClientTemplate(
+                @"<input type='number' min='1' class='claimQty is-number form-control' style='width:70%; max-height:24px; text-align: right; margin:auto;'/>"
+            );
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Machines List to display"))
+    .Pageable(p => p.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/MyMachines/MyMachines/GetProgramListByMachineId")).Data("setParameter"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("CREATED_DATE").Descending())
+    )
+    .AutoBind(true)
+)

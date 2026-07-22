@@ -1,0 +1,297 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using System.Globalization
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+
+@section scripts {
+    @Html.Partial("~/Areas/MyQCard/Views/ClaimHistory/Script/_ClaimHistoryVoucherDetail.cshtml")
+}
+@* @section modals {
+    @await Html.PartialAsync("~/Areas/MyQCard/Views/ClaimHistory/Component/ProgramDetail.cshtml")
+} *@
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Claim Detail</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <button type="button"
+                    class="btn btn-reset"
+                    onclick="window.location.href='/MyQcard/CLaimHistory/Index'">
+                <i class="fa fa-arrow-left mr-1"></i> Back
+            </button>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            @{
+                var ClaimData = Model.Data as IEnumerable<Modules.MyQCard.Model.ClaimDetail>;
+                var header = ClaimData.FirstOrDefault();
+            }
+            <input type="hidden" id="claimId" value="@header.CLAIM_ID" />
+            <input type="hidden" id="claimNo" value="@header.CLAIM_NO" />
+            <input type="hidden" id="statusId" value="@header.STATUS_ID" />
+            <input type="hidden" id="currentVoucherAmount" value="Rp @header.CURRENT_AMOUNT.ToString("N0", new CultureInfo("id-ID"))" />
+            <input type="hidden" id="latestGrandTotal" value="Rp @header.GRAND_TOTAL.ToString("N0", new CultureInfo("id-ID"))" />
+            <input type="hidden" id="claimPpn" value="@header.PPN" />
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row detail-container">
+                                <div class="col-md-6 header-details">
+                                    <div class="detail-item">
+                                        <label class="detail-label">Claim No.</label>
+                                        <span class="detail-value">@header.CLAIM_NO</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Claim Date</label>
+                                        <span class="detail-value">@header.CLAIM_DATE.ToString("dd-MMM-yyyy")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Status</label>
+                                        <span id="status" class="detail-value">@header.STATUS</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Serial No.</label>
+                                        <span class="detail-value">@header.SERIAL_NO</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Product Group</label>
+                                        <span class="detail-value">@header.ASSET_TYPE_NAME</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Product Model</label>
+                                        <span class="detail-value">@header.MODEL_NAME</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Category Claim</label>
+                                        <span class="detail-value">@header.CATEGORY_CLAIM</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Purchase Date</label>
+                                        <span class="detail-value">@header.PURCHASE_DATE.ToString("dd-MMM-yyyy")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Service Party</label>
+                                        <span class="detail-value">@header.SERVICE_PARTY_NAME</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Branch</label>
+                                        <span class="detail-value">@header.BRANCH</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">PDC</label>
+                                        <span class="detail-value">@header.PDC_NAME</span>
+                                    </div>
+                                </div>
+                                <!-- Gambar -->
+                                <div class="col-md-6">
+                                    <div class="bg-white d-flex">
+                                        <img src="@Url.Content(header.IMAGE_PATH ?? "~/img/liugongQcard.png")"
+                                             class="img-thumbnail"
+                                             alt="Machine Image" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Claim Voucher Detail</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    @{
+        if (header.STATUS_ID == 2 || header.STATUS_ID == 3 || header.STATUS_ID == 9)
+        {
+            <input type="hidden" id="claimStatusId" value="@header.STATUS_ID" />
+            @await Html.PartialAsync("~/Areas/MyQCard/Views/ClaimHistory/Grid/_ClaimVoucherDetailGrid.cshtml")
+        }
+        else
+        {
+            @await Html.PartialAsync("~/Areas/MyQCard/Views/ClaimHistory/Grid/_ClaimVoucherDetailGridView.cshtml")
+        }
+    }
+    
+    <div class="portlet-body" style="padding-top:15px;">
+        @Html.AntiForgeryToken()
+        @{
+            if (header.STATUS_ID == 3)
+            {
+                <div class="row col-md-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="form-group">
+                                    <label for="reasonReject" class="col-md-3">Reason</label>
+                                    <div class="form-group col-md-9">
+                                        <textarea id="reasonReject" name="reasonReject" class="form-control" disabled="disabled">@Html.Raw(Html.Encode(header.NOTES))</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (header.STATUS_ID == 7 || header.STATUS_ID == 8)
+            {
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-12" style="padding: 0;">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    @if (header.IsUnconfirmDeliveryNote)
+                                    {
+                                        var noteText = header.TotalUnconfirmDeliveryNote > 1 ? "delivery notes" : "delivery note";
+                                        <p class="text-muted" style="font-style: italic; margin-bottom: 10px;">
+                                            *) You have <b>@header.TotalUnconfirmDeliveryNote</b> @noteText that have not been confirmed for partial pickup.
+                                        </p>
+                                        <p class="text-muted" style="font-style: italic; margin-bottom: 10px;">
+                                            *) Several parts are currently unavailable. You may choose to wait until all parts are ready or proceed with a partial pick-up.
+                                        </p>
+                                    }
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <div class="form-group">
+                                        <a class="btn blue trigger" id="btnConfirmPartial">
+                                            <i class="fa fa-floppy-o"></i>
+                                            <span class="hidden-xs">Partial Pick-up</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+            }
+        }
+    </div>
+
+    <!-- Box Claim Summary di kanan -->
+    <div class="row" style="margin-top: 20px;">
+        <!-- LEFT : SHIPPING NOTES -->
+        <div class="col-md-7">
+            @if (header.STATUS_ID == 6)
+            {
+                <div class="portlet light bordered">
+
+                    <div class="portlet-body">
+                        <div class="form-group row">
+                            <label class="col-md-3">Shipping Notes</label>
+                            <div class="col-md-9">
+                                <textarea class="form-control"
+                                      disabled
+                                      style="height:80px;">@header.SHIPPING_NOTES</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+
+        <!-- RIGHT : CLAIM SUMMARY -->
+        <div class="col-md-5">
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption"><span class="caption-subject bold">Claim Summary</span></div>
+                </div>
+
+                <div class="portlet-body">
+
+                    <small class="text-muted" style="font-style: italic;">
+                        *) The amount of Remaining Balance could change after verification by LiuGong Administrator.
+                    </small>
+
+                    <br /><br />
+
+                    <div class="row" style="margin-bottom:10px;">
+                        <div class="col-md-5 text-right"><label>Claim Amount</label></div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control text-right" disabled
+                                   value="Rp @header.CLAIM_AMOUNT.ToString("N0", new System.Globalization.CultureInfo("id-ID"))" />
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:10px;">
+                        <div class="col-md-5 text-right">
+                            <label>PPN @header.PPN%</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control text-right" disabled
+                                   value="Rp @header.PPN_VALUE.ToString("N0", new System.Globalization.CultureInfo("id-ID"))" />
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:10px;">
+                        <div class="col-md-5 text-right"><label>Grand Total</label></div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control text-right" disabled
+                                   value="Rp @header.GRAND_TOTAL.ToString("N0", new System.Globalization.CultureInfo("id-ID"))" />
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:10px;">
+                        <div class="col-md-5 text-right"><label>Estimation Remaining Balance</label></div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control text-right" disabled
+                                   value="Rp @header.CURRENT_AMOUNT.ToString("N0", new System.Globalization.CultureInfo("id-ID"))" />
+                        </div>
+                    </div>
+                    @{
+                        if (header.STATUS_ID == 3 || header.STATUS_ID == 9)
+                        {
+                            <div id="claimAction" class="claim-action">
+                                <div class="row">
+                                    <div class="col-md-12 text-right">
+                                        <div class="form-group">
+                                            <a class="btn blue trigger" id="btnClaimVoucher">
+                                                <i class="fa fa-paper-plane"></i> <span class="hidden-xs">Update</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br />
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Status History</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    @await Html.PartialAsync("~/Areas/MyQCard/Views/ClaimHistory/Grid/_ClaimStatusHistoryGrid.cshtml")
+</div>

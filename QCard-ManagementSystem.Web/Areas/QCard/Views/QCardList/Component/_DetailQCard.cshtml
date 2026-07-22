@@ -1,0 +1,86 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+@section scripts {
+    @Html.Partial("~/Areas/QCard/Views/QCardList/Script/_DetailQCard.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Q-Card Detail</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <button type="button"
+                    class="btn btn-reset"
+                    onclick="window.location.href='/QCard/QCardList/Index'">
+                <i class="fa fa-arrow-left mr-1"></i> Back
+            </button>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            @{
+                var card = Model.Data as QCard.ManagementSystem.Domain.Modules.QCard.Model.QCardModel;
+            }
+            <!-- FORM DIGABUNGKAN DENGAN TABEL DI BAWAH -->
+            <form id="TopupForm" data-grid="QCardGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="CARD_ID" name="CARD_ID" value="@card.ID" />
+                <div class="inputs inputs-full-width">
+                    <!-- Customer -->
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label"><b>Customer</b></label>
+                        <div class="col-md-8 pt-2">
+                            <label id="CUSTOMER_ADD" class="form-control-plaintext">@card?.COMPANY_NAME</label>
+                        </div>
+                    </div>
+
+                    <!-- Card No. -->
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label"><b>Card No.</b></label>
+                        <div class="col-md-8 pt-2">
+                            <label id="CARD_NO_LABEL" class="form-control-plaintext">@card?.CARD_NO</label>
+                        </div>
+                    </div>
+
+                    <!-- Valid Thru -->
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label"><b>Valid Thru</b></label>
+                        <div class="col-md-8 pt-2">
+                            <label id="VALID_THRU" class="form-control-plaintext"></label>
+                            <input type="hidden" id="VALID_TO_MONTH" value="@card?.VALID_TO_MONTH" />
+                            <input type="hidden" id="VALID_TO_YEAR" value="@card?.VALID_TO_YEAR" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div class="page-head">
+                            <div class="page-title">
+                                <h1><span>Serial No. List</span></h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                @await Html.PartialAsync("~/Areas/QCard/Views/QCardList/Grid/_SerialNoGrid.cshtml")
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        App.DetailQCardManagement = new DetailQCardManagement();
+        App.DetailQCardManagement.InitManagement();
+    });
+</script>

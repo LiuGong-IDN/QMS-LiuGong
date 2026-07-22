@@ -1,0 +1,171 @@
+<script type="text/javascript">
+    function RegisterManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitHandlers();
+            },
+
+            InitControls: function () {
+                $("#COMPANY").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetCustomerList")",
+                                dataType: "json"
+                            }
+                        }
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Company. Check Q-Card to get company"
+                });
+
+                // Format input QCARD jadi 4-4-4-4
+                document.getElementById('QCARD').addEventListener('input', function (e) {
+                    let value = e.target.value.replace(/\D/g, '').substring(0, 16);
+                    e.target.value = value.replace(/(.{4})/g, '$1-').replace(/-$/, '');
+                });
+            },
+
+            InitHandlers: function () {
+                const self = this;
+
+                // --- Cek QCard ---
+                $("#btnCheckQCard").on('click', function (e) {
+                    e.preventDefault();
+
+                    const form = $("#registerform");
+                    const formData = Object.fromEntries(form.serializeArray().map(x => [x.name, x.value]));
+                    const qcardNo = (formData.QCARD || '').replace(/-/g, "");
+
+                    if (!qcardNo) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Q-Card cannot be empty."
+                        });
+                        return;
+                    }
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/User/CheckQCardByCardNo")",
+                        type: "POST",
+                        data: { qcardNo: qcardNo }
+                    })
+                    .done(d => {
+                        if (!d.Success) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: d.Message
+                            });
+                        } else {
+                            $("#COMPANY").data("kendoDropDownList").value(d.Data.CUSTOMER_ID);
+                        }
+                    })
+                    .fail((xhr, status, err) => {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                // --- Register ---
+                $("#btnRegister").on('click', function (event) {
+                    event.preventDefault();
+                    const $btn = $(this);
+                    $btn.prop("disabled", true);
+
+                    const form = $("#registerform");
+                    const formData = Object.fromEntries(form.serializeArray().map(x => [x.name, x.value]));
+
+                    // Validasi dasar
+                    if (formData.PASSWORD !== formData.PASSWORD_CONFIRM) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Password and confirmation password do not match."
+                        });
+                        $btn.prop("disabled", false);
+                        return;
+                    }
+
+                    const dataToSave = {
+                        ID: $("#ID").val() || "",
+                        ROLE: ["23"], // default role
+                        FIRST_NAME: formData.FIRST_NAME,
+                        LAST_NAME: formData.LAST_NAME,
+                        COMPANY: formData.COMPANY,
+                        EMAIL: formData.EMAIL,
+                        PHONE_NUMBER: formData.PHONE_NUMBER,
+                        QCARD: formData.QCARD.replace(/-/g, ""),
+                        PASSWORD: formData.PASSWORD,
+                        PASSWORD_CONFIRM: formData.PASSWORD_CONFIRM
+                    };
+                    console.log(dataToSave)
+                    const baseUrl = window.location.origin;
+                    const loginUrl = `${baseUrl}/core/account/login`;
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Account/Register")",
+                        type: "POST",
+                        data: { model: dataToSave },success: function (res) {
+                            if (!res.Success) {
+                                if (!res.Validate) {
+                                    console.log(res.Message)
+                                    ShowFormErrors(res.Message);
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.replace(loginUrl);
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $btn.prop("disabled", false);
+                });
+            }
+        };
+    }
+    function ShowFormErrors(errorsJson) {
+        const errors = JSON.parse(errorsJson);
+
+        // Clear all previous errors
+        $(".field-error").text("");
+
+        // Loop error dari backend dan tampilkan ke bawah input
+        errors.forEach(err => {
+            $(`.field-error[data-field="${err.PropertyName}"]`).text(err.ErrorMessage);
+        });
+    }
+
+    $(document).ready(function () {
+        const manager = new RegisterManagement();
+        manager.InitManagement();
+    });
+</script>

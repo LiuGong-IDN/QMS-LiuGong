@@ -1,0 +1,596 @@
+﻿@using Newtonsoft.Json
+@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using QCard.ManagementSystem.Domain.Modules.QCard.Model
+@using QCard.ManagementSystem.Infrastructure.Session
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+
+@section scripts {
+    @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Script/_ClaimProcessProgramDetail.cshtml")
+}
+@section modals {
+    @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Component/ProgramDetail.cshtml")
+    @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Component/UpdateQty.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    @{
+        var data = Model.Data as ClaimProcessDetail;
+        var claimData = data.Header;
+        var programDetail = data.ProgramDetail;
+    }
+    <!--Page Header-->
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Claim Detail</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <button type="button"
+                    class="btn btn-reset"
+                    onclick="window.location.href='/Qcard/CLaimProcess/Index'">
+                <i class="fa fa-arrow-left mr-1"></i> Back
+            </button>
+        </div>
+    </div>
+    <br />
+
+    <!--Content Header-->
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            <input type="hidden" id="claimId" value="@claimData.CLAIM_ID" />
+            <input type="hidden" id="unConfirmDn" value="@claimData.UNCONFIRM_DN" />
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row detail-container">
+                                <div class="col-md-6 header-details">
+                                    <div class="detail-item">
+                                        <label class="detail-label">Claim No.</label>
+                                        <input type="hidden" id="claimNo" value="@claimData.CLAIM_NO" />
+                                        <span class="detail-value">@claimData.CLAIM_NO</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Claim Date</label>
+                                        <span class="detail-value">@claimData.CLAIM_DATE?.ToString("dd-MMM-yyyy hh:mm:ss")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Status</label>
+                                        <input type="hidden" id="dataStatus" value="@claimData.STATUS_ID" />
+                                        <span id="status" class="detail-value">@claimData.STATUS</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Serial No.</label>
+                                        <span class="detail-value">@claimData.SERIAL_NO</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Product Group</label>
+                                        <span class="detail-value">@claimData.ASSET_TYPE_NAME</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Product Model</label>
+                                        <span class="detail-value">@claimData.MODEL_NAME</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Category Claim</label>
+                                        <span class="detail-value">@claimData.CATEGORY_CLAIM</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Purchase Date</label>
+                                        <span class="detail-value">@claimData.PURCHASE_DATE?.ToString("dd-MMM-yyyy")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Service Party</label>
+                                        <span class="detail-value">@claimData.SERVICE_PARTY_NAME</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">Branch</label>
+                                        <span class="detail-value">@claimData.BRANCH</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label class="detail-label">PDC</label>
+                                        <span class="detail-value">@claimData.PDC_NAME</span>
+                                    </div>
+                                </div>
+                                <!-- Gambar -->
+                                <div class="col-md-6">
+                                    <div class="bg-white d-flex">
+                                        <img src="@Url.Content(claimData.IMAGE_PATH ?? "~/img/liugongQcard.png")"
+                                             class="img-thumbnail"
+                                             alt="Machine Image" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--Grid Detail-->
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Claim Program Detail</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    @{
+        if(SessionManager.HasRoleLike("admin"))
+        {
+            @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Grid/_ClaimProcessProgramDetailGridAdmin.cshtml")
+
+        } else
+        {
+            @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Grid/_ClaimProcessProgramDetailGrid.cshtml")
+        }
+    }
+    <br />
+    @{
+        @if (claimData.STATUS_ID == 6 && (SessionManager.HasRoleLike("PDC") || SessionManager.HasRoleLike("admin")))
+        {
+            <form id="formProcess">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="claimStatusId" value="@claimData.STATUS_ID" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- batas lebar box -->
+                        <div class="portlet light bordered">
+                            <div class="portlet-body">
+                                <div class="form-group row">
+                                    <label class="col-md-4">Shipping Notes</label>
+                                    <div class="col-md-8">
+                                        <textarea class="form-control"
+                                          disabled
+                                          style="height:80px;">@claimData.SHIPPING_NOTES</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 text-right">
+                                <div class="form-group">
+                                    <a class="btn blue trigger" id="btnClaimProcess">
+                                        <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Update</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        }
+    }
+    @{
+        if (SessionManager.HasRoleLike("PDC"))
+        {
+            if (claimData.STATUS_ID == 2)
+            {
+                <div style="margin-bottom: 10px;" class="text-right">
+                    <button type="button" class="btn btn-success btn-sm" onclick="fillAvailableQty()">
+                        <i class="fa fa-magic"></i> Auto Fill Available Qty
+                    </button>
+                </div>
+                <form id="formProcess">
+                    @Html.AntiForgeryToken()
+                    <div class="row col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="claimStatus" class="col-md-3">Claim Status</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="hidden" id="claimStatusVal" value="@claimData.STATUS_ID" />
+                                            <input type="text" id="claimStatus" name="claimStatus" class="form-control" />
+                                            <span class="text-danger" id="CLAIM_STATUS"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*line 2*@
+                        <div id="divDnNumber" class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="DnNumber" class="col-md-3">Delivery Note No.</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="text" id="DnNumber" name="DnNumber" class="form-control text-uppercase reff-input" />
+                                            <span class="text-danger" id="DELIVERY_NOTE_NO"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*line 3*@
+                        <div id="divReason" class="row" style="display:none;">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="ReasonReject" class="col-md-3">Reason</label>
+                                        <div class="form-group col-md-9">
+                                            <textarea type="text" id="ReasonReject" name="ReasonReject" class="form-control"></textarea>
+                                            <span class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 text-right">
+                                <div class="form-group">
+                                    <a class="btn blue trigger" id="btnClaimProcess">
+                                        <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Update</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            }
+            else if (claimData.STATUS_ID == 3)
+            {
+                <form id="formProcess">
+                    @Html.AntiForgeryToken()
+                    <div class="row col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="ReasonReject" class="col-md-3">Reason</label>
+                                        <div class="form-group col-md-9">
+                                            <textarea id="ReasonReject" name="ReasonReject" class="form-control" disabled="disabled">@Html.Raw(Html.Encode(claimData.NOTES))</textarea>
+                                            <span class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            }
+            else if (claimData.STATUS_ID == 4)
+            {
+                <form id="formProcess">
+                    @Html.AntiForgeryToken()
+                    <div class="row col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="claimStatus" class="col-md-3">Claim Status</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="text" id="claimStatus" name="claimStatus" class="form-control" />
+                                            <span class="text-danger" id="CLAIM_STATUS"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*line 2*@
+                        <div id="divPgi" class="row" style="display:none;">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="PgiNo" class="col-md-3">PGI</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="text" id="PgiNo" name="PgiNo" class="form-control text-uppercase reff-input" />
+                                            <span class="text-danger" id="PGI_NO"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="divReason" class="row" style="display:none;">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="ReasonReject" class="col-md-3">Reason</label>
+                                        <div class="form-group col-md-9">
+                                            <textarea type="text" id="ReasonReject" name="ReasonReject" class="form-control"></textarea>
+                                            <span class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 text-right">
+                                <div class="form-group">
+                                    <a class="btn blue trigger" id="btnClaimProcess">
+                                        <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Update</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            }
+            else if (claimData.STATUS_ID == 5)
+            {
+                <form id="formProcess">
+                    @Html.AntiForgeryToken()
+                    <div class="row col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="claimStatus" class="col-md-3">Claim Status</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="text" id="claimStatus" name="claimStatus" class="form-control" />
+                                            <span class="text-danger" id="CLAIM_STATUS"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*line 2*@
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="SpbNo" class="col-md-3">No. SPB</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="text" id="SpbNo" name="SpbNo" class="form-control text-uppercase reff-input" />
+                                            <span class="text-danger" id="SPB_NO"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*line 3*@
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="ResiNo" class="col-md-3">No. Resi</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="text" id="ResiNo" name="ResiNo" class="form-control text-uppercase reff-input" />
+                                            <span class="text-danger" id="RESI_NO"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*line 4*@
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="ShippingAgent" class="col-md-3">Shipping Agent</label>
+                                        <div class="form-group col-md-9">
+                                            <input type="text" id="ShippingAgent" name="ShippingAgent" class="form-control" />
+                                            <span class="text-danger" id="ShippingAgent"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*line 5 - Notes (Mandatory for Self Pick-up)*@
+                        <div class="row" id="divSpbNotes" style="display:none;">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="SpbNotes" class="col-md-3">Shipping Notes</label>
+                                        <div class="form-group col-md-9">
+                                            <textarea id="SpbNotes" name="NOTES" class="form-control" rows="3"></textarea>
+                                            <span class="text-danger" id="SPB_NOTES"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 text-right">
+                                <div class="form-group">
+                                    <a class="btn blue trigger" id="btnClaimProcess">
+                                        <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Update</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            }
+            if (claimData.STATUS_ID == 30011)
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- batas lebar box -->
+                        <div class="portlet light bordered">
+                            <div class="portlet-body">
+                                <div class="form-group row">
+                                    <label class="col-md-4">Shipping Notes</label>
+                                    <div class="col-md-8">
+                                        <textarea class="form-control"
+                                      disabled
+                                      style="height:80px;">@claimData.SHIPPING_NOTES</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (claimData.STATUS_ID == 7)
+            {
+                <form id="formProcess">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="claimStatus" value="@claimData.STATUS_ID" />
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="text-right">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="fillAvailableQty()">
+                                        <i class="fa fa-magic"></i> Auto Fill Available Qty
+                                    </button>
+                                    <a class="btn blue trigger" id="btnUpdatePartClaimQty">
+                                        <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Update QTY</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            }
+            else if (claimData.STATUS_ID == 8)
+            {
+                @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Component/UpdateQty.cshtml")
+                <form id="formProcess">
+                    @Html.AntiForgeryToken()
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="text-right">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="fillAvailableQty()">
+                                        <i class="fa fa-magic"></i> Auto Fill Available Qty
+                                    </button>
+                                    <a class="btn blue trigger" id="btnUpdatePartClaimQty">
+                                        <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Update QTY</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row col-md-6">
+                        @*radio button group*@
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>
+                                        <input type="radio" id="pgiRadio" name="radioPGISPB" class="documentTypeRadio" /> PGI
+                                    </label>
+
+                                    <label style="margin-left: 15px;">
+                                        <input type="radio" id="spbRadio" name="radioPGISPB" class="documentTypeRadio" /> No. SPB
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        @*div PGI*@
+                        <div id="divPGI" style="display:none;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label for="PgiNo" class="col-md-3">PGI</label>
+                                            <div class="form-group col-md-9">
+                                                <input type="text" id="PgiNo" name="PgiNo" class="form-control text-uppercase reff-input" />
+                                                <span class="text-danger" id="PgiNo"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 text-right">
+                                    <div class="form-group">
+                                        <a class="btn btn-default blue" id="btnCreatePGI">
+                                            <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Create PGI</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @*div SPB*@
+                        <div id="divSPB" style="display:none;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label for="SpbNo" class="col-md-3">No. SPB</label>
+                                            <div class="form-group col-md-9">
+                                                <input type="text" id="SpbNo" name="SpbNo" class="form-control text-uppercase reff-input" />
+                                                <span class="text-danger" id="SpbNo"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label for="ResiNo" class="col-md-3">No. Resi</label>
+                                            <div class="form-group col-md-9">
+                                                <input type="text" id="ResiNo" name="ResiNo" class="form-control text-uppercase reff-input" />
+                                                <span class="text-danger" id="ResiNo"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label for="ShippingAgent" class="col-md-3">Shipping Agent</label>
+                                            <div class="form-group col-md-9">
+                                                <input type="text" id="ShippingAgent" name="ShippingAgent" class="form-control" />
+                                                <span class="text-danger" id="ShippingAgent"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" id="divSpbNotes" style="display:none;">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label for="SpbNotes" class="col-md-3">Shipping Notes</label>
+                                            <div class="form-group col-md-9">
+                                                <textarea id="SpbNotes" name="NOTES" class="form-control" rows="3"></textarea>
+                                                <span class="text-danger" id="SPB_NOTES"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 text-right">
+                                    <div class="form-group">
+                                        <a class="btn blue trigger" id="btnCreateSPB">
+                                            <i class="fa fa-floppy-o"></i> <span class="hidden-xs">Create SPB</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            }
+        }
+    }
+
+    <div class="portlet-body" style="padding-top:15px;">
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1>
+                            <span>Status History</span>
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Grid/_ClaimStatusHistoryGrid.cshtml")
+    </div>
+</div>
+<script>
+    var programDetailData = @Html.Raw(JsonConvert.SerializeObject(programDetail));
+</script>

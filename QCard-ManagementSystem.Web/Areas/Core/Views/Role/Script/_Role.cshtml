@@ -1,0 +1,351 @@
+﻿<script type="text/javascript">
+    var selectedFeatures = {};
+
+    function RoleManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+
+            InitControls: function () {
+                $('#ROLE_NAME_INPUT').on('input', function () {
+                    var value = $(this).val();
+                    $(this).val(
+                        value.replace(/\s+/g, '')
+                        .toUpperCase()
+                    );
+                });
+            },
+
+            InitValidation: function () {
+            },
+
+            InitHandlers: function () {
+                $("#btnAddRole").unbind("click").on("click", function () {
+                    var $modal = $.helper.getJqueryObject("RoleModal"),
+                        $form = $modal.find("form");
+
+                    document.getElementById("modalTitle").innerHTML = "Add Role";
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+
+                    $("#btnSaveRole").show();
+                    $("#btnUpdateRole").hide();
+
+                    $modal.modal("show");
+                });
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    $form.find("input[type='text']").val("");
+
+
+                });
+                $("#btnSaveRole").on("click", function () {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form"),
+                        formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+
+                    var Id = $("#ID").val() || "";
+
+                    var dataToSave = {
+                        ID: Id,
+                        ROLE_NAME: formData.ROLE_NAME,
+                        DESCRIPTION: formData.DESCRIPTION
+                    };
+
+                    console.log(dataToSave);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Role/Save")",
+                        type: "POST",
+                        data: { role: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("RoleGrid");
+                            }
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                $(".k-grid").on('click', ".k-grid-edit", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr),
+                        $modal = $.helper.getJqueryObject($el.data("modal")),
+                        $form = $modal.find("form");
+
+                    $("#ROLE_ID").val(dataItem.ID)
+                    $("#ROLE_NAME").val(dataItem.ROLE_NAME)
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Role/ReadRolePermission")",
+                        type: "POST",
+                        dataType: 'json',
+                        data: {
+                            roleName: $("#ROLE_NAME").val(),
+                            functionName: null
+                        },
+                        success: function (res) {
+                            if (res.Data.length > 0 || res.Data != null) {
+                                var grid = $("#RolePermissionGrid").data("kendoGrid");
+                                $modal.modal("show");
+                                grid.dataSource.data(res.Data);
+                            }
+                            else {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: res.Message,
+                                    icon: "error"
+                                });
+                                $modal.modal("hide");
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                $("#btnClearDetail").on('click', function (e) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    $("#FUNCTION_NAME").val("")
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Role/ReadRolePermission")",
+                        type: "POST",
+                        dataType: 'json',
+                        data: {
+                            roleName: $("#ROLE_NAME").val(),
+                            functionName: $("#FUNCTION_NAME").val()
+                        },
+                        success: function (res) {
+                            if (res.Data.length > 0 || res.Data != null) {
+                                var grid = $("#RolePermissionGrid").data("kendoGrid");
+
+                                res.Data.forEach(dataItem => {
+                                    if (selectedFeatures[dataItem.FUNCTION_ID]) {
+                                        Object.assign(dataItem, selectedFeatures[dataItem.FUNCTION_ID]);
+                                    }
+                                });
+                                grid.dataSource.data(res.Data);
+                            }
+                            else {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: res.Message,
+                                    icon: "error"
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                $("#btnSearchDetail").on('click', function (e) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Role/ReadRolePermission")",
+                        type: "POST",
+                        dataType: 'json',
+                        data: {
+                            roleName: $("#ROLE_NAME").val(),
+                            functionName: $("#FUNCTION_NAME").val()
+                        },
+                        success: function (res) {
+                            if (res.Data.length > 0 || res.Data != null) {
+                                var grid = $("#RolePermissionGrid").data("kendoGrid");
+
+                                res.Data.forEach(dataItem => {
+                                    if (selectedFeatures[dataItem.FUNCTION_ID]) {
+                                        Object.assign(dataItem, selectedFeatures[dataItem.FUNCTION_ID]);
+                                    }
+                                });
+                                grid.dataSource.data(res.Data);
+                            }
+                            else {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: res.Message,
+                                    icon: "error"
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                $(document).on("change", ".chkFeature", function () {
+                    var isChecked = $(this).is(":checked");
+                    var featureType = $(this).data("feature");
+                    var grid = $("#RolePermissionGrid").data("kendoGrid");
+                    var row = $(this).closest("tr");
+                    var dataItem = grid.dataItem(row);
+
+                    var feature = featureType.toUpperCase() + "_FEATURE";
+
+                    var itemId = dataItem.FUNCTION_ID;
+                    if (!selectedFeatures[itemId]) {
+                        selectedFeatures[itemId] = {};
+                    }
+                    selectedFeatures[itemId][feature] = isChecked;
+                });
+
+                $(document).on("click", ".btn-toggle-row", function () {
+                    var $btn = $(this);
+                    var $row = $btn.closest("tr");
+                    var grid = $("#RolePermissionGrid").data("kendoGrid");
+                    var dataItem = grid.dataItem($row);
+                    var itemId = dataItem.FUNCTION_ID;
+
+                    var isAllTrue = dataItem.CREATE_FEATURE && dataItem.UPDATE_FEATURE &&
+                        dataItem.DELETE_FEATURE && dataItem.UPLOAD_FEATURE &&
+                        dataItem.DOWNLOAD_FEATURE && dataItem.SEARCH_FEATURE &&
+                        dataItem.VIEW_FEATURE;
+
+                    var newValue = !isAllTrue;
+
+                    $row.find(".chkFeature").each(function () {
+                        $(this).prop("checked", newValue);
+                        $(this).trigger("change");
+
+                        var feature = $(this).data("feature");
+                        dataItem[feature + "_FEATURE"] = newValue;
+                    });
+
+                    if (!selectedFeatures[itemId]) selectedFeatures[itemId] = {};
+                    ["CREATE", "UPDATE", "DELETE", "UPLOAD", "DOWNLOAD", "SEARCH", "VIEW"].forEach(function (f) {
+                        selectedFeatures[itemId][f + "_FEATURE"] = newValue;
+                    });
+                });
+
+
+                $("#btnSaveRolePermission").on("click", function () {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+                    var grid = $("#RolePermissionGrid").data("kendoGrid");
+                    var dataSource = getCheckboxValuesFromGrid();
+                    var datasend = JSON.stringify(dataSource);
+
+                    var formData = new FormData();
+                    formData.append("data", datasend);
+                    const objformData = Object.fromEntries(formData.entries());
+                    console.log(objformData);
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Role/SavePermission")",
+                        type: "POST",
+                        data: formData,
+                        dataType: 'json',
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } 
+                            else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("RoleGrid");
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+            },
+        };
+    }
+
+    function getCheckboxValuesFromGrid() {
+        var data = [];
+
+        $("#RolePermissionGrid tbody tr").each(function () {
+            var $tr = $(this);
+
+            var functionId = $tr.find("td:eq(1)").text().trim();
+
+            var rowData = {
+                ROLE_ID: $("#ROLE_ID").val(),
+                ROLE_NAME: $("#ROLE_NAME").val(),
+                FUNCTION_ID: functionId,
+                CREATE_FEATURE: $tr.find("input[data-feature='CREATE']").prop("checked"),
+                UPDATE_FEATURE: $tr.find("input[data-feature='UPDATE']").prop("checked"),
+                DELETE_FEATURE: $tr.find("input[data-feature='DELETE']").prop("checked"),
+                UPLOAD_FEATURE: $tr.find("input[data-feature='UPLOAD']").prop("checked"),
+                DOWNLOAD_FEATURE: $tr.find("input[data-feature='DOWNLOAD']").prop("checked"),
+                SEARCH_FEATURE: $tr.find("input[data-feature='SEARCH']").prop("checked"),
+                VIEW_FEATURE: $tr.find("input[data-feature='VIEW']").prop("checked")
+            };
+
+            data.push(rowData);
+        });
+
+        return data;
+    }
+</script>

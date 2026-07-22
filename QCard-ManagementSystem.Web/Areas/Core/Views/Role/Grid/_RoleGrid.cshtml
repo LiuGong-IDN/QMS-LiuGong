@@ -1,0 +1,29 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.Role>()
+    .Name("RoleGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.ID).Title("Action").Sortable(false).Width(70).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false).ClientTemplate(
+        @"<div class=""btn-group"">" +
+            "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("RoleMaintenance", Feature.UPDATE_FEATURE).ToString().ToLower() + ")" +
+            "{#" +
+            @"<a class=""k-grid-edit cursor-pointer"" data-modal='RolePermissionModal' title=""Edit""><i class=""fa fa-edit fa-lg""></i></a>&nbsp;" +
+            "#}#" +
+        @"</div>");
+        columns.Bound(o => o.ROLE_NAME).Title("Role Name").Width(300);
+        columns.Bound(o => o.DESCRIPTION).Title("Description").Width(300);
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Role List to display"))
+    .Pageable(pageable => pageable.PageSizes(new[] { 3, 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/Core/Role/Read")))
+        .PageSize(10)
+        .Sort(sort => sort.Add("CREATED_DATE").Descending())
+    )
+)

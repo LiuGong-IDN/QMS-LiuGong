@@ -1,0 +1,296 @@
+﻿@using System.Text.RegularExpressions;
+@using System.Globalization;
+@inject IMemoryCache AppCache
+@using QCard.ManagementSystem.Infrastructure.Session;
+@using QCard.ManagementSystem.Infrastructure.Cache;
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.Extensions.Caching.Memory;
+@using System.IdentityModel.Tokens.Jwt;
+@using QCard.ManagementSystem.Service;
+@using QCard.ManagementSystem.Web;
+@{
+    ApplicationCacheManager.GenerateConfigs();
+    var IdleTimeoutLimit = ApplicationCacheManager.GetConfig<int>("IDLE_TIMEOUT_LIMIT", "IDLE_TIMEOUT");
+    var IdleTimeoutDisplayLimit = ApplicationCacheManager.GetConfig<int>("IDLE_TIMEOUT_DISPLAY", "IDLE_TIMEOUT");
+    var usersession = SessionManager.UserSession;
+
+    var token = string.Empty;
+    if (usersession != null)
+    {
+        token = usersession.Token;
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<!-- begin::Head -->
+<head>
+    <!--begin::Base Path (base relative path for assets of this page) -->
+    <meta charset="utf-8" />
+    <meta name="token" content="@token">
+    <meta name="timeoutLimit" content="@IdleTimeoutLimit">
+    <meta name="timeoutDisplayLimit" content="@IdleTimeoutDisplayLimit">
+    @{
+        String controllerName = (String)ViewContext.RouteData.Values["Controller"];
+        String pageTitle = Regex.Replace(controllerName, "[a-z][A-Z]", m => m.Value[0] + " " + char.ToLower(m.Value[1]));
+        TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+        String pageTitleWithTitleCase = textInfo.ToTitleCase(pageTitle);
+    }
+    <title>@pageTitleWithTitleCase</title>
+    @*<meta name="description" content="QCard.ManagementSystem">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">*@
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <link rel="shortcut icon" href="@Url.Content("~/favicon.png")" />
+
+    <!--begin:: Global Mandatory Vendors -->
+    <!--end:: Global Mandatory Vendors -->
+    <!--begin:: Global Optional Vendors -->
+    <link href="~/vendors/general/bootstrap-select/dist/css/bootstrap-select.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/vendors/general/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/vendors/general/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/vendors/general/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/vendors/general/sweetalert2/dist/sweetalert2.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/vendors/general/fontawesome/css/all.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/vendors/custom/vendors/line-awesome/css/line-awesome.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/vendors/custom/fullcalendar/fullcalendar.bundle.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/lib/calendar/css/responsive-calendar.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+
+    <!--end:: Global Optional Vendors -->
+    <!--begin:: Global Optional Vendors -->
+    @* <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Poppins" /> *@
+    <!--end:: Global Optional Vendors -->
+    <link href="~/Content/GlobalStyle.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    @*@Html.Partial("Styles/_Common")*@
+    <partial name="Styles/_Common" />
+    @RenderSection("styles", false)
+
+    <!-- JQUERY & KENDO CORE SCRIPT SECTION -->
+    <script src="~/Content/theme/Metronic/global/plugins/jquery.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/js/jquery-migrate-3.4.0.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/Kendo/kendo.custom.min.js" asp-append-version="true"></script>
+    <script src="~/js/jquery.number.js" asp-append-version="true"></script>
+    <script src="~/vendors/general/sweetalert2/dist/sweetalert2.js" asp-append-version="true"></script>
+    <script src="~/vendors/kendo.all.min.js" asp-append-version="true"></script>
+    <script src="~/vendors/Kendo/kendo.upload.min.js" asp-append-version="true"></script>
+    <script src="~/js/custom.js" asp-append-version="true"></script>
+    <script src="~/lib/calendar/js/responsive-calendar.js" asp-append-version="true"></script>
+</head>
+<!-- end::Head -->
+<!-- begin::Body -->
+<body class="page-container-bg-solid page-header-fixed page-sidebar-closed-hide-logo page-md" id="wrapToggle">
+    <!-- PAGE HEADER SECTION -->
+    <partial name="_Header" />
+    <!-- begin:: Toolbar -->
+    @RenderSection("toolbar", false)
+    <!-- end:: Toolbar -->
+    <!-- CONTENT SECTION -->
+
+    <div class="page-container">
+        <div class="page-sidebar-wrapper">
+            <div class="page-sidebar navbar-collapse collapse">
+                @*<div class="menu-toggler sidebar-toggler">
+                <img src="~/img/single-sidebar-toggle-grey.png" style="margin-top:10px; display: block; margin-left: auto; margin-right: auto; width:40%; height:5px;" class="center" />
+                </div>
+                <a href="javascript:;" class="menu-toggler responsive-toggler" data-toggle="collapse" data-target=".navbar-collapse"> </a>*@
+                @QCard.ManagementSystem.Infrastructure.Helper.MenuHelpers.Sidebar()
+            </div>
+        </div>
+        <div class="page-content-wrapper">
+            <div class="page-content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    <!-- PAGE FOOTER SECTION -->
+    <partial name="_Footer" />
+
+    <script src="~/vendors/general/popper.js/dist/umd/popper.js" type="text/javascript" asp-append-version="true"></script>
+    @*<script src="~/vendors/general/bootstrap/dist/js/bootstrap.min.js" type="text/javascript" asp-append-version="true"></script>*@
+    <script src="~/vendors/general/js-cookie/src/js.cookie.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/moment/min/moment.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/tooltip.js/dist/umd/tooltip.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/perfect-scrollbar/dist/perfect-scrollbar.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/sticky-js/dist/sticky.min.js" type="text/javascript" asp-append-version="true"></script>
+    <!--end:: Global Mandatory Vendors -->
+    <!--begin:: Global Optional Vendors -->
+
+    <script src="~/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/block-ui/jquery.blockUI.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/js/vendors/bootstrap-datepicker.init.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/bootstrap-datetime-picker/js/bootstrap-datetimepicker.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/bootstrap-timepicker/js/bootstrap-timepicker.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/js/vendors/bootstrap-timepicker.init.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/bootstrap-daterangepicker/daterangepicker.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/bootstrap-select/dist/js/bootstrap-select.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/bootstrap-switch/dist/js/bootstrap-switch.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/js/vendors/bootstrap-switch.init.js" type="text/javascript" asp-append-version="true"></script>
+    @*<script src="~/vendors/general/select2/dist/js/select2.full.js" type="text/javascript" asp-append-version="true"></script>*@
+    <script src="~/vendors/general/jquery-validation/dist/jquery.validate.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/jquery-validation/dist/additional-methods.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/js/vendors/jquery-validation.init.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/toastr/build/toastr.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/vendors/bootstrap-session-timeout/dist/bootstrap-session-timeout.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/vendors/jquery-idletimer/idle-timer.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/es6-promise-polyfill/promise.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/sweetalert2/dist/sweetalert2.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/js/vendors/sweetalert2.init.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/nouislider/distribute/nouislider.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/general/wnumb/wNumb.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/vendors/custom/fullcalendar/fullcalendar.bundle.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/js/jquery.showmore.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/js/jquery-dateformat.min.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/js/jquery.mask.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/js/inputmask.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/js/inputmask.extensions.js" type="text/javascript" asp-append-version="true"></script>
+    <!--end:: Global Optional Vendors -->
+
+    <script src="~/js/helper.js" type="text/javascript" asp-append-version="true"></script>
+
+    <!--end::Global Theme Bundle -->
+    <!-- MODAL SECTION -->
+    @RenderSection("modals", false)
+
+    <div class="ajax-loading"></div>
+    <span id="popupNotification"></span>
+    @RenderSection("kendoscripts", false)
+    @*@Html.Partial("Scripts/_Common")*@
+    <partial name="Scripts/_Common" />
+
+
+    @{
+        await Html.RenderPartialAsync("~/Views/Shared/Modals/_TimeoutModal.cshtml");
+    }
+
+    @RenderSection("scripts", required: false)
+
+    <script type="text/javascript" src="~/js/jquery-idleTimeout.js"></script>
+    <script type="text/javascript" src="~/js/store.min.js"></script>
+
+    <script type="text/javascript">
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 5000,
+            iconColor: 'white',
+            timerProgressBar: true,
+            customClass: {
+                popup: 'colored-toast',
+            },
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+
+        var notification = $("#popupNotification").kendoNotification().data("kendoNotification");
+
+
+        function onShow(e) {
+            if (e.sender.getNotifications().length == 1) {
+                var element = e.element.parent(),
+                    eWidth = element.width(),
+                    eHeight = element.height(),
+                    wWidth = $(window).width(),
+                    wHeight = $(window).height(),
+                    newTop, newLeft;
+
+                //newLeft = Math.floor(wWidth / 2 - eWidth / 2);
+                //newTop = Math.floor(wHeight / 2 - eHeight / 2);
+
+                newLeft = Math.floor(wWidth - eWidth - 50);
+                newTop = Math.floor(eHeight + 10);
+
+                e.element.parent().css({ top: newTop, left: newLeft });
+            }
+        }
+
+        notification.setOptions({
+            autoHideAfter: 15000,
+            show: onShow,
+            stacking: 'default'
+        });
+
+
+        let idletimeoutlimit = $("meta[name='timeoutLimit']").attr("content");
+        let idletimeoutdisplaylimit = $("meta[name='timeoutDisplayLimit']").attr("content");
+        $(document).idleTimeout({
+            redirectUrl: "@Url.Content("~/Core/Account/Logout")",      // redirect to this url
+            idleTimeLimit: idletimeoutlimit, // separate each event with a space
+            dialogDisplayLimit: idletimeoutdisplaylimit, // Time to display the warning dialog before logout (and optional callback) in seconds
+            sessionKeepAliveTimer: false // Set to false to disable pings.
+        });
+
+        $(function () {
+            $.blockUI.defaults.baseZ = 100000;
+            //console.log("toggle-status ->", localStorage.getItem("toggle"))
+            if (localStorage.getItem("toggle") == null) {
+                localStorage.setItem("toggle", "open")
+            }
+
+            if (localStorage.getItem("toggle") == "close") {
+                $("#wrapToggle").addClass("page-sidebar-closed");
+                $(".dvtoggler").css('padding-left', '54px');
+            }
+
+            $('.menu-toggler').on('click', function () {
+                if ($("#wrapToggle").hasClass("page-sidebar-closed")) {
+                    localStorage.setItem("toggle", "open")
+                }
+                else {
+                    localStorage.setItem("toggle", "close")
+                }
+            })
+
+            $(document).ajaxStart(function () {
+                $("body").addClass("loading");
+            }).ajaxStop(function () {
+                $("body").removeClass("loading");
+            });
+
+
+        });
+
+        //To get QueryString
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        localStorage.setItem("token", $("meta[name='token']").attr("content"));
+
+        $.post("@Url.Content("~/Core/Account/CheckTokenExpired")", function (d) {
+            localStorage.setItem("token", d.token);
+        })
+        .fail(function (xhr, status, err) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: `${status}: ${xhr.responseText || err}`
+            });
+        });
+
+        function DateNow(){
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            let mm = today.getMonth() + 1; // Months start at 0!
+            let dd = today.getDate();
+
+            if (dd < 10) dd = '0' + dd;
+            if (mm < 10) mm = '0' + mm;
+
+            const formattedToday = dd + '/' + mm + '/' + yyyy;
+            return formattedToday;
+        }
+    </script>
+
+</body>
+<!-- end::Body -->
+</html>

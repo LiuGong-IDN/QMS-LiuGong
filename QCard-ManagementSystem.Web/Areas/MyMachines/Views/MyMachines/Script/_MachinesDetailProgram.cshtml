@@ -1,0 +1,215 @@
+﻿<script type="text/javascript">
+    var SourceData;
+
+    function MachinesDetailManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                resizeMachineImage();
+                $("#PDC_ID").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetPDC")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select PDC.."
+                });
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                $(document).on("change", "#checkAll", function () {
+                    var checked = this.checked;
+                    $(".row-checkbox").prop("checked", checked);
+                });
+
+                $('.k-grid').on('click', '.btnDetail', function (e) {
+                    var $el = $(this);
+                    var programId = $el.data('id');
+                    var programName = $el.data('name');
+                    console.log(programId)
+
+                     $('#programDetailTitle').text("Program Detail - " + programName);
+
+                    var $modal = $.helper.getJqueryObject('ProgramDetailModal');
+
+                    $.ajax({
+                        url: "@Url.Content("~/MyMachines/MyMachines/GetProgramDetails")",
+                        type: "POST",
+                        data: { programId: programId },
+                        success: function (d) {
+                            SourceData = d;
+
+                            var grid = $("#ProgramDetailGrid").data("kendoGrid");
+                            grid.dataSource.data(SourceData);
+
+                            $modal.modal("show");
+                        },
+                        error: function (xhr, status, error) {
+                            // gabungkan semua kemungkinan pesan error
+                            let message = "";
+
+                            if (xhr.responseText) {
+                                message = xhr.responseText;
+                            } else if (error) {
+                                message = error;
+                            } else {
+                                message = "An error occurred when processing this request.";
+                            }
+
+                            Swal.fire({
+                                icon: "error",
+                                title: "Load Data Failed",
+                                text: `${status}: ${message}`,
+                            });
+                        }
+                    });
+                });
+
+                 $("#btnReset").on("click", function () {
+                     $("#checkAll").prop("checked", false);
+                    $(".row-checkbox").prop("checked", false);
+                 });
+
+                $("#btnClaim").on("click", function () {
+                    var $el = $(this);
+                    var $form = $("#PdcForm");
+                    var machineId = $("#machineID").val();
+                    var dataToSave = buildDataToSave(machineId);
+                    var selectedProgram = dataToSave.SELECTED_PROGRAM;
+                    var hasInvalid = selectedProgram.some(p =>
+                        !p.CLAIM_QTY || p.CLAIM_QTY.trim() === "" || p.CLAIM_QTY === "0"
+                    );
+                    if(selectedProgram.length == 0){
+                        Swal.fire({
+                            title: "Error",
+                            text: "No Program selected",
+                            icon: "error"
+                        });
+                        return
+                    }
+                    if(hasInvalid){
+                        Swal.fire({
+                            title: "Error",
+                            text: "There is an empty Qty from selected program",
+                            icon: "error"
+                        });
+                        return
+                    }
+                    console.log("dataToSave:", dataToSave);
+
+                    $el.prop("disabled", true);
+                     Swal.fire({
+                        title: "Are you sure?",
+                        text: "Are you sure you want to claim the selected Program Code? The selected Program(s) Package Qty will be deducted after claim",
+                        icon: "warning",
+                        showCancelButton: true,
+                        cancelButtonText: "No",
+                        confirmButtonText: "Yes"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '@Url.Action("Claim", "MyMachines", new { area = "MyMachines" })',
+                                type: "POST",
+                                data: { request: dataToSave },
+                                success: function (res) {
+                                    if (!res.Success) {
+                                        if (!res.Validate) {
+                                            ShowErrorMessage($form, JSON.parse(res.Message));
+                                        } else {
+                                            Swal.fire({
+                                                title: "Error",
+                                                text: res.Message,
+                                                icon: "error"
+                                            });
+                                        }
+                                    } else {
+                                        Swal.fire({
+                                            icon: "success",
+                                            title: "Success"
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                window.location.href = "/MyQCard/ClaimHistory";
+                                            }
+                                        });
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                    $el.prop("disabled", false);
+                });
+                $("#btnReset").on("click", function () {
+                    document.querySelectorAll('.claimQty').forEach(el => el.value = '');
+                    $("#PDC_ID").data("kendoDropDownList").value('');
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        MachinesDetailManagement = new MachinesDetailManagement();
+        MachinesDetailManagement.InitManagement();
+    });
+    $(window).resize(function () {
+            resizeMachineImage();
+    });
+
+     function resizeMachineImage() {
+         console.log('resize');
+        var leftHeight = $('.machine-details').outerHeight();
+        $('.machine-image').height(leftHeight);
+    }
+
+    function setParameter() {
+        var machineId = $("#machineID").val();
+        return {
+            machineId: machineId,
+        };
+    }
+
+    function buildDataToSave(machineId) {
+        var selectedProgram = [];
+        var pdcDropdown = $("#PDC_ID").data("kendoDropDownList");
+        var pdcId = pdcDropdown.value();
+
+        $(".row-checkbox:checked").each(function () {
+            var $row = $(this).closest("tr");
+            var programId = $(this).val();
+            var claimQty = $row.find(".claimQty").val();
+
+            selectedProgram.push({
+                PROGRAM_ID: programId,
+                CLAIM_QTY: claimQty
+            });
+        });
+
+        var dataToSave = {
+            MACHINE_ID: machineId,
+            PDC_ID: pdcId,
+            SELECTED_PROGRAM: selectedProgram
+        };
+
+        return dataToSave;
+    }
+</script>

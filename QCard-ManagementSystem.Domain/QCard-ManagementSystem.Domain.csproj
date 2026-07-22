@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Modules\Inquiry\**" />
+    <Compile Remove="Modules\Others\**" />
+    <Compile Remove="Modules\Process\**" />
+    <Compile Remove="Modules\Return\**" />
+    <Compile Remove="Modules\Transaction\**" />
+    <EmbeddedResource Remove="Modules\Inquiry\**" />
+    <EmbeddedResource Remove="Modules\Others\**" />
+    <EmbeddedResource Remove="Modules\Process\**" />
+    <EmbeddedResource Remove="Modules\Return\**" />
+    <EmbeddedResource Remove="Modules\Transaction\**" />
+    <None Remove="Modules\Inquiry\**" />
+    <None Remove="Modules\Others\**" />
+    <None Remove="Modules\Process\**" />
+    <None Remove="Modules\Return\**" />
+    <None Remove="Modules\Transaction\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Modules\Core\Model\Destination.cs" />
+    <Compile Remove="Modules\Core\Model\GeneralCategory.cs" />
+    <Compile Remove="Modules\Core\Repository\GeneralCategoryRepository.cs" />
+    <Compile Remove="Modules\Core\ViewModel\Menu.cs" />
+    <Compile Remove="Modules\Core\ViewModel\Roles.cs" />
+    <Compile Remove="Repository.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Dapper.Contrib" />
+    <PackageReference Include="EPPlus" />
+    <PackageReference Include="Handlebars.Net" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="Telerik.UI.for.AspNet.Core" />
+  </ItemGroup>
+</Project>

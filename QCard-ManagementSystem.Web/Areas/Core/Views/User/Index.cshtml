@@ -1,0 +1,99 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/User/Script/_User.cshtml")
+    @Html.Partial("~/Areas/Core/Views/User/Script/_UserUpload.cshtml")
+}
+
+@section modals {
+    @Html.Partial("~/Areas/Core/Views/User/Component/_UserForm.cshtml")
+    @Html.Partial("~/Areas/Core/Views/User/Component/_UserUploadForm.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>User Maintenance</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+           <form data-grid="UserGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="firstNameFilter"><b>First Name</b></label>
+                                <input id="firstNameFilter" type="text" class="form-control" data-filter='{ "operator": "contains", "field": "FIRST_NAME" }' />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="roleNameFilter"><b>Role Name</b></label>
+                                <input id="roleNameFilter" type="text" class="form-control" data-filter='{ "operator": "contains", "field": "ROLE_NAME" }' />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                            <div class="form-group" style="margin-top:10px;">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("UserMaintenance", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn btn-default blue trigger" id="btnSearch" style="background-color:#002F75; border-color:#002F75;color:white;">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+                                </text>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="form-group" style="margin-top:10px;">
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("UserMaintenance", Feature.CREATE_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-success" id="btnAddUser">
+                                        <i class="fa fa-plus"></i>Add User
+                                    </a>
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("UserMaintenance", Feature.UPDATE_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-default blue" id="btnUploadUser" style="background-color:#002F75; border-color:#002F75;color:white;">
+                                        <i class="fa fa-arrow-up"></i>Upload User
+                                    </a>
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("UserMaintenance", Feature.DOWNLOAD_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-reset" id="btnDownloadTemplateUser">
+                                        <i class="fa fa-download"></i>Download Template
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+           </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/Core/Views/User/Grid/_UserGrid.cshtml")
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        App.UserManagement = new UserManagement();
+        App.UserManagement.InitManagement();
+    });
+</script>

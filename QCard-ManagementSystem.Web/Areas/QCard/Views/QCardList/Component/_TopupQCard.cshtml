@@ -1,0 +1,140 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@model QCard.ManagementSystem.Domain.Modules.QCard.ViewModel.QCardListView
+
+@section scripts {
+    @Html.Partial("~/Areas/QCard/Views/QCardList/Script/_TopupQCard.cshtml")
+    @Html.Partial("~/Areas/QCard/Views/QCardList/Script/_SerialNoUpload.cshtml")
+}
+@section modals {
+    @Html.Partial("~/Areas/QCard/Views/QCardList/Component/_SerialNoUploadForm.cshtml")
+}
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1><span>Top Up Q-Card</span></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <button type="button"
+                    class="btn btn-reset"
+                    onclick="window.location.href='/QCard/QCardList/Index'">
+                <i class="fa fa-arrow-left mr-1"></i> Back
+            </button>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+
+            <form id="TopupForm" data-grid="QCardGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="CARD_ID" name="CARD_ID" value="@Model.ID" />
+                <div class="inputs inputs-full-width">
+                    <!-- Customer -->
+                    <div class="form-group row mb-2">
+                        <label for="CUSTOMER_ADD" class="col-md-2 col-form-label">Customer</label>
+                        <div class="col-md-8">
+                            <input type="hidden" id="CUSTOMER_ID" value="@Model?.CUSTOMER_ID" />
+                            <input id="CUSTOMER_ADD" name="CUSTOMER_ADD" class="form-control"
+                                   style="width: 100%;" readonly value="@Model?.COMPANY_NAME" />
+                        </div>
+                    </div>
+
+                    <!-- Card No. -->
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Card No.</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="QCARD_NO" readonly value="@Model?.CARD_NO" />
+                        </div>
+                    </div>
+
+                    <!-- Valid Thru -->
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Valid Thru</label>
+                        <div class="col-md-4">
+                            <input type="text" id="VALID_TO_MONTH" name="VALID_TO_MONTH"
+                                   class="form-control" readonly value="@Model?.VALID_TO_MONTH" />
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="VALID_TO_YEAR" name="VALID_TO_YEAR"
+                                   class="form-control" readonly value="@Model?.VALID_TO_YEAR" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div class="page-head">
+                            <div class="page-title">
+                                <h1><span>Serial No. List</span></h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <a href="#" class="btn btn-success btn-sm" id="btnAddSerialNo">
+                            <i class="fa fa-plus"></i>Add Serial No.
+                        </a>
+                        <a href="#" class="btn blue trigger btn-sm" id="btnUploadSerialNoDetail">
+                            <i class="fa fa-upload"></i>Upload Serial No.
+                        </a>
+                        @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("QCardList", Feature.DOWNLOAD_FEATURE))
+                        {
+                            <a href="#" class="btn btn-reset btn-sm" id="btnDownloadTopupQCard">
+                                <i class="fa fa-download"></i>Download Template
+                            </a>
+                        }
+                        <table class="table table-bordered table-striped detail-table" id="SerialNoTable" style="margin-top: 8px">
+                            <thead class= "detail-table-header">
+                                <tr>
+                                    <th style="width: 10%;text-align: center; vertical-align: middle;">Action</th>
+                                    <th style="width: 20%;text-align: center; vertical-align: middle;">Serial No.</th>
+                                    <th style="width: 20%;text-align: center; vertical-align: middle;">Product Group</th>
+                                    <th style="width: 20%;text-align: center; vertical-align: middle;">Product Model</th>
+                                    <th style="width: 20%;text-align: center; vertical-align: middle;">Category Claim</th>
+                                    <th style="width: 20%;text-align: center; vertical-align: middle;">Purchase Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Row akan ditambahkan via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="form-group row">
+                    <div class="col-md-12 text-right">
+                        <button type="button" class="btn blue trigger" id="btnSaveTopup">
+                            <i class="fa fa-save"></i>&nbsp;Save
+                        </button>
+                        <a class="btn btn-reset" id="btnReset">
+                            <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+    #SerialNoTable td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        App.TopupQCardManagement = new TopupQCardManagement();
+        App.TopupQCardManagement.InitManagement();
+    });
+</script>

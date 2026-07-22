@@ -1,0 +1,45 @@
+﻿.margin-bottom-0 {
+    margin-bottom: 0px !important;
+}
+
+.ajax-loading {
+    display: none;
+    position: fixed;
+    z-index: 10060;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba( 255, 255, 255, .8 ) url('../img/ajax-loader.gif') 50% 50% no-repeat;
+}
+
+body.loading .ajax-loading {
+    overflow: hidden;
+}
+
+body.loading .ajax-loading {
+    display: block;
+}
+ 
+.k-grid-content-locked {
+    height: auto !important;
+}
+
+.k-grid-content {
+    min-height: 50px !important;
+}
+
+.k-grid .k-grid-header .k-header .k-link .k-column-title {
+    height: auto;
+    white-space: normal;
+    text-align: center;
+}
+
+.k-calendar {
+    font-size: 15px;
+}
+
+::placeholder {
+    color: skyblue;
+    font: italic;
+}

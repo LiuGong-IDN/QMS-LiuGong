@@ -1,0 +1,216 @@
+﻿@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+@using QCard.ManagementSystem.Domain.Modules.QCard.Model
+@using SkiaSharp
+@using Svg.Skia
+@using System.IO
+
+@{
+    Layout = null;
+
+    var qcardsPrint = Model?.Data as QCardPrintModel;
+    var qcards = qcardsPrint.qcardDatas.ToList();
+
+@functions {
+    string ReplaceSvgText(string svg, string id, string newValue)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            svg,
+            $@"(<text[^>]*id\s*=\s*""{id}""[^>]*>\s*<tspan[^>]*>)(.*?)(<\/tspan>)",
+            match =>
+            {
+                var before = match.Groups[1].Value;
+                var after = match.Groups[3].Value;
+                return $"{before}{System.Net.WebUtility.HtmlEncode(newValue)}{after}";
+            },
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
+        );
+    }
+
+    // Versi sederhana: Replace seluruh tag text Card No
+    string ReplaceCardNoText(string svg, string id, string newValue, string fontSize = "28", string letterSpacing = "8")
+    {
+        // Cari dan ganti seluruh tag <text> dengan id yang dimaksud
+        var pattern = $@"<text[^>]*id\s*=\s*""{id}""[^>]*>.*?</text>";
+
+        var replacement = $@"<text id=""{id}"" x=""10"" y=""180"" font-size=""{fontSize}"" letter-spacing=""{letterSpacing}"" style=""font-family: ocr a std; fill: #ffffff;""><tspan x=""36"" y=""135"">{System.Net.WebUtility.HtmlEncode(newValue)}</tspan></text>";
+
+        // Note: Sesuaikan x, y, dan fill sesuai dengan posisi dan warna di template SVG Anda
+
+        return System.Text.RegularExpressions.Regex.Replace(
+            svg,
+            pattern,
+            replacement,
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
+        );
+    }
+    string ReplaceCardNoWithTspan(string svg, string id, string cardNo,
+    float startX = 36,
+    float y = 135,
+    float digitStep = 14,
+    float groupExtra = 12,
+    string fontSize = "18")
+    {
+        var pattern = $@"<text[^>]*id\s*=\s*""{id}""[^>]*>.*?</text>";
+
+        var x = startX;
+        var sb = new System.Text.StringBuilder();
+
+        sb.Append($@"<text id=""{id}"" font-family=""ocr a std"" font-size=""{fontSize}"" fill=""#ffffff"">");
+
+        for (int i = 0; i < cardNo.Length; i++)
+        {
+            sb.Append($@"<tspan x=""{x}"" y=""{y}"">{cardNo[i]}</tspan>");
+            x += digitStep;
+
+            if ((i + 1) % 4 == 0)
+                x += groupExtra;
+        }
+
+        sb.Append("</text>");
+
+        return System.Text.RegularExpressions.Regex.Replace(
+            svg,
+            pattern,
+            sb.ToString(),
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
+        );
+    }
+}
+
+    string SvgToBase64Png(string svgContent)
+    {
+        var svg = new SKSvg();
+        using (var ms = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(svgContent)))
+        {
+            svg.Load(ms);
+        }
+
+        // Scale 125% dari ukuran original
+        var originalWidth = (int)svg.Picture.CullRect.Width;
+        var originalHeight = (int)svg.Picture.CullRect.Height;
+
+        var scaledWidth = (int)(originalWidth * 1.25);
+        var scaledHeight = (int)(originalHeight * 1.25);
+
+        var bitmap = new SKBitmap(scaledWidth, scaledHeight);
+        var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.Transparent);
+
+        // Scale 125%
+        float scale = 1.25f;
+        canvas.Scale(scale);
+        canvas.DrawPicture(svg.Picture);
+        canvas.Flush();
+
+        using (var img = SKImage.FromBitmap(bitmap))
+        using (var outStream = new MemoryStream())
+        {
+            img.Encode(SKEncodedImageFormat.Png, 100).SaveTo(outStream);
+            return Convert.ToBase64String(outStream.ToArray());
+        }
+    }
+
+    var frontSvgTemplatePath = qcardsPrint.frontSVGPath;
+    var backSvgTemplatePath = qcardsPrint.backSVGPath;
+
+    var frontSvgTemplate = System.IO.File.Exists(frontSvgTemplatePath) ? System.IO.File.ReadAllText(frontSvgTemplatePath) : "";
+    var backSvgTemplate = System.IO.File.Exists(backSvgTemplatePath) ? System.IO.File.ReadAllText(backSvgTemplatePath) : "";
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <title>Print Q-Card</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            text-align: center; /* Center untuk konten inline */
+        }
+
+        .qcard-img {
+            /* Sesuaikan dengan scale 125% */
+            width: auto;
+            height: auto;
+            display: block;
+            max-width: 100%;
+        }
+
+        /* Container utama untuk semua card */
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center horizontal */
+            justify-content: center; /* Center vertical */
+            width: 100%;
+        }
+
+        /* Container untuk setiap pasangan card */
+        .card-pair {
+            display: flex;
+            flex-direction: row;
+            justify-content: center; /* Center horizontal */
+            align-items: flex-start;
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+            width: 100%;
+        }
+
+        .card-front, .card-back {
+            display: inline-block;
+            vertical-align: top;
+            margin: 0 10px; /* Margin kiri kanan sama */
+        }
+    </style>
+</head>
+<body>
+    @if (qcards.Any())
+    {
+        <div class="cards-container">
+            @foreach (var qcard in qcards)
+            {
+                var cardNo = qcard?.CARD_NO ?? "";
+
+                var month = qcard?.VALID_TO_MONTH?.PadLeft(2, '0');
+                var year = qcard?.VALID_TO_YEAR?.Substring(Math.Max(0, qcard.VALID_TO_YEAR.Length - 2));
+                var validThru = $"{month}/{year}";
+
+                var frontSvgContent = frontSvgTemplate;
+                frontSvgContent = ReplaceCardNoWithTspan(
+                frontSvgContent,
+                "CardNoText",
+                cardNo,
+                startX: 19,
+                y: 135,
+                digitStep: 16,
+                groupExtra: 12,
+                fontSize: "18"
+                );
+                frontSvgContent = ReplaceSvgText(frontSvgContent, "ValidThruText", validThru);
+                frontSvgContent = ReplaceSvgText(frontSvgContent, "CustomerNameText", qcard?.COMPANY_NAME ?? "");
+                frontSvgContent = ReplaceSvgText(frontSvgContent, "CustomerCodeText", qcard?.COMPANY_CODE ?? "");
+
+                var backSvgContent = backSvgTemplate;
+
+                var frontBase64 = SvgToBase64Png(frontSvgContent);
+                var backBase64 = SvgToBase64Png(backSvgContent);
+
+                <div class="card-pair">
+                    <div class="card-front">
+                        <img class="qcard-img" src="data:image/png;base64,@frontBase64" />
+                    </div>
+                    <div class="card-back">
+                        <img class="qcard-img" src="data:image/png;base64,@backBase64" />
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p style="text-align:center;color:red;">Tidak ada data QCard ditemukan.</p>
+    }
+</body>
+</html>

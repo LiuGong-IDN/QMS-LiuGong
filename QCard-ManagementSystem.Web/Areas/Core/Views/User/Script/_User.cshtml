@@ -1,0 +1,340 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function UserManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+
+            InitControls: function () {
+                $("#PDC_ID").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetPDC")",
+                                dataType: "json"
+                            }
+                        }
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select your location..."
+                });
+
+                $("#ROLE").kendoMultiSelect({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    filter: "contains",
+                    suggest: true,
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetRoleList")",
+                                dataType: "json"
+                            }
+                        }
+                    }
+                });
+
+                $("#ROLE").data("kendoMultiSelect").bind("change", checkRoleValue);
+            },
+
+            InitValidation: function () {
+                // Tambahkan validasi di sini jika dibutuhkan
+            },
+
+            InitHandlers: function () {
+                // --- EDIT USER ---
+                $(".k-grid").on("click", ".k-grid-edit", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr),
+                        $modal = $.helper.getJqueryObject($el.data("modal")),
+                        $form = $modal.find("form");
+
+                    Id = $el.data("id");
+
+                    // $("#PDC_ID").closest(".form-group").hide();
+                    $.post("@Url.Content("~/Core/User/GetUserByID")", { ID: Id }, function (d) {
+                        var data = d.data;
+                        Id = data.ID;
+
+                        document.getElementById("modalTitle").innerHTML = "Manage User";
+                        clearValidation($modal);
+
+                        $("#btnSaveUser").hide();
+                        $("#passwordGroup").hide();
+                        $("#btnUpdateUser").show();
+
+                        var userRoleSplit = (data.ROLE_ID == null)
+                            ? ""
+                            : data.ROLE_ID.split(",").map(function (item) {
+                                return item.trim();
+                            });
+
+                        $.helper.form.fill($form, data);
+                        $("#PDC_ID").data("kendoDropDownList").value(data.PDC_ID);
+                        $("#ROLE").data("kendoMultiSelect").value(userRoleSplit);
+
+                        $modal.modal("show");
+                        checkRoleValue();
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    })
+                    .always(function () {
+                        $el.prop("disabled", false);
+                    });
+                });
+
+                // --- ADD USER ---
+                $("#btnAddUser").unbind("click").on("click", function () {
+                    var $modal = $.helper.getJqueryObject("UserModal"),
+                        $form = $modal.find("form");
+
+                    document.getElementById("modalTitle").innerHTML = "Add User";
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+
+                    $("#btnSaveUser").show();
+                    $("#passwordGroup").show();
+                    $("#btnUpdateUser").hide();
+
+                    $("#PDC_ID").closest(".form-group").hide();
+                    $modal.modal("show");
+                });
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    $form.find("input[type='text']").val("");
+
+                });
+                // --- SAVE USER ---
+                $("#btnSaveUser").on("click", function () {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form"),
+                        formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+
+                    var Id = $("#ID").val() || "";
+                    var PdcValue = $("#PDC_ID").data("kendoDropDownList").value();
+
+                    var dataToSave = {
+                        ID: Id,
+                        ROLE: $("#ROLE").data("kendoMultiSelect").value(),
+                        PDC: PdcValue,
+                        PHONE_NUMBER: formData.PHONE_NUMBER,
+                        FIRST_NAME: formData.FIRST_NAME,
+                        LAST_NAME: formData.LAST_NAME,
+                        EMAIL: formData.EMAIL,
+                        PASSWORD: formData.PASSWORD
+                    };
+
+                    console.log(dataToSave);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/User/Save")",
+                        type: "POST",
+                        data: { user: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("UserGrid");
+                            }
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                // --- UPDATE USER ---
+                $("#btnUpdateUser").unbind("click").on("click", function () {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form"),
+                        formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+
+                    var Id = $("#ID").val() || "";
+                    var PdcValue = $("#PDC_ID").data("kendoDropDownList").value();
+
+                    var dataToSave = {
+                        ID: Id,
+                        ROLE: $("#ROLE").data("kendoMultiSelect").value(),
+                        PDC: PdcValue,
+                        PHONE_NUMBER: formData.PHONE_NUMBER,
+                        FIRST_NAME: formData.FIRST_NAME,
+                        LAST_NAME: formData.LAST_NAME,
+                        EMAIL: formData.EMAIL,
+                        COMPANY: formData.COMPANY
+                    };
+
+                    console.log(dataToSave);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/User/Save")",
+                        type: "POST",
+                        data: { user: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("UserGrid");
+                            }
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                // --- DELETE USER ---
+                $(".k-grid").on("click", ".k-grid-delete", function () {
+                    var $el = $(this);
+                    Id = $el.data("id");
+                    Swal.fire({
+                        title: "Delete this data?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "@Url.Content("~/Core/User/Delete")",
+                                type: "POST",
+                                data: { id: Id },
+                                success: function (res) {
+                                    if (res.Success == false || res.Success == "false") {
+                                        Swal.fire({
+                                            title: "Error",
+                                            text: res.Message,
+                                            icon: "error"
+                                        });
+                                    } else {
+                                        Swal.fire("Success!", "", "success");
+                                        $.helper.grid.refresh("UserGrid");
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                });
+
+                // --- UPLOAD USER ---
+                $("#btnUploadUser").on("click", function () {
+                    var $modal = $.helper.getJqueryObject("UserUploadModal"),
+                        $form = $modal.find("form");
+
+                    $.helper.form.clear($form);
+
+                    $modal.modal("show");
+                    $("#TempCode").val("");
+                    $("#UserUploadGrid").data("kendoGrid").dataSource.data([]);
+                    $("#btnSubmitUpload").hide();
+                    $("#btnDownloadErrorUpload").hide();
+                    $("#uploadPC .k-upload-files, #uploadPC .k-upload-status").remove();
+                });
+
+                // --- DOWNLOAD TEMPLATE ---
+                $("#btnDownloadTemplateUser").on("click", function () {
+                    window.location.href = "@Url.Content("~/Core/User/DownloadTemplate")";
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(":input").each(function () {
+            let id = $(this).attr("id");
+
+            // Skip jika ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return;
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+
+    function checkRoleValue() {
+        var selectedRoles = $("#ROLE").data("kendoMultiSelect").value();
+
+        console.log('Role PDC ('+ selectedRoles +') selected')
+
+        if (selectedRoles.includes(22)) {
+            console.log(selectedRoles);
+            $("#PDC_ID").closest(".form-group").show();
+        } else {
+            $("#PDC_ID").closest(".form-group").hide();
+            $("#PDC_ID").val("");
+        }
+    }
+</script>

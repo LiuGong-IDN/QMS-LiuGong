@@ -1,0 +1,81 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/Role/Script/_Role.cshtml")
+}
+
+@section modals {
+    @Html.Partial("~/Areas/Core/Views/Role/Component/_RolePermissionForm.cshtml")
+    @Html.Partial("~/Areas/Core/Views/Role/Component/_RoleForm.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Role Maintenance</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            <form data-grid="RoleGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="roleNameFilter"><b>Role Name</b></label>
+                                <input id="roleNameFilter" type="text" class="form-control" data-filter='{ "operator": "contains", "field": "ROLE_NAME" }' />
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                            <div class="form-group">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("RoleMaintenance", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+                                </text>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="form-group">
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("RoleMaintenance", Feature.CREATE_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-success" id="btnAddRole">
+                                        <i class="fa fa-plus"></i>Add Role
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/Core/Views/Role/Grid/_RoleGrid.cshtml")
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        App.RoleManagement = new RoleManagement();
+        App.RoleManagement.InitManagement();
+    });
+</script>

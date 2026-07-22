@@ -1,0 +1,93 @@
+﻿<script type="text/javascript">
+    function ClaimHistoryManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("input.text-uppercase").on("input", function () {
+                    this.value = this.value.toUpperCase();
+                });
+
+                $("input.no-space").on("input", function () {
+                    this.value = this.value.replace(/[^A-Za-z0-9\/]/g, "");
+                });
+                $("#STATUS-FILTER").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetClaimStatusList")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select Status.."
+                });
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                $("#btnDownloadPendingParts").on("click", function () {
+                window.location.href = '@Url.Action("ExportClaimToExcel", "ClaimHistory", new { area = "MyQCard" })' + '?type=PendingParts';
+                });
+                $("#btnDownloadAll").on("click", function () {
+                window.location.href = '@Url.Action("ExportClaimToExcel", "ClaimHistory", new { area = "MyQCard" })' + '?type=All';
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        ClaimHistoryManagement = new ClaimHistoryManagement();
+        ClaimHistoryManagement.InitManagement();
+    });
+
+    function setParameter() {
+        var claimNo = $("#CLAIM_NO-FILTER").val();
+        var serialNo = $("#SERIAL_NO-FILTER").val();
+
+        var statusDdl = $("#STATUS-FILTER").data("kendoDropDownList");
+        var status = statusDdl ? statusDdl.value() : null;
+
+        return {
+            claimNo: claimNo,
+            serialNo: serialNo,
+            status: status
+        };
+    }
+        function onDataBound(e) {
+        var grid = this;
+        var roleName = (window.currentRoleName || "").toLowerCase();
+
+        grid.tbody.find(">tr").each(function () {
+            var dataItem = grid.dataItem(this);
+            if (!dataItem) return;
+
+            let isOpened = true;
+
+            if (roleName.includes("ADMIN")) {
+                isOpened = dataItem.IsOpenedByAdmin;
+            }
+            else if (roleName.includes("PDC")) {
+                isOpened = dataItem.IsOpened;
+            }
+            else if (roleName.includes("CUSTOMER") || roleName.includes("cust")) {
+                isOpened = dataItem.IsOpenedByCust;
+            }
+
+            if (isOpened === false || isOpened === 0) {
+                $(this).addClass("trBoldClass");
+            } else {
+                $(this).removeClass("trBoldClass");
+            }
+        });
+    }
+</script>

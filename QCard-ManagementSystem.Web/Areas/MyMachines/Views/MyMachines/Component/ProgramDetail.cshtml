@@ -1,0 +1,23 @@
+﻿@using Kendo.Mvc.UI;
+
+<div id="ProgramDetailModal" class="modal fade bs-modal-lg" abindex="-1" data-backdrop="static" data-keyboard="false" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="width: 1200px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="col-xs-6">
+                    <h4 id="programDetailTitle" class="modal-title">Program Detail</h4>
+                </div>
+                <div class="col-xs-6 text-right">
+                    <button type="button" class="btn btn-reset" data-dismiss="modal" aria-hidden="true">
+                        <i class="fa fa-times mr-1"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                @await Html.PartialAsync("~/Areas/MyMachines/Views/MyMachines/Grid/_ProgramDetailGrid.cshtml")
+            </div>
+        </div>
+    </div>
+</div>

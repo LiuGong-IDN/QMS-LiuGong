@@ -1,0 +1,295 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function PartNoManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("input.text-uppercase").on("input", function () {
+                    this.value = this.value.toUpperCase();
+                });
+                $("input.no-space").on("input", function () {
+                    this.value = this.value.replace(/\s+/g, "");
+                });
+                $("input.thousand-separator").on("input", function () {
+                    let value = this.value.replace(/[^0-9]/g, ""); // hapus semua selain angka
+
+                    if (value) {
+                        // tambahkan titik setiap 3 digit dari belakang
+                        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                        this.value = "Rp " + value;
+                    } else {
+                        this.value = "";
+                    }
+                });
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {  
+                $(".k-grid").on('click', ".k-grid-edit", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr),
+                        $modal = $.helper.getJqueryObject($el.data("modal")),
+                        $form = $modal.find("form");
+
+                    Id = $el.data('id');
+
+                    $.post("@Url.Content("~/Core/PartNo/GetPartNoByID")", { "ID": Id }, function (d) {
+                        var data = d.data
+                        Id = data.ID;
+                        
+                        document.getElementById('modalTitle').innerHTML = "Manage Part No.";
+                        clearValidation($modal);
+
+                        $("#btnSavePartNo").hide();
+                        $("#btnUpdatePartNo").show();
+
+                        $.helper.form.fill($form, data);
+                        $("#ID").val(data.ID);
+                        $("#PART_NO").val(data.PART_NO);
+                        $("#PART_NAME").val(data.PART_NAME);
+                        $("#RETAIL_PRICE").val(
+                            data.RETAIL_PRICE
+                                ? "Rp " + parseFloat(data.RETAIL_PRICE).toLocaleString("id-ID")
+                                : ""
+                        );
+
+
+                        $modal.modal("show");
+                    }).fail(function (e) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: e.Message
+                        });
+                    });
+                })
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    $form.find("input[type='text']").val("");
+
+                });
+                $("#btnAddPartNo").unbind('click').on('click', function () {
+                    var $modal = $.helper.getJqueryObject('PartNoModal'),
+                    $form = $modal.find("form");
+
+                    document.getElementById('modalTitle').innerHTML = "Add Part No.";
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+
+                    $("#btnSavePartNo").show();
+                    $("#btnUpdatePartNo").hide();
+
+                    $modal.modal("show");
+                });
+                $("#btnDownloadTemplatePartNo").on("click", function () {
+                    window.location.href = "@Url.Content("~/Core/PartNo/DownloadTemplate")";
+                });
+                $("#btnSavePartNo").on('click', function (event) {
+                    var $el = $(this),
+                        isError = false,
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+                    var Id = $("#ID").val() || "";
+                    var retailPrice = $("#RETAIL_PRICE").val() || "";
+                    retailPrice = retailPrice.replace(/[^0-9,]/g, ""); // buang Rp, titik, spasi
+                    retailPrice = retailPrice.replace(",", ".");       // ubah koma jadi titik (kalau ada desimal)
+
+                    // Konversi ke float (agar numeric, bukan string)
+                    var retailPriceDecimal = parseFloat(retailPrice) || 0;
+
+                    dataToSave = {
+                        ID: Id,
+                        PART_NO: formData.PART_NO,
+                        PART_NAME: formData.PART_NAME,
+                        RETAIL_PRICE: retailPriceDecimal
+                    }
+                    console.log(dataToSave)
+                    $.ajax({
+                        url: "@Url.Content("~/Core/PartNo/Save")",
+                        type: "POST",
+                        data: { partno: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if(!res.Validate){
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                }
+                                else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            }
+                            else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("PartNoGrid");
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnUpdatePartNo").unbind('click').on('click', function () {
+                    var $el = $(this),
+                        isError = false,
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+                    var Id = $("#ID").val() || "";
+                    var retailPrice = $("#RETAIL_PRICE").val() || "";
+                    retailPrice = retailPrice.replace(/[^0-9,]/g, "");
+                    retailPrice = retailPrice.replace(",", ".");
+
+                    // Konversi ke float (agar numeric, bukan string)
+                    var retailPriceDecimal = parseFloat(retailPrice) || 0;
+                    dataToSave = {
+                        ID: Id,
+                        PART_NO: formData.PART_NO,
+                        PART_NAME: formData.PART_NAME,
+                        RETAIL_PRICE: retailPriceDecimal
+                    }
+                    console.log(dataToSave);
+                    $.ajax({
+                        url: "@Url.Content("~/Core/PartNo/Save")",
+                        type: "POST",
+                        data: { partno: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if(!res.Validate){
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                }
+                                else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            }
+                            else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("PartNoGrid");
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+                $("#btnUploadPartNo").on("click", function () {
+                    var $modal = $.helper.getJqueryObject("PartNoUploadModal"),
+                        $form = $modal.find("form");
+
+                    $.helper.form.clear($form);
+
+                    $modal.modal("show");
+                    $("#TempCode").val("");
+                    $("#PartNoUploadGrid").data("kendoGrid").dataSource.data([]);
+                    $("#btnSubmitUpload").hide();
+                    $("#btnDownloadErrorUpload").hide();
+                    $("#uploadPC .k-upload-files, #uploadPC .k-upload-status").remove();
+                });
+                $(".k-grid").on('click', ".k-grid-delete", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid");
+
+
+                    Id = $el.data('id');
+                    Swal.fire({
+                        title: "Delete this data?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "@Url.Content("~/Core/PartNo/Delete")",
+                                type: "POST",
+                                data: {id : Id},
+                                success: function (res) {
+                                    if (res.Success == false || res.Success == "false") {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: res.Message
+                                        });
+                                    } else {
+                                        Swal.fire("Success!", "", "success");
+                                        $.helper.grid.refresh("PartNoGrid");
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+    function setParameter() {
+        var partNo = $("#partNoFilter").val();
+
+        return {
+            partNo: partNo,
+        };
+    }
+</script>

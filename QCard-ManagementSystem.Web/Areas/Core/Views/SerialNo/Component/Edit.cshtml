@@ -1,0 +1,294 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using System.Globalization
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+@{
+    var programList = Model.AdditionalData as List<QCard.ManagementSystem.Domain.Modules.Core.Model.MachineProgram>;
+}
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/SerialNo/Script/_SerialNoEdit.cshtml")
+}
+
+<form id="MachineForm" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="portlet light margin-bottom-0">
+        <!-- Machine Detail -->
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span><b>Machine Detail</b></span></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6 text-right">
+                <button type="button"
+                        class="btn btn-reset"
+                        onclick="window.location.href='/Core/SerialNo/Index'">
+                    <i class="fa fa-arrow-left mr-1"></i> Back
+                </button>
+            </div>
+        </div>
+        <br />
+
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                @{
+                    var machine = Model.Data as QCard.ManagementSystem.Domain.Modules.Core.Model.MachineDetail;
+                }
+                <input type="hidden" id="machineID" name="ID" value="@machine.ID" />
+                <div class="row">
+                    <!-- Bagian kiri: detail machine -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Customer</b></label></div>
+                            <div class="col-md-8"><input id="CUSTOMER_VALUE" input type="hidden" name="CUSTOMER_VALUE" value="@machine.CUSTOMER_ID" /></div>
+                            <div class="col-md-8"><input id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Serial No.</b></label></div>
+                            <div class="col-md-8"><input type="text" id="SERIAL_NO" name="SERIAL_NO" class="form-control text-uppercase no-space-input" value="@machine.SERIAL_NO" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>PJB No.</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="PJB_NO" name="PJB_NO" class="form-control text-uppercase no-space-input" value="@machine.PJB_NO" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Evidence PJB</b></label></div>
+                            <div class="col-md-8">
+
+                                <!-- Evidence lama -->
+                                @if (!string.IsNullOrEmpty(machine.EVIDENCE_PJB))
+                                {
+                                    var fileName = System.IO.Path.GetFileName(machine.EVIDENCE_PJB);
+
+                                    <div class="alert alert-info" style="padding:6px 10px;margin-bottom:6px;">
+                                        <i class="fa fa-paperclip"></i>
+                                        Evidence saat ini:
+                                        <a href="@Url.Content(machine.EVIDENCE_PJB)" target="_blank">
+                                            @fileName
+                                        </a>
+                                    </div>
+                                }
+
+                                <input type="hidden"
+                                       id="EVIDENCE_PJB_OLD"
+                                       name="EVIDENCE_PJB_OLD"
+                                       value="@machine.EVIDENCE_PJB" />
+
+                                <input type="file"
+                                       id="EVIDENCE_PJB"
+                                       name="EVIDENCE_PJB"
+                                       accept=".jpg,.jpeg,.png,.pdf"
+                                       class="form-control" />
+
+                                <small class="text-muted">
+                                    Upload file baru jika ingin mengganti evidence
+                                </small>
+
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        @* <div class="row">
+                            <div class="col-md-4"><label><b>PJB No.</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="PJB_NO" name="PJB_NO" class="form-control text-uppercase no-space-input" value="@machine.PJB_NO" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Evidence PJB</b></label></div>
+                            <div class="col-md-8">
+                                <input type="hidden"
+                                       id="EVIDENCE_PJB_OLD"
+                                       name="EVIDENCE_PJB_OLD"
+                                       value="@machine.EVIDENCE_PJB" />
+                                <input type="file"
+                                       id="EVIDENCE_PJB"
+                                       name="EVIDENCE_PJB"
+                                       accept=".jpg,.jpeg,.png,.pdf"
+                                       class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div> *@
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product group</b></label></div>
+                            <div class="col-md-8"><input id="ASSET_TYPE_VALUE" input type="hidden" name="ASSET_TYPE_VALUE" value="@machine.MACHINE_TYPE_ID" /></div>
+                            <div class="col-md-8"><input id="ASSET_TYPE_ID" name="ASSET_TYPE_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product Model</b></label></div>
+                            <div class="col-md-8"><input id="MODEL_VALUE" input type="hidden" name="MODEL_VALUE" value="@machine.MODEL_ID" /></div>
+                            <div class="col-md-8"><input id="MODEL_ID" name="MODEL_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Purchase Date</b></label></div>
+                            <div class="col-md-8"><input id="PURCHASE_DATE" name="PURCHASE_DATE" style="width: 100%;" value="@machine.PURCHASE_DATE.ToString("yyyy-MM-dd")" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Service Party</b></label></div>
+                            <div class="col-md-8"><input id="SERVICE_PARTY_VALUE" input type="hidden" name="SERVICE_PARTY_VALUE" value="@machine.SERVICE_PARTY_ID" /></div>
+                            <div class="col-md-8"><input id="SERVICE_PARTY_ID" name="SERVICE_PARTY_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Branch</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="BRANCH" name="BRANCH" class="form-control" value="@machine.BRANCH" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Category Program</b></label></div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <input type="checkbox"
+                                           name="PROGRAM_CATEGORY"
+                                           id="IS_PROGRAM"
+                                           @(machine.IS_PROGRAM ? "checked=\"checked\"" : "") /> Program
+
+                                    <input type="checkbox"
+                                           name="PROGRAM_CATEGORY"
+                                           id="IS_VOUCHER"
+                                           style="margin-left:15px;"
+                                           @(machine.IS_VOUCHER ? "checked=\"checked\"" : "") /> Voucher
+                                    <p>
+                                        <span class="text-danger" id="ProgramCategoryError"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bagian kanan: area gambar -->
+                    <div class="col-md-6 text-center">
+                        <div id="MachineImageArea">
+                            <img id="MachineImagePreview" class="img-thumbnail img-product" src="@Url.Content(machine.IMAGE_PATH ?? "~/img/liugongQcard.png")" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Material Detail -->
+        <div id="divProgramDetail" class="portlet light bordered">
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="page-head">
+                        <div class="page-title">
+                            <h1><span><b>Program Detail</b></span></h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="form-group">
+                        <button type="button" href="#" class="btn btn-success btn-sm" id="btnAddProgramDetail">
+                            <i class="fa fa-plus"></i>Add Program
+                        </button>
+
+                        <table class="table table-bordered table-striped detail-table" id="ProgramTable" style="margin-top: 8px">
+                            <thead class="detail-table-header">
+                                <tr>
+                                    <th style="width: 10%;">Action</th>
+                                    <th style="width: 30%;">Program Category</th>
+                                    <th style="width: 30%;">Program Name</th>
+                                    <th style="width: 10%;">Package Qty</th>
+                                    <th style="width: 10%;">Priority</th>
+                                    <th style="width: 10%;">Claim Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Row akan ditambahkan via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Voucher Detail-->
+        <div id="divVoucherDetail" class="portlet light bordered" style="margin-bottom:0px;">
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="page-head">
+                        <div class="page-title">
+                            <h1><span><b>Voucher Detail</b></span></h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="VOUCHER_AMOUNT"><b>Voucher Amount</b></label>
+                                <input type="text" id="VOUCHER_AMOUNT" name="VOUCHER_AMOUNT" class="form-control" style="text-align:right;" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="CURRENT_AMOUNT"><b>Current Amount</b></label>
+                                <input type="text" id="CURRENT_AMOUNT" name="CURRENT_AMOUNT" class="form-control" style="text-align:right;" disabled="disabled"/>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <div class="form-group" style="margin-top:10px;">
+                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("SerialNoMaintenance", Feature.CREATE_FEATURE))
+                    {
+                        <button type="submit" class="btn blue trigger" id="btnSaveSerialNo">
+                            <i class="fa fa-save"></i><span class="hidden-xs">Save</span>
+                        </button>
+                    }
+                    <a class="btn btn-reset" id="btnReset">
+                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<style>
+    .row + .row {
+        margin-top: 10px;
+    }
+</style>
+<script>
+    var existingPrograms = @Html.Raw(Json.Serialize(programList));
+    var isProgram = @(machine.IS_PROGRAM ? "true" : "false");
+    var isVoucher = @(machine.IS_VOUCHER ? "true" : "false");
+    var voucherAmount = @machine.VOUCHER_AMOUNT.ToString(CultureInfo.InvariantCulture);
+    var currentAmount = @machine.CURRENT_AMOUNT.ToString(CultureInfo.InvariantCulture);
+    $(document).ready(function () {
+        App.SerialNoEditManagement = new SerialNoEditManagement();
+        App.SerialNoEditManagement.InitManagement();
+    });
+</script>

@@ -1,0 +1,82 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.QCard.ViewModel.QCardListView>()
+    .Name("QcardListGrid")
+    .Events(events => events
+        .DataBound("onDataBound")
+        .DataBinding("onDataBinding")
+    )
+    .Columns(columns =>
+    {
+        // Checkbox
+        columns.Template("<input type='checkbox' class='row-checkbox form-check-input' value='#: ID #' style='width:20px; height:20px;' />")
+         .Title("<input type='checkbox' id='checkAll' style='width:20px; height:20px;' />")
+         .Width(50)
+         .HtmlAttributes(new { @class = "text-center" });
+        columns.Bound(o => o.ID).Title("Action").Sortable(false).Width(70).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false).ClientTemplate(
+            @"<div class=""btn-group action-btn-group"">" +
+                "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("QCardList", Feature.UPDATE_FEATURE).ToString().ToLower() + ")" +
+                "{#" +
+                    @"<a class=""k-grid-edit cursor-pointer action-btn"" data-modal='QCardModal' data-id='#: ID#' title=""Edit""><i class=""fa fa-edit fa-lg""></i></a>&nbsp;" +
+                "#}#" +
+                "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("QCardList", Feature.DELETE_FEATURE).ToString().ToLower() + ")" +
+                "{#" +
+                    @"<a class=""k-grid-delete cursor-pointer action-btn"" data-id='#: ID#' title=""Delete""><i class=""fas fa-trash-alt fa-lg""></i></a>&nbsp;" +
+                "#}#" +
+                "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("QCardList", Feature.VIEW_FEATURE).ToString().ToLower() + ")" +
+                "{#" +
+                    @"<a class='action-btn' href='" + Url.Action("Details", "QCardList", new { area = "QCard" }) + @"/#: ID#'>
+                        <i class='fa fa-file fa-lg'></i>
+                      </a>&nbsp;" +
+                "#}#" +
+            @"</div>");
+        // Data fields
+        columns.Bound(o => o.CARD_NO).Title("Q-Card No.").Width(200).ClientTemplate("#= formatCardNo(CARD_NO) #"); ;
+        columns.Bound(o => o.COMPANY_NAME).Title("Customer").Width(200);
+        columns.Bound(o => o.ID)
+        .Title("Top Up")
+        .Sortable(false)
+        .Width(80)
+        .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" })
+        .Filterable(false)
+        .ClientTemplate(
+            @"<a href='" + Url.Action("Topup", "QCardList", new { area = "QCard" }) + @"/#: ID#'
+                class='btn blue trigger btn-sm' title='Top Up'>
+                Top Up
+            </a>"
+        );
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Q-Card List to display"))
+    .Pageable(p => p.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/QCard/QCardList/read")))
+        .PageSize(10)
+        .Sort(sort => sort.Add("CREATED_DATE").Descending())
+    )
+)
+<style>
+    .action-btn-group {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2px; /* jarak antar button */
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        cursor: pointer;
+    }
+
+        .action-btn:hover {
+            opacity: 0.75;
+        }
+
+</style>

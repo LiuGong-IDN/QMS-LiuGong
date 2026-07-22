@@ -1,0 +1,91 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using QCard.ManagementSystem.Infrastructure.Session
+@section scripts {
+    @Html.Partial("~/Areas/QCard/Views/TaskApproval/Script/_TaskApproval.cshtml")
+}
+@section modals {
+    @Html.Partial("~/Areas/QCard/Views/TaskApproval/Component/_UploadEvidenceForm.cshtml")
+}
+@{
+    var role = SessionManager.Roles;
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span><b>List of Task Approval</b></span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            <form data-grid="TaskApprovalGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="CARD_NO"><b>Q-Card No.</b></label>
+                                <input type="text" id="CARD_NO" class="form-control" data-filter='{ "operator": "contains", "field": "CARD_NO" }' maxlength="19" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="CUSTOMER"><b>Customer</b></label>
+                                <input id="CUSTOMER" name="CUSTOMER" style="width: 100%;" data-filter='{ "operator": "eq", "field": "CUSTOMER_ID" }' />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                            <div class="form-group" style="margin-top:10px;">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("TaskApprovalQCard", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+                                </text>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="form-group" style="margin-top:10px;">
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("TaskApprovalQCard", Feature.DOWNLOAD_FEATURE))
+                                {
+                                    <a href="#" class="btn blue trigger" data-roles='@Newtonsoft.Json.JsonConvert.SerializeObject(role)' id="btnApprove">
+                                        <i class="fa fa-print" aria-hidden="true"></i>Approve Top Up
+                                    </a>
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("TaskApprovalQCard", Feature.CREATE_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-success" id="btnDownloadAll">
+                                        <i class="fa fa-download"></i>Download All
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/QCard/Views/TaskApproval/Grid/_TaskApprovalGrid.cshtml")
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        App.TaskApprovalManagement = new TaskApprovalManagement();
+        App.TaskApprovalManagement.InitManagement();
+    });
+</script>

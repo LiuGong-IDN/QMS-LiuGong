@@ -1,0 +1,600 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+    var selectedItems = [];
+    let allIds = [];
+
+    let uploadedEvidenceFileName = null;
+
+    function TaskApprovalManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("#CUSTOMER").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetCustomerList")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select customer..."
+                });
+            },
+            InitHandlers: function () {
+                const input = document.getElementById('CARD_NO');
+
+                input.addEventListener('keypress', function (e) {
+                    if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+
+                input.addEventListener('input', function (e) {
+                    let value = e.target.value.replace(/[^0-9]/g, '');
+
+                    if (value.length > 16) {
+                        value = value.substring(0, 16);
+                    }
+
+                    let formatted = value.match(/.{1,4}/g)?.join('-') || '';
+
+                    e.target.value = formatted;
+                });
+
+                $("#btnDownloadAll").on("click", function () {
+                    window.location.href = '@Url.Action("ExportTaskApprovalToExcel", "TaskApproval", new { area = "QCard" })';
+                });
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    // Reset input text
+                    $form.find("input[type='text']").val("");
+
+                    // Reset dropdown CUSTOMER
+                    var ddl = $("#CUSTOMER").data("kendoDropDownList");
+                    if (ddl) {
+                        ddl.value("");       // kosongkan value
+                        ddl.select(0);       // kembali ke optionLabel
+                    }
+
+                    // RESET CHECKBOX
+                    $("#checkAll").prop("checked", false);   // uncheck all
+                    $(".row-checkbox").prop("checked", false);
+
+                    // Kosongkan list selectedItems
+                    selectedItems = [];
+
+                    console.log("Selected Items cleared:", selectedItems);
+                });
+                $(document).on("change", ".row-checkbox", function () {
+                    var id = $(this).val();
+                    var statusId = $(this).data("status-id");
+                    var formtypeId = $(this).data("formtype-id");
+                    var documentApprovalId = $(this).data("document-approval-id");
+
+                    var grid = $("#TaskApprovalGrid").data("kendoGrid");
+
+                    if ($(this).is(":checked")) {
+                        if (!selectedItems.some(x => x.ID === id)) {
+                            selectedItems.push({
+                                ID: id,
+                                STATUS_ID: statusId,
+                                DOCUMENT_APPROVAL_ID: documentApprovalId,
+                                FORM_TYPE: formtypeId
+                            });
+                        }
+                    } else {
+                        selectedItems = selectedItems.filter(x => x.ID !== id);
+                        // Selalu uncheck header jika ada checkbox yang diuncheck
+                        $("#checkAll").prop("checked", false);
+                    }
+
+                    console.log("Selected Items:", selectedItems.length);
+
+                    // Refresh grid untuk update header checkbox
+                    if (grid) {
+                        setTimeout(function() {
+                            grid.refresh();
+                        }, 100);
+                    }
+                });
+                $(document).on("change", "#checkAll", function () {
+                    var checked = this.checked;
+                    var grid = $("#TaskApprovalGrid").data("kendoGrid");
+
+                    if (!grid) {
+                        console.error("Grid tidak ditemukan");
+                        return;
+                    }
+
+                    if (checked) {
+                        $.ajax({
+                            url: '@Url.Action("GetAllTaskApprovalIds", "TaskApproval", new { area = "QCard" })',
+                            type: "GET",
+                            dataType: "json",
+                            success: function (resp) {
+                                console.log("Server response:", resp);
+                                var data = Array.isArray(resp) ? resp : resp.data;
+
+                                if (!Array.isArray(data)) {
+                                    console.error("Response data is not array:", resp);
+                                    return;
+                                }
+
+                                selectedItems = data.map(x => ({
+                                    ID: String(x.ID),
+                                    STATUS_ID: x.STATUS_ID,
+                                    FORM_TYPE: x.FORM_TYPE,
+                                    DOCUMENT_APPROVAL_ID: x.DOCUMENT_APPROVAL_ID
+                                }));
+
+                                $(".row-checkbox").prop("checked", true);
+                                console.log("✅ Check All - Selected Items:", selectedItems.length);
+
+                                // Force refresh grid jika perlu
+                                grid.refresh();
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Error fetching all IDs:", error);
+                                $("#checkAll").prop("checked", false);
+                            }
+                        });
+                    } else {
+                        // Uncheck semua - termasuk di semua halaman
+                        selectedItems = [];
+                        $(".row-checkbox").prop("checked", false);
+                        console.log("❌ Uncheck All");
+
+                        // Refresh grid untuk update UI
+                        grid.refresh();
+                    }
+                });
+
+
+                    // Saat modal UploadEvidence dibuka
+                $(document).on("show.bs.modal", "#UploadEvidenceModal", function () {
+                    // Kosongkan dulu field form
+                    $("#UploadEvidenceForm #FormTypeId").val("");
+                    $("#UploadEvidenceForm #DocumentApprovalId").val("");
+                    $("#UploadEvidenceForm #ID").val("");
+
+                    if (selectedItems.length === 0) {
+                        swal("Warning", "Please select at least one item before uploading evidence.", "warning");
+                        $(this).modal("hide");
+                        return;
+                    }
+
+                    // Ambil semua data dari selectedItems
+                    var ids = selectedItems.map(x => x.ID);
+                    var formTypeIds = selectedItems.map(x => x.FORM_TYPE);
+                    var documentApprovalIds = selectedItems.map(x => x.DOCUMENT_APPROVAL_ID);
+                    var statusIds = selectedItems.map(x => x.STATUS_ID);
+
+                    // Cek apakah ada status 20014
+                    var fullyApproved = statusIds.includes(20014);
+                    if (fullyApproved) {
+                        swal("Info", "Your document has already been fully approved.", "info");
+                        $(this).modal("hide");
+                        return;
+                    }
+
+                    // Simpan ke hidden field sebagai JSON string
+                    $("#UploadEvidenceForm #ID").val(JSON.stringify(ids));
+                    $("#UploadEvidenceForm #FormTypeId").val(JSON.stringify(formTypeIds));
+                    $("#UploadEvidenceForm #DocumentApprovalId").val(JSON.stringify(documentApprovalIds));
+
+                    console.log("=== Data Loaded into Modal ===");
+                    console.log({
+                        IDs: ids,
+                        FormTypeIds: formTypeIds,
+                        DocumentApprovalIds: documentApprovalIds,
+                        StatusIds: statusIds
+                    });
+                });
+
+
+                $("#btnApprove").unbind('click').on('click', function () {
+                    const roles = $(this).data('roles') || [];
+                    const isApprover = Array.isArray(roles) && roles.some(r =>
+                        ["APPROVER_QCARD1", "APPROVER_QCARD2", "APPROVER_QCARD3"].includes(r)
+                    );
+
+                    if (selectedItems.length === 0) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please select at least one row before approving."
+                        }).then(() => {
+                            location.reload();
+                        });
+                        return;
+                    }
+                    const hasCompletedApproval = selectedItems.some(item => item.STATUS_ID == 20014);
+                    if (hasCompletedApproval) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please make sure that all the selected Top Up status are still Awaiting Approval."
+                        }).then(() => {
+                            location.reload();
+                        });
+                        return;
+                    }
+                    const hasRejectedApproval = selectedItems.some(item => item.STATUS_ID == 20010);
+                    if (hasRejectedApproval) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please make sure that all the selected Top Up status are still Awaiting Approval."
+                        }).then(() => {
+                            location.reload();
+                        });
+                        return;
+                    }
+                    const firstStatusId = selectedItems[0].STATUS_ID;
+                    const hasDifferentStatus = selectedItems.some(item => item.STATUS_ID !== firstStatusId);
+                    if (hasDifferentStatus) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Cannot approve with different approval level at the same time."
+                        }).then(() => {
+                            location.reload();
+                        });
+                        return;
+                    }
+
+                    // ✅ Jika user termasuk Approver1/2/3 → langsung approve tanpa modal
+                    if (isApprover) {
+                        var ids = selectedItems.map(x => x.ID);
+                        var formTypeIds = selectedItems.map(x => x.FORM_TYPE);
+                        var documentApprovalIds = selectedItems.map(x => x.DOCUMENT_APPROVAL_ID);
+                        var statusIds = selectedItems.map(x => x.STATUS_ID);
+                        var formTypeId = formTypeIds.length > 0 ? formTypeIds[0] : null;
+                        var uniqueStatus = [...new Set(statusIds)];
+                        var systemType = uniqueStatus[0];
+
+                        $.ajax({
+                            url: "@Url.Content("~/Core/DataSource/GetActionName")",
+                            type: "GET",
+                            data: { systemType: systemType },
+                            success: function (response) {
+                                var actionName = response && response.systemValueText ? response.systemValueText : null;
+
+                                if (!actionName) {
+                                    swal("Error", "Failed to retrieve Action Name.", "error");
+                                    return;
+                                }
+
+                                var formData = new FormData();
+                                formData.append("IDs", ids.join(','));
+                                formData.append("FORM_TYPE_ID", formTypeId);
+                                formData.append("DOCUMENT_APPROVAL_IDS", documentApprovalIds.join(','));
+                                formData.append("ACTION_NAME", actionName);
+                                formData.append("EVIDENCE_FILE_NAME", ""); // Kosong, karena tidak upload
+
+                                $.ajax({
+                                    url: "@Url.Content("~/QCard/TaskApproval/Save")",
+                                    type: "POST",
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function (res) {
+                                        if (!res.Success) {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Error",
+                                                text: res.Message || "Approval failed."
+                                            });
+                                        } else {
+                                            Swal.fire({
+                                                icon: "success",
+                                                title: "Success",
+                                            }).then(() => {
+                                                location.reload();
+                                            });
+                                        }
+                                    },
+                                    error: function () {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: "Something went wrong while approving.."
+                                        });
+                                    }
+                                });
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Cannot retrieve Action Name from server."
+                                });
+                            }
+                        });
+                        return; // stop di sini, jangan buka modal
+                    }
+
+                    // 👇 default behavior untuk role non-approver
+                    var $modal = $.helper.getJqueryObject('UploadEvidenceModal'),
+                        $form = $modal.find("form");
+
+                    document.getElementById('modalTitle').innerHTML = "<b>Approval Confirmation</b>";
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+
+                    var upload = $("#EvidenceFile").data("kendoUpload");
+                    if (upload) upload.clearAllFiles();
+
+                    $("#btnSubmitEvidence").show();
+                    $modal.modal("show");
+                });
+
+
+                $("#EvidenceFile").kendoUpload({
+                    async: {
+                        saveUrl: "/Core/DataSource/UploadEvidence",
+                        autoUpload: true
+                    },
+                    validation: {
+                        allowedExtensions: [".jpg", ".jpeg", ".png", ".gif"],
+                        maxFileSize: 20971520 // 20MB
+                    },
+                    multiple: false,
+                    success: function (e) {
+                        if (e.response && e.response.success) {
+                            uploadedEvidenceFileName = e.response.fileName; // path dari controller
+                            console.log("Uploaded File:", uploadedEvidenceFileName);
+
+                            Swal.fire({
+                                icon: "success",
+                                title: "Success",
+                                didOpen: () => $(".swal2-container").css("z-index", 20000)
+                            });
+                        } else {
+                            Swal.fire("Error", "Upload failed.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error", "Something went wrong while uploading.", "error");
+                    }
+                });
+
+
+                $("#btnSubmitEvidence").on("click", function (event) {
+                    event.preventDefault();
+
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    $el.prop("disabled", true);
+                    if (!uploadedEvidenceFileName || uploadedEvidenceFileName.trim() === "") {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please upload your evidence before submitting.",
+                            didOpen: () => $(".swal2-container").css("z-index", 20000)
+                        });
+                        $el.prop("disabled", false);
+                        return;
+                    }
+
+                    // Ambil data dari hidden field (berisi JSON string)
+                    var ids = JSON.parse($("#UploadEvidenceForm #ID").val() || "[]");
+                    var formTypeIds = JSON.parse($("#UploadEvidenceForm #FormTypeId").val() || "[]");
+                    var documentApprovalIds = JSON.parse($("#UploadEvidenceForm #DocumentApprovalId").val() || "[]");
+
+                    // Karena semua FormTypeIds pasti sama → ambil elemen pertama saja
+                    var formTypeId = Array.isArray(formTypeIds) && formTypeIds.length > 0 ? formTypeIds[0] : null;
+
+                    // Ambil semua STATUS_ID dari selectedItems
+                    var statusIds = selectedItems.map(x => x.STATUS_ID);
+
+                    var uniqueStatus = [...new Set(statusIds)];
+                    if (uniqueStatus.length > 1) {
+                        Swal.fire("Error", "Cannot approve items with different approval levels at the same time.", "error");
+                        $el.prop("disabled", false);
+                        return;
+                    }
+
+                    var systemType = uniqueStatus[0];
+
+                    // Ambil ActionName dari server
+                    $.ajax({
+                        url: "@Url.Content("~/Core/DataSource/GetActionName")",
+                        type: "GET",
+                        data: { systemType: systemType },
+                        success: function (response) {
+                            var actionName = response && response.systemValueText ? response.systemValueText : null;
+
+                            if (!actionName) {
+                                Swal.fire("Error", "Failed to retrieve Action Name.", "error");
+                                $el.prop("disabled", false);
+                                return;
+                            }
+
+                            // === Siapkan FormData ===
+                            var formData = new FormData($form[0]);
+
+                            // ⚡ Perbaikan utama: ubah array DOCUMENT_APPROVAL_IDS menjadi CSV string
+                            var documentApprovalIdsCsv = documentApprovalIds.join(',');
+
+                            formData.append("IDs", ids.join(','));  // optional jika dibutuhkan
+                            formData.append("FORM_TYPE_ID", formTypeId);
+                            formData.append("DOCUMENT_APPROVAL_IDS", documentApprovalIdsCsv);
+                            formData.append("ACTION_NAME", actionName);
+                            formData.append("EVIDENCE_FILE_NAME", uploadedEvidenceFileName); // hanya nama file
+
+                            console.log("Data to send:", {
+                                IDs: ids,
+                                FormTypeId: formTypeId,
+                                DocumentApprovalIds: documentApprovalIdsCsv,
+                                ActionName: actionName,
+                                EvidenceFileName: uploadedEvidenceFileName
+                            });
+
+                            // Kirim ke controller
+                            $.ajax({
+                                url: "@Url.Content("~/QCard/TaskApproval/Save")",
+                                type: "POST",
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (res) {
+                                    if (!res.Success) {
+                                        Swal.fire("Error", res.Message || "Upload failed.", "error");
+                                    } else {
+                                        Swal.fire({
+                                        icon: "success",
+                                        title: "Success",
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            location.reload();
+                                        }
+                                    });
+                                    }
+                                },
+                                error: function () {
+                                    swal("Error", "Something went wrong while uploading.", "error");
+                                },
+                                complete: function () {
+                                    $el.prop("disabled", false);
+                                }
+                            });
+                        },
+                        error: function (xhr) {
+                            swal("Error", "Cannot retrieve Action Name from server.", "error");
+                            $el.prop("disabled", false);
+                            console.error("Error getting ActionName:", xhr);
+                        }
+                    });
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+    function formatCardNo(cardNo) {
+        if (!cardNo) return "";
+        cardNo = cardNo.toString().replace(/\D/g, '');
+        return cardNo.match(/.{1,4}/g)?.join('-') || cardNo;
+    }
+   
+    // Event handler untuk dataBound Kendo Grid
+    function onDataBound(e) {
+        var grid = e.sender;
+        var dataSource = grid.dataSource;
+
+        // ambil semua ID di grid saat ini (hanya untuk halaman aktif)
+        var currentPageIds = dataSource.view().map(x => String(x.ID));
+
+        // Periksa apakah semua item di halaman saat ini terpilih
+        var isAllInCurrentPageSelected = currentPageIds.every(id =>
+            selectedItems.some(x => x.ID == id)
+        );
+
+        // Update header checkbox
+        $("#checkAll").prop("checked", isAllInCurrentPageSelected &&
+            selectedItems.length > 0 &&
+            selectedItems.length === dataSource.total());
+
+        console.log("📊 DataBound - Selected:", selectedItems.length,
+                    "Total:", dataSource.total(),
+                    "Current Page Items:", currentPageIds.length);
+    }
+
+    // Event handler untuk dataBinding (opsional, untuk reset checkAll)
+    function onDataBinding(e) {
+        $("#checkAll").prop("checked", false);
+    }
+    $(document).ready(function () {
+        setTimeout(function () {
+            try {
+                var grid = $("#TaskApprovalGrid").data("kendoGrid");
+                if (grid) {
+                    grid.bind("dataBound", recheckSelected);
+                }
+            } catch (e) {
+                console.warn("⚠️ Kendo Grid belum siap, binding dilewati");
+            }
+        }, 500);
+    });
+    function isAllPagesSelected() {
+        var grid = $("#TaskApprovalGrid").data("kendoGrid");
+        if (!grid) return false;
+
+        var dataSource = grid.dataSource;
+        var totalItems = dataSource.total();
+
+        // Jika tidak ada data atau jumlah selected tidak sama dengan total
+        if (totalItems === 0 || selectedItems.length !== totalItems) {
+            return false;
+        }
+
+        // Pastikan semua ID di data source ada di selectedItems
+        // Note: ini hanya estimasi karena kita tidak punya semua ID di client
+        // Kecuali Anda sudah mengambil semua ID saat checkAll
+        return true;
+    }
+
+    // Panggil fungsi ini di recheckSelected
+    function recheckSelected() {
+        $(".row-checkbox").each(function () {
+            var id = $(this).val();
+            $(this).prop("checked", selectedItems.some(x => x.ID == id));
+        });
+
+        // Update header checkbox berdasarkan state global
+        $("#checkAll").prop("checked", isAllPagesSelected());
+
+        console.log("🔁 recheckSelected - Selected:", selectedItems.length);
+    }
+    function setParameter() {
+        var cardNo = $("#CARD_NO").val();
+
+        // Hapus semua tanda strip (-) dari card number
+        if (cardNo) {
+            cardNo = cardNo.replace(/-/g, "");
+        }
+
+        // Ambil instance Kendo DropDownList
+        var customerDropDown = $("#CUSTOMER").data("kendoDropDownList");
+
+        // Ambil value (bukan text)
+        var customer = customerDropDown ? customerDropDown.value() : "";
+
+        return {
+            cardNo: cardNo,
+            customer: customer
+        };
+    }
+</script>

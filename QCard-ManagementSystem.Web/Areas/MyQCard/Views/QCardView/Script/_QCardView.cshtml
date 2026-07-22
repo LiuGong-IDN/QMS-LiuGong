@@ -1,0 +1,85 @@
+﻿<script type="text/javascript">
+    function QCardViewManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                var self = this;
+
+                $.ajax({
+                    url: "@Url.Content("~/MyQCard/QCardView/GetQCard")",
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (res) {
+                        var data = res.Data;
+                        if(data != null)
+                        {
+                            var cardNo = (data.CARD_NO || "")
+                            .replace(/\D/g, '')                 // hanya angka
+                            .replace(/(.{4})/g, '$1 ')          // setiap 4 digit kasih spasi
+                            .trim();
+
+                            var month = (data.VALID_TO_MONTH || "").toString().padStart(2, "0");
+                            var year = (data.VALID_TO_YEAR || "").toString().slice(-2); // ambil 2 digit terakhir
+                            var validThru = month + "/" + year;
+
+                            $("#CardNoText").text(cardNo);
+                            $("#ValidThruText tspan").text(validThru);
+                            setCustomerName(data.COMPANY_NAME);
+                            $("#CustomerCodeText").text(data.COMPANY_CODE);
+                        }
+                        else {
+                            $("#CardNumber").text('Card Not Found');
+                            if (res.Success == false || res.Success == "false") {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: res.Message,
+                                    icon: "error"
+                                });
+                            }
+                        }
+                    }
+                })
+                .fail(function (xhr, status, err) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: `${status}: ${xhr.responseText || err}`
+                    });
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        QCardViewManagement = new QCardViewManagement();
+        QCardViewManagement.InitManagement();
+    });
+
+    function setCustomerName(name) {
+        const textEl = document.getElementById("CustomerNameText");
+        const maxWidth = 200; // batas lebar area teks (px)
+        let fontSize = 12; // ukuran awal
+
+        // Set teks dan ukuran awal
+        textEl.textContent = name;
+        textEl.setAttribute("font-size", fontSize);
+
+        // Dapatkan lebar aktual teks
+        let bbox = textEl.getBBox();
+
+        // Kecilkan font sampai muat dalam maxWidth
+        while (bbox.width > maxWidth && fontSize > 8) {
+            fontSize -= 1;
+            textEl.setAttribute("font-size", fontSize);
+            bbox = textEl.getBBox();
+        }
+    }
+</script>

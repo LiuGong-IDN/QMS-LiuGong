@@ -1,0 +1,227 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/SerialNo/Script/_SerialNoAdd.cshtml")
+}
+
+<form id="MachineForm" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="portlet light margin-bottom-0">
+        <!-- Machine Detail -->
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span><b>Machine Detail</b></span></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6 text-right">
+                <button type="button"
+                        class="btn btn-reset"
+                        onclick="window.location.href='/Core/SerialNo/Index'">
+                    <i class="fa fa-arrow-left mr-1"></i> Back
+                </button>
+            </div>
+        </div>
+        <br />
+
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                <div class="row">
+                    <!-- Bagian kiri: detail machine -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Customer</b></label></div>
+                            <div class="col-md-8">
+                                <input id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Serial No.</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="SERIAL_NO" name="SERIAL_NO" class="form-control text-uppercase no-space-input" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>PJB No.</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="PJB_NO" name="PJB_NO" class="form-control text-uppercase" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Evidence PJB</b></label></div>
+                            <div class="col-md-8">
+                                <input type="file" id="EVIDENCE_PJB" name="EVIDENCE_PJB"
+                                       accept=".jpg,.jpeg,.png,.pdf" class="form-control" />
+                            </div>
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product Group</b></label></div>
+                            <div class="col-md-8">
+                                <input id="ASSET_TYPE_ID" name="ASSET_TYPE_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product Model</b></label></div>
+                            <div class="col-md-8">
+                                <input id="MODEL_ID" name="MODEL_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Purchase Date</b></label></div>
+                            <div class="col-md-8">
+                                <input id="PURCHASE_DATE" name="PURCHASE_DATE" style="width: 100%;" placeholder="Select date..." />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Service Party</b></label></div>
+                            <div class="col-md-8">
+                                <input id="SERVICE_PARTY_ID" name="SERVICE_PARTY_ID" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Branch</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="BRANCH" name="BRANCH" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Category Program</b></label></div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <input type="checkbox" name="PROGRAM_CATEGORY" id="IS_PROGRAM"> Program
+                                    <input type="checkbox" name="PROGRAM_CATEGORY" id="IS_VOUCHER" style="margin-left:15px;"> Voucher
+                                    <p>
+                                        <span class="text-danger" id="ProgramCategoryError"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bagian kanan: area gambar -->
+                    <div class="col-md-6 text-center">
+                        <div id="MachineImageArea">
+                            <img id="MachineImagePreview" src="~/img/liugongQcard.png" class="img-thumbnail img-product" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Program Detail -->
+        <div id="divProgramDetail" class="portlet light bordered" style="margin-bottom:10px;">
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="page-head">
+                        <div class="page-title">
+                            <h1><span><b>Program Detail</b></span></h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-success btn-sm" id="btnAddProgramDetail">
+                            <i class="fa fa-plus"></i>Add Program
+                        </button>
+
+                        <p>
+                            <span class="text-danger error-div"></span>
+                        </p>
+
+                        <table class="table table-bordered table-striped detail-table" id="ProgramTable" style="margin-top: 8px">
+                            <thead class="detail-table-header">
+                                <tr>
+                                    <th style="width: 10%;">Action</th>
+                                    <th style="width: 30%;">Program Category</th>
+                                    <th style="width: 30%;">Program Name</th>
+                                    <th style="width: 10%;">Package Qty</th>
+                                    <th style="width: 10%;">Priority</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Row akan ditambahkan via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Voucher Detail-->
+        <div id="divVoucherDetail" class="portlet light bordered" style="margin-bottom:0px;">
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="page-head">
+                        <div class="page-title">
+                            <h1><span><b>Voucher Detail</b></span></h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="VOUCHER_AMOUNT"><b>Voucher Amount</b></label>
+                                <input type="text" id="VOUCHER_AMOUNT" name="VOUCHER_AMOUNT" class="form-control" style="text-align:right;" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <div class="form-group" style="margin-top:10px;">
+                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("SerialNoMaintenance", Feature.CREATE_FEATURE))
+                    {
+                        <button type="submit" class="btn blue trigger" id="btnSaveSerialNo">
+                            <i class="fa fa-save"></i><span class="hidden-xs">Save</span>
+                        </button>
+                    }
+                    <a class="btn btn-reset" id="btnReset">
+                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<style>
+    .row + .row {
+        margin-top: 10px;
+    }
+
+    .no-space {
+        margin: 0px !important;
+        padding: 12px !important;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        App.SerialNoAddManagement = new SerialNoAddManagement();
+        App.SerialNoAddManagement.InitManagement();
+    });
+</script>

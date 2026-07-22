@@ -1,0 +1,286 @@
+﻿@await Html.PartialAsync("~/Areas/Dashboard/Views/Style/_StyleDashboard.cshtml")
+<div class="portlet light margin-bottom-0">
+    <!-- === 1. Summary Cards === -->
+    <div class="row mb-4 summary-card">
+        <div class="col-md-4 flex-item">
+            <a href="@Url.Action("Index", "QCardList", new { area = "QCard" })">
+                <div class="portlet light bordered interactive-card">
+                    <div class="portlet-body">
+                        <div class="card shadow-sm rounded-3 p-3 custom-card">
+                            <img src="~/img/icon/Card-Resize.png" alt="QCard Icon" class="card-icon" />
+                            <div class="card-text">
+                                <div id="totalQCard" class="card-number">...</div>
+                                <div class="card-label">Total Q-Card</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 flex-item">
+            <a href="@Url.Action("Index", "SerialNo", new { area = "Core" })">
+                <div class="portlet light bordered interactive-card">
+                    <div class="portlet-body">
+                        <div class="card shadow-sm rounded-3 p-3 custom-card">
+                            <img src="~/img/icon/Excavator.png" alt="Gears Icon" class="card-icon" />
+                            <div class="card-text">
+                                <div id="totalSerialNo" class="card-number">...</div>
+                                <div class="card-label">Total Serial No.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 flex-item">
+            <a href="@Url.Action("Index", "ClaimProcess", new { area = "QCard" })">
+                <div class="portlet light bordered interactive-card">
+                    <div class="portlet-body">
+                        <div class="card shadow-sm rounded-3 p-3 custom-card">
+                            <img src="~/img/icon/Total Claim.png" alt="Data Icon" class="card-icon" />
+                            <div class="card-text">
+                                <div id="totalClaim" class="card-number">...</div>
+                                <div class="card-label">Total Claim</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- === 2. Q-Card & Claim Statistics Charts=== -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div id="divQCardChart" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Q-Card Statistics</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="qCardPeriod" class="col-auto">Select Month</label>
+                                <div class="col-auto">
+                                    <input id="qCardPeriod" name="qCardPeriod" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="chart-text">
+                                <div class="chart-label">Total Q-Card</div>
+                                <div>
+                                    <span id="totalQCardStatistic" class="chart-value">...</span>
+                                    <span id="backgroundQCardScore">
+                                        <span id="avgQCardScore"></span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span id="backgroundQCardScore">
+                                    <span id="avgQCardScore"></span>
+                                </span>
+                            </div>
+                            @* <div class="text-success">↑ 5.3% vs last month</div> *@
+                        </div>
+                        <div id="qcard-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div id="divClaimChart" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Claim Statistics</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="claimPeriod">Select Period</label>
+                                <div class="col-auto">
+                                    <div style="gap:0;" id="claimPeriod" name="claimPeriod"></div>
+                                </div>
+                            </div>
+                            <div class="chart-text">
+                                <div class="chart-label">Total Claim</div>
+                                <div>
+                                    <span id="totalClaimStatistic" class="chart-value">...</span>
+                                    <span id="backgroundClaimScore">
+                                        <span id="avgClaimScore"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="claim-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === 3. Most Claimed Program, Top Customers, Top Product Group === -->
+    <div class="row mb-4">
+        <!-- Most Claimed Program -->
+        <div class="col-md-6">
+            <div id="divClaimedProgram" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Most Claimed Program</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="claimedProgramPeriod" class="col-auto">Select Month</label>
+                                <div class="col-auto">
+                                    <input id="claimedProgramPeriod" name="claimedProgramPeriod" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="div-list">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <ul id="listClaimedProgram" class="item-list"></ul>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 3 Customers -->
+        <div class="col-md-6">
+            <div id="divTopCustomer" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Top 3 Customers</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="topCustomersPeriod" class="col-auto">Select Month</label>
+                                <div class="col-auto">
+                                    <input id="topCustomersPeriod" name="topCustomersPeriod" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="div-list">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <ul id="listTopCustomer" class="item-list"></ul>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Top 3 Product Group -->
+        <div class="col-md-6">
+            <div id="divClaimChart" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Top 3 Product Group</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="topProductGroupPeriod" class="col-auto">Select Month</label>
+                                <div class="col-auto">
+                                    <input id="topProductGroupPeriod" name="topProtopProductGroupPeriodductGroup" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="div-list">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <ul id="listTopProductGroup" class="item-list"></ul>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 3 Product Model -->
+        <div class="col-md-6">
+            <div id="divClaimChart" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Top 3 Product Model</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="topProductModelPeriod" class="col-auto">Select Month</label>
+                                <div class="col-auto">
+                                    <input id="topProductModelPeriod" name="topProtopProductModelPeriodductModel" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="div-list">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <ul id="listTopProductModel" class="item-list"></ul>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<hr class="hr-darkblue" />

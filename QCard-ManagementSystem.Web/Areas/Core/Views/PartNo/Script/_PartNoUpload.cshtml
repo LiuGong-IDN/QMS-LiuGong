@@ -1,0 +1,144 @@
+﻿<script>
+    function PartNoUploadManager(){
+        return{
+            InitManagement: function () {
+                this.InitControl();
+                this.InitHandlers();
+                this.InitValidation();
+            },
+            InitControl: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                $("#fileUploadPartNo").kendoUpload({
+                    async: {
+                        saveUrl: "@Url.Content("~/Core/DataSource/UploadExcel")",
+                        autoUpload: true
+                    },
+                    validation: {
+                        allowedExtensions: [".xlsx"]
+                    },
+                    select: function (e) {
+                        if (e.files.length == 0) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: "No file has been uploaded"
+                            });
+                            return;
+                        }
+                        var data = new FormData();
+                        for (var i = 0; i < e.files.length; i++) {
+                            data.append("Upload", e.files[i].rawFile);
+                        }
+
+                        $.ajax({
+                            url: "@Url.Content("~/Core/PartNo/UploadProcess")",
+                            type: 'POST',
+                            contentType: false,
+                            processData: false,
+                            data: data,
+                            success: function (res) {
+                                if (res.isSaved === false) {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.message
+                                    });
+                                    return;
+                                }
+                                if (res.isSaved == true) {
+                                    $("#TempCode").val(res.tempCode);
+                                    $('#PartNoUploadGrid').data("kendoGrid").dataSource.read();
+
+                                    if (res.canSubmit == false && res.message != null && res.message.trim() !== '') {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: res.message || "An error occurred while uploading"
+                                        });
+                                        $("#btnDownloadErrorUpload").hide();
+                                        $("#btnSubmitUpload").hide();
+                                    }
+                                    if (res.canSubmit == true) {
+                                        $("#btnSubmitUpload").show();
+                                        $("#btnDownloadErrorUpload").hide();
+                                    }
+                                    else {
+                                        $("#btnDownloadErrorUpload").show();
+                                        $("#btnSubmitUpload").hide();
+                                    }
+                                } else {
+                                    $("#btnSubmitUpload").hide();
+                                    $("#btnDownloadErrorUpload").hide();
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            }
+                        })
+                        .fail(function (xhr, status, err) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: `${status}: ${xhr.responseText || err}`
+                            });
+                        });
+                    },
+                    success: function (e) {
+                        console.log(e);
+                    },
+                    multiple: false,
+                });
+
+                $("#btnSubmitUpload").on('click', function (event) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal");
+
+                    var tempCode = $("#TempCode").val();
+                    $.post("@Url.Content("~/Core/PartNo/SubmitExcelUpload")", { tempCode: tempCode }, function (d) {
+                        if (d.status === "Success") {
+                            $modal.modal("hide");
+                             Swal.fire("Success!", "", "success");
+                            $.helper.grid.refresh("PartNoGrid");
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: d.Message || "Upload failed."
+                            });
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    })
+                    .always(function () {
+                        $el.prop("disabled", false);
+                    });
+                });
+
+                $("#btnDownloadErrorUpload").on('click', function (event) {
+                    window.location.href = "@Url.Content("~/Core/PartNo/DownloadExcelError?tempCode=")" + $("#TempCode").val();
+                });
+            },
+        };
+    }
+
+    function sendTempCode() {
+        return {
+            tempCode: $("#TempCode").val()
+        };
+    }
+
+    $(document).ready(function () {
+        PartNoUploadManager = new PartNoUploadManager();
+        PartNoUploadManager.InitManagement();
+    });
+</script>

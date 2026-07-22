@@ -1,0 +1,45 @@
+﻿@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.ViewModel.RolePermissionView>()
+    .Name("RolePermissionGrid")
+    .Columns(columns =>
+    {
+        columns.Template("<button type='button' class='btn-toggle-row btn blue trigger btn-sm'>All</button>")
+            .Title("")
+            .Width(50)
+            .HtmlAttributes(new { @class = "text-center" });
+
+        columns.Bound(o => o.FUNCTION_ID).Title("Function ID").Width(150);
+
+        columns.Bound(o => o.CREATE_FEATURE).Title("Create").Sortable(false).Width(50)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate("<input type='checkbox' class='chkFeature' data-feature='CREATE' #= CREATE_FEATURE ? 'checked' : '' # />");
+
+        columns.Bound(o => o.UPDATE_FEATURE).Title("Update").Sortable(false).Width(50)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate("<input type='checkbox' class='chkFeature' data-feature='UPDATE' #= UPDATE_FEATURE ? 'checked' : '' # />");
+
+        columns.Bound(o => o.DELETE_FEATURE).Title("Delete").Sortable(false).Width(50)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate("<input type='checkbox' class='chkFeature' data-feature='DELETE' #= DELETE_FEATURE ? 'checked' : '' # />");
+
+        columns.Bound(o => o.UPLOAD_FEATURE).Title("Upload").Sortable(false).Width(50)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate("<input type='checkbox' class='chkFeature' data-feature='UPLOAD' #= UPLOAD_FEATURE ? 'checked' : '' # />");
+
+        columns.Bound(o => o.DOWNLOAD_FEATURE).Title("Download").Sortable(false).Width(50)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate("<input type='checkbox' class='chkFeature' data-feature='DOWNLOAD' #= DOWNLOAD_FEATURE ? 'checked' : '' # />");
+
+        columns.Bound(o => o.SEARCH_FEATURE).Title("Search").Sortable(false).Width(50)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate("<input type='checkbox' class='chkFeature' data-feature='SEARCH' #= SEARCH_FEATURE ? 'checked' : '' # />");
+
+        columns.Bound(o => o.VIEW_FEATURE).Title("View").Sortable(false).Width(50)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+            .ClientTemplate("<input type='checkbox' class='chkFeature' data-feature='VIEW' #= VIEW_FEATURE ? 'checked' : '' # />");
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Role List to display"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+)

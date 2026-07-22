@@ -1,0 +1,101 @@
+﻿@model QCard.ManagementSystem.Domain.Modules.Core.Request.UserRequest
+@{
+	Layout = "_LoginLayout";
+}
+
+@section scripts {
+	@Html.Partial("~/Areas/Core/Views/Account/Script/_Register.cshtml")
+}
+
+<div class="container-lg" id="registerView">
+	<div class="form-box">
+		<div class="logo">
+			<img src="~/img/liugong.png" alt="logo" alt="logo" class="logo-default">
+		</div>
+		<div class="header-text2">
+			Register Your Account
+		</div>
+
+		<div class="kt-login__signin">
+			<form id="registerform">
+				<input type="hidden" id="ID" data-bind="value: ID" />
+				<div class="form-group">
+					<div class="input-container">
+						<i class="fa fa-user icon"></i>
+						@Html.TextBoxFor(x => x.FIRST_NAME, new {autocomplete = "off", placeholder = "First Name", @class = "form-control form-control-solid placeholder-no-fix"})
+					</div>
+					<span class="text-danger field-error" data-field="FIRST_NAME"></span>
+				</div>
+				<div class="form-group">
+					<div class="input-container">
+						<i class="fa fa-user icon"></i>
+						@Html.TextBoxFor(x => x.LAST_NAME, new {autocomplete = "off",placeholder = "Last Name", @class = "form-control form-control-solid placeholder-no-fix"})
+					</div>
+					<span class="text-danger field-error" data-field="LAST_NAME"></span>
+				</div>
+
+				<!-- EMAIL -->
+				<div class="form-group">
+					<div class="input-container">
+						<i class="fa fa-envelope icon"></i>
+						@Html.TextBoxFor(x => x.EMAIL, new {autocomplete = "off", placeholder = "Email", @class = "form-control form-control-solid placeholder-no-fix"})
+					</div>
+					<span class="text-danger field-error" data-field="EMAIL"></span>
+				</div>
+
+				<!-- PHONE NUMBER -->
+				<div class="form-group">
+					<div class="input-container">
+						<i class="fa fa-mobile-alt icon"></i>
+						@Html.TextBoxFor(x => x.PHONE_NUMBER, new {autocomplete = "off", placeholder = "Mobile No.", @class = "form-control form-control-solid placeholder-no-fix"})
+					</div>
+					<span class="text-danger field-error" data-field="PHONE_NUMBER"></span>
+				</div>
+				<div class="form-group">
+					<div class="input-container qcard-container">
+						<i class="fa fa-credit-card icon"></i>
+						<div class="qcard-wrapper">
+							@Html.TextBoxFor(x => x.QCARD, new {autocomplete = "off", placeholder = "Q-Card No.", @class = "form-control form-control-solid placeholder-no-fix"})
+							<button type="button" id="btnCheckQCard" class="btn-check-qcard" style="margin-left:15px; max-width:70px;">Check</button>
+						</div>
+					</div>
+					<span class="text-danger field-error" data-field="QCARD"></span>
+				</div>
+				<div class="form-group input-container"
+					 style="background-color:#d3d3d3 !important; border:none !important;">
+					<i class="fa fa-building icon" aria-hidden="true"
+					   style="background-color:#d3d3d3 !important;"></i>
+					@Html.TextBoxFor(x => x.COMPANY, new {
+					autocomplete = "off",
+										@class = "form-control form-control-solid placeholder-no-fix",
+										@readonly = "readonly",
+										style = "background-color:#d3d3d3 !important; border:none !important; box-shadow:none !important;"
+										})
+
+					<span class="text-danger"></span>
+				</div>
+
+				<div class="form-group">
+					<div class="input-container">
+						<i class="fa fa-lock icon"></i>
+						@Html.PasswordFor(x => x.PASSWORD, new {autocomplete = "off", placeholder = "Password", @class = "form-control form-control-solid placeholder-no-fix"})
+					</div>
+					<span class="text-danger field-error" data-field="PASSWORD"></span>
+				</div>
+				<div class="form-group input-container">
+					<i class="fa fa-lock icon" aria-hidden="true"></i>
+					@Html.PasswordFor(x => x.PASSWORD_CONFIRM, new { autocomplete = "off", placeholder = "Confirm Password", @class = "form-control form-control-solid placeholder-no-fix" })
+					<span class="text-danger"></span>
+				</div>
+				<div class="kt-login__actions">
+					<button type="button" class="btn btn-primary" id="btnRegister">Register</button>
+				</div>
+				<div class="text" style="text-align:center; margin-top:10px;">
+					Already have an account? Sign in
+					<a href="/Core/Account/Login">here.</a>
+				</div>
+			</form>
+		</div>
+
+	</div>
+</div>

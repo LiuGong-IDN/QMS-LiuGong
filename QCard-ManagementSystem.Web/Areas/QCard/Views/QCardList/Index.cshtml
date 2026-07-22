@@ -1,0 +1,88 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@section scripts {
+    @Html.Partial("~/Areas/QCard/Views/QCardList/Script/_QCardList.cshtml")
+}
+@section modals {
+    @Html.Partial("~/Areas/QCard/Views/QCardList/Component/_RegisterQCardForm.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span><b>List of Q-Card</b></span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            <form data-grid="QcardListGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="CARD_NO"><b>Q-Card No.</b></label>
+                                <input type="text" id="CARD_NO" class="form-control" data-filter='{ "operator": "contains", "field": "CARD_NO" }' maxlength="19" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="CUSTOMER"><b>Customer</b></label>
+                                <input id="CUSTOMER" name="CUSTOMER" style="width: 100%;" data-filter='{ "operator": "eq", "field": "CUSTOMER_ID" }' />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                            <div class="form-group">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("QCardList", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+                                </text>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="form-group">
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("QCardList", Feature.DOWNLOAD_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-success" id="btnPrintQCard">
+                                        <i class="fa fa-print" aria-hidden="true"></i>Print Selected Card
+                                    </a>
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("QCardList", Feature.CREATE_FEATURE))
+                                {
+                                    <a href="#" class="btn blue trigger" id="btnAddQCard">
+                                        <i class="fa fa-plus"></i>Register New Card
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/QCard/Views/QCardList/Grid/_QCardGrid.cshtml")
+    </div>
+
+</div>
+<script>
+    $(document).ready(function () {
+        App.QCardManagement = new QCardManagement();
+        App.QCardManagement.InitManagement();
+    });
+</script>

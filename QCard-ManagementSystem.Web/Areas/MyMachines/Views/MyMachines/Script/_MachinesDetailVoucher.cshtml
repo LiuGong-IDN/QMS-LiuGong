@@ -1,0 +1,474 @@
+﻿<script type="text/javascript">
+    var SourceData;
+    var selectedPartNos = [];
+    var previousPartNo = null; // ✅ Tambahkan ini
+
+    function MachinesDetailManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("#PDC_ID").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetPDC")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select PDC.."
+                });
+
+                $(document).on("keyup change", "[name='QTY[]']", function () {
+                    let qty = parseInt($(this).val(), 10);
+
+                    // Jika kosong, NaN, atau <= 0 → set jadi 1
+                    if (!qty || qty <= 0) {
+                        $(this).val(1);
+                        qty = 1;
+                    }
+
+                    // Lanjut hitung harga total
+                    let row = $(this).closest("tr");
+                    totalPartPrice(row);
+                    totalPartPriceDiscount(row);
+                });
+
+                $("#discountInput").on("input", function () {
+                    $("#tablePart tbody tr").each(function () {
+                        totalPartPriceDiscount($(this));
+                    });
+                });
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                resizeMachineImage();
+
+                var partNoDataSource = new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: "@Url.Content("~/Core/DataSource/GetPartNoList")",
+                            dataType: "json"
+                        }
+                    }
+                });
+
+                $("#btnAddPartClaim").on("click", function (e) {
+                    // Add Material Detail
+                    var newRow = `
+                        <tr>
+                            <td class="text-center">
+                                <a class='k-grid-delete btnRemoveRow' title='Delete'>
+                                    <i class='fa fa-trash-alt fa-lg detail-icon'></i>
+                                </a>
+                            </td>
+                            <td>
+                                <input name="PART_NO[]" class="form-control partNoDropdown" />
+                            </td>
+                            <td>
+                                <input type="text" name="DESCRIPTION[]" class="form-control descriptionField" readonly />
+                            </td>
+                            <td>
+                                <input type="text" name="RETAIL_PRICE[]" class="form-control retailPrice" style="text-align:right;" disabled="disabled"/>
+                            </td>
+                            <td>
+                                <input type="number" name="QTY[]" class="form-control partQty" style="text-align:right;" />
+                            </td>
+                            <td>
+                                <input type="text" name="TOTAL_PART_PRICE[]" class="form-control totalPartPrice" style="text-align:right;" disabled="disabled"/>
+                            </td>
+                            <td style="display:none;">
+                                <input type="text" name="TOTAL_PART_PRICE_DISC[]" class="form-control totalPartPriceDiscount" style="text-align:right;" disabled="disabled"/>
+                            </td>
+                        </tr>
+                    `;
+                    $("#tablePart tbody").append(newRow);
+
+                    var $ddl = $("#tablePart tbody tr:last .partNoDropdown");
+                    // Apply Kendo DropDownList
+                    $ddl.kendoDropDownList({
+                        dataTextField: "Text",
+                        dataValueField: "Value",
+                        filter: "contains",
+                        optionLabel: "Select Part No...",
+                        suggest: true,
+                        height: 400,
+
+                        filtering: function (e) {
+                            var filterValue = e.filter?.value || "";
+
+                            e.preventDefault(); // stop default behavior
+
+                            fetchPartNo(filterValue, function (list) {
+                                var ds = createPartNoDataSource(list);
+                                $ddl.data("kendoDropDownList").setDataSource(ds);
+                            });
+                        },
+
+                        open: function () {
+                            fetchPartNo("", function (list) {
+                                var ds = createPartNoDataSource(list);
+                                $ddl.data("kendoDropDownList").setDataSource(ds);
+                            });
+                        },
+
+                        focus: function () {
+                            previousPartNo = this.value();
+                        },
+
+                        change: function (e) {
+                            // tetap pakai logicmu yang lama
+                            var dataItem = this.dataItem(this.selectedIndex);
+                            var $row = $(this.element).closest("tr");
+
+                            var $descField = $row.find(".descriptionField");
+                            var $retailPriceField = $row.find(".retailPrice");
+                            var currentValue = this.value();
+
+                            // cek duplicate
+                            var duplicate = false;
+                            $(".partNoDropdown").each(function () {
+                                var ddl = $(this).data("kendoDropDownList");
+                                if (ddl && ddl !== $ddl.data("kendoDropDownList") && ddl.value() === currentValue) {
+                                    duplicate = true;
+                                    return false;
+                                }
+                            });
+
+                            if (duplicate) {
+                                Swal.fire("Error", "This Part No already selected", "error");
+                                this.value("");
+                                $descField.val("");
+                                $retailPriceField.val("");
+                                return;
+                            }
+
+                            if (dataItem) {
+                                $descField.val(dataItem.Name);
+                                $retailPriceField.val(toRupiah(dataItem.Decimal));
+                            } else {
+                                $descField.val("");
+                                $retailPriceField.val("");
+                            }
+
+                            previousPartNo = null;
+                            qtyFocus($row);
+                        }
+                    }).data("kendoDropDownList");
+                });
+
+                $(document).on("click", ".btnRemoveRow", function () {
+                    var $row = $(this).closest("tr");
+                    var $dropdownInput = $row.find(".partNoDropdown");
+                    var dropdownInstance = $dropdownInput.length ? $dropdownInput.data("kendoDropDownList") : null;
+
+                    if (dropdownInstance) {
+                        var partNoValue = dropdownInstance.value();
+                        selectedPartNos = selectedPartNos.filter(function (val) {
+                            return val !== partNoValue;
+                        });
+                    }
+
+                    $row.remove();
+                    calculateSummary();
+                });
+
+                 $("#btnReset").on("click", function () {
+                     $("#discountInput").val(0);
+                     removeAllRow();
+                     calculateSummary();
+                     calculateSummaryDiscount();
+                 });
+
+                $("#btnClaimVoucher").on("click", function () {
+                    var $el = $(this);
+                    var machineId = $("#machineID").val();
+                    var $form = $("#PdcForm");
+                    var dataToSave = buildDataToSave(machineId);
+                    var selectedPart = dataToSave.SELECTED_PART;
+                    var hasInvalid = selectedPart.some(p =>
+                        p.QTY.trim() === "" || p.QTY === "0"
+                    );
+                    if(selectedPart.length == 0){
+                        Swal.fire({
+                            title: "Error",
+                            text: "No Part selected",
+                            icon: "error"
+                        });
+                        return
+                    }
+                    if(hasInvalid){
+                        Swal.fire({
+                            title: "Error",
+                            text: "There is an empty Qty from selected part",
+                            icon: "error"
+                        });
+                        return
+                    }
+
+                    console.log(dataToSave)
+
+
+                    $el.prop("disabled", true);
+                    Swal.fire({
+                        title: "Are you sure?",
+                        text: "Are you sure you want to claim the selected Part? Your Voucher Balance will be deducted after claim",
+                        icon: "question",
+                        showCancelButton: true,
+                        cancelButtonText: "No",
+                        confirmButtonText: "Yes"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '@Url.Action("ClaimVoucher", "MyMachines", new { area = "MyMachines" })',
+                                type: "POST",
+                                data: { request: dataToSave },
+                                success: function (res) {
+                                    if (!res.Success) {
+                                        if (!res.Validate) {
+                                            ShowErrorMessage($form, JSON.parse(res.Message));
+                                        } else {
+                                            Swal.fire({
+                                                title: "Error",
+                                                text: res.Message,
+                                                icon: "error"
+                                            });
+                                        }
+                                    } else {
+                                        Swal.fire({
+                                            icon: "success",
+                                            title: "Success"
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                window.location.href = "/MyQCard/ClaimHistory";
+                                            }
+                                        });
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                    $el.prop("disabled", false);
+                });
+                $("#btnReset").on("click", function () {
+                    document.querySelectorAll('.claimQty').forEach(el => el.value = '');
+                    $("#PDC_ID").data("kendoDropDownList").value('');
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        MachinesDetailManagement = new MachinesDetailManagement();
+        MachinesDetailManagement.InitManagement();
+    });
+    $(window).resize(function () {
+            resizeMachineImage();
+    });
+
+    function qtyFocus(row) {
+        var qty = row.find(".partQty");    // kolom Qty
+
+        if (qty.length) {
+            setTimeout(function () {
+                qty.focus();
+            }, 50);
+        }
+    }
+
+    function toRupiah(value) {
+        if (value == null || value === "") return "Rp 0";
+        return "Rp " + new Intl.NumberFormat("id-ID", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    }
+
+    function parseRupiah(str) {
+        if (!str) return 0;
+        return parseInt(str.replace(/[^0-9]/g, "")) || 0;
+    }
+
+    function totalPartPrice(row) {
+        let price = row.find(".retailPrice").val().replace(/[^0-9]/g, "");
+        let qty = row.find("[name='QTY[]']").val();
+
+        price = parseInt(price) || 0;
+        qty = parseInt(qty) || 0;
+
+        let total = price * qty;
+
+        row.find("[name='TOTAL_PART_PRICE[]']").val(
+            total ? toRupiah(total) : "Rp 0"
+        );
+
+        calculateSummary();
+    }
+
+    function getClaimAmount() {
+        let total = 0;
+
+        $("[name='TOTAL_PART_PRICE[]']").each(function () {
+            let val = $(this).val();
+            let num = parseInt(val.replace(/[^0-9]/g, "")) || 0;
+            total += num;
+        });
+
+        return total;
+    }
+
+    function calculateSummary() {
+        let claimAmount = getClaimAmount();
+        let ppn = Math.round(claimAmount * 0.11);
+        let currentVoucherRupiah = $("#CurrentVoucherAmount").text()
+        let currentVoucher = parseRupiah(currentVoucherRupiah);
+        let grandTotal = claimAmount + ppn;
+        let remaining = currentVoucher - (claimAmount + ppn);
+
+        $("#claimAmount").text(toRupiah(claimAmount));
+        $("#grandTotal").val(toRupiah(grandTotal));
+        $("#PPN").val(toRupiah(ppn));
+        $("#reminingBalance").val(toRupiah(remaining));
+    }
+
+    function totalPartPriceDiscount(row) {
+        console.log('calculate discount')
+        let price = parseInt(row.find(".retailPrice").val().replace(/[^0-9]/g, "")) || 0;
+        let qty = parseInt(row.find(".partQty").val()) || 0;
+
+        // Discount global, tetapi diterapkan per row
+        let discountPercent = parseFloat($("#discountInput").val()) || 0;
+
+        // Safety
+        if (discountPercent < 0) discountPercent = 0;
+        if (discountPercent > 100) discountPercent = 100;
+
+        let subtotal = price * qty;
+        let total = subtotal * (1 - (discountPercent / 100));
+        total = Math.max(0, total);
+
+        row.find(".totalPartPriceDiscount").val(toRupiah(total));
+
+        calculateSummaryDiscount();
+    }
+
+    function calculateSummaryDiscount() {
+        let claimAmount = getClaimAmountDiscount();
+        let ppn = Math.round(claimAmount * 0.11);
+        let currentVoucherRupiah = $("#CurrentVoucherAmount").text()
+        let currentVoucher = parseRupiah(currentVoucherRupiah);
+        let grandTotal = claimAmount + ppn;
+        let remaining = currentVoucher - (claimAmount + ppn);
+
+        $("#claimAmountDiscount").val(toRupiah(claimAmount));
+        $("#grandTotalDiscount").val(toRupiah(grandTotal));
+        $("#PPNDiscount").val(toRupiah(ppn));
+        $("#reminingBalanceDiscount").val(toRupiah(remaining));
+    }
+
+    function getClaimAmountDiscount() {
+        let total = 0;
+
+        $("[name='TOTAL_PART_PRICE_DISC[]']").each(function () {
+            let val = $(this).val();
+            let num = parseInt(val.replace(/[^0-9]/g, "")) || 0;
+            total += num;
+        });
+
+        return total;
+    }
+
+    function resizeMachineImage() {
+        var leftHeight = $('.machine-details').outerHeight();
+        $('.machine-image').height(leftHeight);
+    }
+
+    function setParameter() {
+        var machineId = $("#machineID").val();
+        return {
+            machineId: machineId,
+        };
+    }
+
+    function buildDataToSave(machineId) {
+        var pdcDropdown = $("#PDC_ID").data("kendoDropDownList");
+        var pdcId = pdcDropdown.value();
+
+        var selectedParts = [];
+
+        $("#tablePart tbody tr").each(function () {
+            var partId = $(this).find("[name='PART_NO[]']").data("kendoDropDownList")?.value() || "";
+            var desc = $(this).find("[name='DESCRIPTION[]']").val() || "";
+            var price = $(this).find("[name='RETAIL_PRICE[]']").val() || "0";
+            var qty = $(this).find("[name='QTY[]']").val() || "0";
+            var total = $(this).find("[name='TOTAL_PART_PRICE[]']").val() || "0";
+
+            // convert Rupiah → number
+            price = parseInt(price.replace(/[^0-9]/g, "")) || 0;
+            total = parseInt(total.replace(/[^0-9]/g, "")) || 0;
+
+            if (partId) {
+                selectedParts.push({
+                    PART_ID: partId,
+                    QTY: qty
+                });
+            }
+        });
+
+        var dataToSave = {
+            MACHINE_ID: machineId,
+            PDC_ID: pdcId,
+            SELECTED_PART: selectedParts
+        };
+
+        return dataToSave;
+    }
+
+    function removeAllRow() {
+        selectedPartNos = [];
+        $("#tablePart tbody tr").remove();
+    }
+
+    function fetchPartNo(filterText, callback) {
+        $.ajax({
+            url: "@Url.Content("~/Core/DataSource/GetPartNoList")", // <-- endpoint baru
+            type: "POST",
+            data: { filter: filterText },
+            dataType: "json",
+            success: function (data) {
+                callback(data);
+            },
+            error: function () {
+                Swal.fire("Error", "Failed to load Part No", "error");
+            }
+        });
+    }
+
+    function createPartNoDataSource(response) {
+        return new kendo.data.DataSource({
+            transport: {
+                read: function (options) {
+                    options.success(response);
+                }
+            }
+        });
+    }
+</script>

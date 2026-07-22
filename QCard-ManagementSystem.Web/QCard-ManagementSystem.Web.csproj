@@ -1,0 +1,171 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup Label="Globals">
+    <SccProjectName>
+    </SccProjectName>
+    <SccProvider>
+    </SccProvider>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <UserSecretsId>f8e5fe9b-a7aa-4639-b364-75c012cdea5e</UserSecretsId>
+    <Nullable>enable</Nullable>
+    <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
+    <PreserveCompilationContext>false</PreserveCompilationContext>
+    <BaseOutputPath>bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Areas\Core\Views\Log\**" />
+    <Compile Remove="Areas\Dashboard\Views\DashboardAdmin\Style\**" />
+    <Compile Remove="Areas\Dashboard\Views\DashboardCustomer\Style\**" />
+    <Compile Remove="Areas\Dashboard\Views\DashboardPDC\Style\**" />
+    <Compile Remove="Areas\PartSourceMaintenance - Copy\**" />
+    <Compile Remove="HostedServices\**" />
+    <Compile Remove="Views\Shared\EditorTemplates\**" />
+    <Compile Remove="wwwroot\**" />
+    <Content Remove="Areas\Core\Views\Log\**" />
+    <Content Remove="Areas\Dashboard\Views\DashboardAdmin\Style\**" />
+    <Content Remove="Areas\Dashboard\Views\DashboardCustomer\Style\**" />
+    <Content Remove="Areas\Dashboard\Views\DashboardPDC\Style\**" />
+    <Content Remove="Areas\PartSourceMaintenance - Copy\**" />
+    <Content Remove="HostedServices\**" />
+    <Content Remove="Views\Shared\EditorTemplates\**" />
+    <Content Remove="wwwroot\**" />
+    <EmbeddedResource Remove="Areas\Core\Views\Log\**" />
+    <EmbeddedResource Remove="Areas\Dashboard\Views\DashboardAdmin\Style\**" />
+    <EmbeddedResource Remove="Areas\Dashboard\Views\DashboardCustomer\Style\**" />
+    <EmbeddedResource Remove="Areas\Dashboard\Views\DashboardPDC\Style\**" />
+    <EmbeddedResource Remove="Areas\PartSourceMaintenance - Copy\**" />
+    <EmbeddedResource Remove="HostedServices\**" />
+    <EmbeddedResource Remove="Views\Shared\EditorTemplates\**" />
+    <EmbeddedResource Remove="wwwroot\**" />
+    <None Remove="Areas\Core\Views\Log\**" />
+    <None Remove="Areas\Dashboard\Views\DashboardAdmin\Style\**" />
+    <None Remove="Areas\Dashboard\Views\DashboardCustomer\Style\**" />
+    <None Remove="Areas\Dashboard\Views\DashboardPDC\Style\**" />
+    <None Remove="Areas\PartSourceMaintenance - Copy\**" />
+    <None Remove="HostedServices\**" />
+    <None Remove="Views\Shared\EditorTemplates\**" />
+    <None Remove="wwwroot\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Areas\Core\Controllers\LogController.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <_WebToolingArtifacts Remove="Properties\PublishProfiles\DealerPortal_Dev.pubxml" />
+  </ItemGroup>
+  <ItemGroup>
+	<Content Include="wwwroot\vendors\**" />
+    <Content Include="wwwroot\Content\theme\Metronic\global\css\components-md.css" />
+    <Content Include="wwwroot\favicon.ico" />
+    <Content Include="wwwroot\img\icon\Card-Resize.png" />
+    <Content Include="wwwroot\img\icon\Card.png" />
+    <Content Include="wwwroot\img\icon\Excavator.png" />
+    <Content Include="wwwroot\img\icon\Time.png" />
+    <Content Include="wwwroot\img\icon\Total Claim.png" />
+    <Content Include="wwwroot\img\icon\voucher_action_icon.png" />
+    <Content Include="wwwroot\img\liugong-bg-new.png" />
+    <Content Include="wwwroot\img\ProductGroup\Aerial-Work-Platform.png" />
+    <Content Include="wwwroot\img\ProductGroup\Backhoe-Loaders.png" />
+    <Content Include="wwwroot\img\ProductGroup\Bulldozers.png" />
+    <Content Include="wwwroot\img\ProductGroup\Cold-planer.png" />
+    <Content Include="wwwroot\img\ProductGroup\Compressor.png" />
+    <Content Include="wwwroot\img\ProductGroup\Crane.png" />
+    <Content Include="wwwroot\img\ProductGroup\Dump-Truck.png" />
+    <Content Include="wwwroot\img\ProductGroup\Excavators.png" />
+    <Content Include="wwwroot\img\ProductGroup\Forklift.png" />
+    <Content Include="wwwroot\img\ProductGroup\Foundation-Equipment.png" />
+    <Content Include="wwwroot\img\ProductGroup\Motor-Graders.png" />
+    <Content Include="wwwroot\img\ProductGroup\Pavers.png" />
+    <Content Include="wwwroot\img\ProductGroup\Rollers.png" />
+    <Content Include="wwwroot\img\ProductGroup\Skid-Steer-Loaders.png" />
+    <Content Include="wwwroot\img\ProductGroup\Warehouse-Truck.png" />
+    <Content Include="wwwroot\img\ProductGroup\Wheel-Loader.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="ExcelDataReader" />
+    <PackageReference Include="ExcelDataReader.DataSet" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.CodeAnalysis" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="NPOI" />
+    <PackageReference Include="Rotativa.AspNetCore" />
+    <PackageReference Include="Scrutor" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="Svg.Skia" />
+    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="System.Text.RegularExpressions" />
+    <PackageReference Include="Telerik.UI.for.AspNet.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QCard-ManagementSystem.Domain\QCard-ManagementSystem.Domain.csproj" />
+    <ProjectReference Include="..\QCard-ManagementSystem.Infrastructure\QCard-ManagementSystem.Infrastructure.csproj" />
+    <ProjectReference Include="..\QCard-ManagementSystem.Service\QCard-ManagementSystem.Service.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Views\Home\Grid\" />
+    <Folder Include="wwwroot\img\ApprovalEvidence\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Areas\Core\Views\Account\ForgotPassword.cshtml" />
+    <None Include="Areas\Core\Views\Account\Register.cshtml" />
+    <None Include="Areas\Core\Views\Account\Login.cshtml" />
+    <None Include="Areas\Core\Views\Account\Script\_ForgotPassword.cshtml" />
+    <None Include="Areas\Core\Views\Account\Script\_Register.cshtml" />
+    <None Include="Areas\Core\Views\Account\Script\_Login.cshtml" />
+    <None Include="Areas\Core\Views\Config\Component\_ConfigForm.cshtml" />
+    <None Include="Areas\Core\Views\Config\Grid\_ConfigGrid.cshtml" />
+    <None Include="Areas\Core\Views\Config\Index.cshtml" />
+    <None Include="Areas\Core\Views\Config\Script\_Config.cshtml" />
+    <None Include="Areas\Core\Views\Customer\Component\_CustomerForm.cshtml" />
+    <None Include="Areas\Core\Views\Menu\Component\_MenuForm.cshtml" />
+    <None Include="Areas\Core\Views\Menu\index.cshtml" />
+    <None Include="Areas\Core\Views\Menu\Script\_Menu.cshtml" />
+    <None Include="Areas\Core\Views\Role\Script\_Role.cshtml" />
+    <None Include="Areas\Core\Views\User\Component\_UserForm.cshtml" />
+    <None Include="Areas\Core\Views\User\Grid\_UserGrid.cshtml" />
+    <None Include="Areas\Core\Views\User\Index.cshtml" />
+    <None Include="Areas\Core\Views\User\Script\_User.cshtml" />
+    <None Include="Areas\Core\Views\_ViewImports.cshtml" />
+    <None Include="Areas\Core\Views\_ViewStart.cshtml" />
+    <None Include="wwwroot\img\QCardImage\QCard_Back.svg" />
+    <None Include="wwwroot\img\QCardImage\QCard_Front.svg" />
+    <None Include="wwwroot\img\QCardImage\QCard_Front_2.svg" />
+    <None Include="wwwroot\js\core.js" />
+    <None Include="wwwroot\js\custom.js" />
+    <None Include="wwwroot\js\helper.js" />
+    <None Include="wwwroot\js\inputmask.extensions.js" />
+    <None Include="wwwroot\js\inputmask.js" />
+    <None Include="wwwroot\js\jquery-dateformat.min.js" />
+    <None Include="wwwroot\js\jquery-idleTimeout.js" />
+    <None Include="wwwroot\js\jquery-migrate-3.4.0.min.js" />
+    <None Include="wwwroot\js\jquery.mask.js" />
+    <None Include="wwwroot\js\jquery.number.js" />
+    <None Include="wwwroot\js\jquery.showmore.js" />
+    <None Include="wwwroot\js\mustache.min.js" />
+    <None Include="wwwroot\js\scripts.bundle.js" />
+    <None Include="wwwroot\js\select2.min.js" />
+    <None Include="wwwroot\js\store.min.js" />
+    <None Include="wwwroot\js\vendors.bundle.js" />
+    <None Include="wwwroot\js\xhr-helper.js" />
+    <None Include="wwwroot\templates\ClaimAllTemplate.xlsx" />
+    <None Include="wwwroot\templates\ClaimListTemplate.xlsx" />
+    <None Include="wwwroot\templates\ClaimPendingPartsTemplate.xlsx" />
+    <None Include="wwwroot\templates\MyMachineAllTemplate.xlsx" />
+    <None Include="wwwroot\templates\MyMachineListTemplate.xlsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="OBS.SDK">
+      <HintPath>..\Lib\OBS.SDK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

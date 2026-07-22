@@ -1,0 +1,296 @@
+﻿<script type="text/javascript">
+    // ==========================================================
+    // Modul Dashboard Customer Management (Refactored)
+    // ==========================================================
+    class DashboardCustomerManagement {
+
+        initManagement() {
+            this.chartDataCache = {};            // cache chart per serialNo
+            this.resizeTimeout = null;           // debounce resize
+            this.lastChartWidth = null;          // simpan ukuran terakhir
+            this.initControls();
+            this.initValidation();
+            this.initHandlers();
+            this.initFunction();
+        }
+
+        // -----------------------------
+        // Inisialisasi dropdown dan input
+        // -----------------------------
+        initControls() {
+            const self = this;
+
+            $("input.text-uppercase").on("input", function () {
+                this.value = this.value.toUpperCase();
+            });
+
+            $("input.no-space-input").on("input", function () {
+                this.value = this.value.replace(/[^a-zA-Z0-9]/g, "");
+            });
+
+            $("#SERIAL_NO-FILTER").kendoDropDownList({
+                dataTextField: "Text",
+                dataValueField: "Value",
+                dataSource: {
+                    transport: {
+                        read: {
+                            cache: false,
+                            url: "@Url.Content("~/Core/DataSource/GetSerialNoQCard")",
+                            dataType: "json"
+                        }
+                    }
+                },
+                index: 0,
+                filter: "contains",
+                suggest: true,
+                dataBound: function () {
+                    const ddl = this;
+                    const data = ddl.dataSource.view();
+                    if (data && data.length > 0) {
+                        ddl.value(data[0].Value);
+                        const firstValue = ddl.value();
+                        if (firstValue) self.getRemainingClaimChart(firstValue);
+                    }
+                },
+                change: function () {
+                    const selectedValue = this.value();
+                    if (selectedValue) self.getRemainingClaimChart(selectedValue);
+                }
+            });
+        }
+
+        // -----------------------------
+        // Placeholder validasi (future use)
+        // -----------------------------
+        initValidation() {
+            // tempat validasi form nanti
+        }
+
+        // -----------------------------
+        // Handler event global
+        // -----------------------------
+        initHandlers() {
+            const self = this;
+
+            $(window).on("resize", () => {
+                clearTimeout(self.resizeTimeout);
+                self.resizeTimeout = setTimeout(() => {
+                    const container = $("#remaining-claim-chart");
+                    const currentWidth = container.width();
+
+                    // abaikan jika perubahan kecil
+                    if (self.lastChartWidth && Math.abs(self.lastChartWidth - currentWidth) < 50) return;
+                    self.lastChartWidth = currentWidth;
+
+                    const ddl = $("#SERIAL_NO-FILTER").data("kendoDropDownList");
+                    const serialNo = ddl ? ddl.value() : null;
+                    if (serialNo && self.chartDataCache[serialNo]) {
+                        self.createRemainingClaimChart(self.chartDataCache[serialNo]);
+                    } else if (serialNo) {
+                        self.getRemainingClaimChart(serialNo);
+                    }
+                }, 200);
+            });
+        }
+
+        // -----------------------------
+        // Fungsi inisialisasi utama
+        // -----------------------------
+        initFunction() {
+            this.getDataSummary();
+        }
+
+        // -----------------------------
+        // Helper Ajax terpusat
+        // -----------------------------
+        async fetchJson(url, data = {}, method = "GET", contentType = "application/json") {
+            try {
+                const res = await $.ajax({
+                    url,
+                    method,
+                    data,
+                    contentType,
+                    dataType: "json"
+                });
+
+                if (!res?.Success || res.Success === "false" || res.Success === false) {
+                    const msg = res?.Message || "Server returned an error";
+                    const err = new Error(msg);
+                    err._serverResponse = res;
+                    throw err;
+                }
+
+                return res.Data;
+            } catch (err) {
+                throw err;
+            }
+        }
+
+        // -----------------------------
+        // Handler error Ajax
+        // -----------------------------
+        handleAjaxError(err, customMessage = "Unexpected error") {
+            console.error("Ajax Error:", err);
+
+            const message = err?.message || customMessage;
+            const serverText = err?.responseText || (err._serverResponse && JSON.stringify(err._serverResponse));
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: serverText || message
+            });
+        }
+
+        // -----------------------------
+        // Ambil ringkasan dashboard
+        // -----------------------------
+        async getDataSummary() {
+            try {
+                const data = await this.fetchJson("@Url.Content("~/Dashboard/DashboardCustomer/GetDashboardCustomerSummary")");
+
+                $("#totalSerialNo").text(data?.TOTAL_MACHINE ?? 0);
+                $("#totalClaim").text(data?.TOTAL_CLAIM ?? 0);
+                $("#daysLeft").text(data?.DAYS_LEFT ?? 0);
+            } catch (xhr) {
+                this.handleAjaxError(xhr, "Gagal mengambil dashboard summary");
+            }
+        }
+
+        // -----------------------------
+        // Ambil data chart Remaining Claim
+        // -----------------------------
+        async getRemainingClaimChart(serialNo) {
+            if (!serialNo) return;
+
+            try {
+                if (this.chartDataCache[serialNo]) {
+                    this.createRemainingClaimChart(this.chartDataCache[serialNo]);
+                    return;
+                }
+
+                kendo.ui.progress($("#remaining-claim-chart"), true);
+
+                const data = await this.fetchJson(
+                    "@Url.Content("~/Dashboard/DashboardCustomer/GetDashboardCustomerRemainingClaim")",
+                    { serialNo }
+                );
+
+                if (!data || !Array.isArray(data) || data.length === 0) {
+                    kendo.ui.progress($("#remaining-claim-chart"), false);
+                    $("#remaining-claim-chart").html("<p class='text-muted text-center' style='padding:20px;'>No data available.</p>");
+                    this.chartDataCache[serialNo] = [];
+                    return;
+                }
+
+                this.chartDataCache[serialNo] = data;
+                this.createRemainingClaimChart(data);
+            } catch (xhr) {
+                this.handleAjaxError(xhr, "Gagal mengambil remaining claim data");
+            } finally {
+                kendo.ui.progress($("#remaining-claim-chart"), false);
+            }
+        }
+
+        // -----------------------------
+        // Render Chart Remaining Claim
+        // -----------------------------
+        createRemainingClaimChart(datasource) {
+            if (!datasource || !Array.isArray(datasource) || datasource.length === 0) {
+                $("#remaining-claim-chart").html("<p class='text-muted text-center' style='padding:20px;'>No data available.</p>");
+                return;
+            }
+
+            $("#remaining-claim-chart").empty();
+
+            $("#remaining-claim-chart").kendoChart({
+                chartArea: { height: 350 },
+                legend: {
+                    position: "bottom",
+                    align: "start",
+                    spacing: 50,
+                    item: { markers: { visual: this.createLegendCircleMarker } }
+                },
+                seriesDefaults: {
+                    type: "bar",
+                    labels: { visible: true, background: "transparent" }
+                },
+                series: [
+                    {
+                        name: "Remaining Claim",
+                        data: datasource.map(i => i.CLAIMED_QTY),
+                        color: "#ED7D31"
+                    },
+                    {
+                        name: "Package Quantity",
+                        data: datasource.map(i => i.PACKAGE_QTY),
+                        color: "#4472CA"
+                    }
+                ],
+                valueAxis: {
+                    labels: { format: "{0}" },
+                    line: { visible: false },
+                    axisCrossingValue: 0
+                },
+                categoryAxis: {
+                    categories: datasource.map(i => i.PROGRAM_NAME),
+                    labels: {
+                        visual: function (e) {
+                            var rect = new kendo.geometry.Rect(e.rect.origin, [e.rect.size.width, 120]);
+                            var layout = new kendo.drawing.Layout(rect, {
+                                orientation: "horizotal",
+                                alignContent: "center",
+                                alignItems: "end"
+
+                            });
+                            var textValue = e.text ? e.text : "Program not found in system";
+                            var words = textValue.match(/\b[\w']+(?:[^\w\n]+[\w']+){0,2}\b/g) || [textValue];
+                            for (var i = 0; i < words.length; i++) {
+                                var text = new kendo.drawing.Text(words[i], [0, 0], {
+                                    font: "9px Open Sans, sans-serif",
+                                    fill: {
+                                        color: "#333"
+                                    }
+                                });
+                                layout.append(text);
+                            }
+                            layout.reflow();
+                            return layout;
+                        }
+                    }
+                },
+                tooltip: {
+                    visible: true,
+                    format: "{0}",
+                    template: "#= series.name #: #= value #"
+                }
+            });
+        }
+
+        // -----------------------------
+        // Custom Marker Legend (Circle)
+        // -----------------------------
+        createLegendCircleMarker(e) {
+            const rect = e.rect || { origin: { x: 0, y: 0 }, size: { width: 16, height: 16 } };
+            const cx = rect.origin.x + rect.size.width / 2;
+            const cy = rect.origin.y + rect.size.height / 2;
+            const r = Math.min(rect.size.width, rect.size.height) / 2 * 3.5;
+
+            const fillColor = (e.options?.border?.color) || (e.options?.color) || "#000";
+            const geometry = new kendo.geometry.Circle([cx, cy], r);
+
+            return new kendo.drawing.Circle(geometry, {
+                fill: { color: fillColor },
+                stroke: { color: "#fff", width: 1 }
+            });
+        }
+    }
+
+    // ==========================================================
+    // Inisialisasi saat dokumen siap
+    // ==========================================================
+    $(document).ready(() => {
+        const dashboard = new DashboardCustomerManagement();
+        dashboard.initManagement();
+    });
+</script>

@@ -1,0 +1,442 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+    var uploadedEvidenceFileName = null;
+
+
+    function DetailApprovalManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                var $monthInput = $("#VALID_TO_MONTH");
+                var monthVal = $monthInput.val();
+
+                if (monthVal && monthVal.length === 1) {
+                    $monthInput.val(("0" + monthVal));
+                }
+
+                // Format card number
+                var $cardInput = $("input[name='QCARD_NO']");
+                var cardVal = $cardInput.val();
+
+                if (cardVal) {
+                    // hapus semua non-digit lalu format ulang
+                    var cleanCard = cardVal.replace(/\D/g, '');
+                    var formattedCard = cleanCard.match(/.{1,4}/g)?.join('-') || cleanCard;
+                    $cardInput.val(formattedCard);
+                }
+                $("#btnBack").on("click", function () {
+                    window.history.back();
+                });
+                $("#btnReject").unbind('click').on('click', function () {
+                    var $modal = $.helper.getJqueryObject('RejectApprovalModal'),
+                        $form = $modal.find("form");
+
+                    document.getElementById('modalTitle').innerHTML = "<b>Reject Confirmation</b>";
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+
+                    // === ISI FIELD HIDDEN DENGAN NILAI DARI HALAMAN ===
+                    var formTypeId = $("#FORM_TYPE").val();
+                    var documentApprovalId = $("#ID").val();
+                    var notes = $("#NOTES").val();
+
+                    $("#RejectApprovalForm #FormTypeId").val(formTypeId);
+                    $("#RejectApprovalForm #DocumentApprovalId").val(documentApprovalId);
+                    $("#RejectApprovalForm #Notes").val(notes);
+                    $("#RejectApprovalForm #EvidenceFileHidden").val(uploadedEvidenceFileName);
+
+                    console.log("Set hidden:", { FormTypeId: formTypeId, DocumentApprovalId: documentApprovalId, EvidenceFile: uploadedEvidenceFileName, Notes: notes });
+                    // ==================================================
+
+                    $("#btnSubmitReject").show();
+                    $modal.modal("show");
+                });
+
+                $("#RejectReason").on("input", function () {
+                    this.style.height = "auto";
+                    this.style.height = (this.scrollHeight) + "px";
+                });
+                $("#NOTES").on("input", function () {
+                    this.style.height = "auto";
+                    this.style.height = (this.scrollHeight) + "px";
+                });
+                $("#btnDownloadEvidencePJB").click(function () {
+                    var filename = $("#evidencePjb").val();
+
+                    if (!filename || filename === "No file") {
+                        alert("Tidak ada evidence untuk didownload.");
+                        return;
+                    }
+
+                    var url = "/img/ApprovalEvidence/" + filename;
+
+                    // Trigger browser download
+                    var a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
+                $("#EvidenceFile").kendoUpload({
+                    async: {
+                        saveUrl: "/Core/DataSource/UploadEvidence",
+                        autoUpload: true
+                    },
+                    validation: {
+                        allowedExtensions: [".jpg", ".jpeg", ".png", ".gif"],
+                        maxFileSize: 20971520
+                    },
+                    multiple: false,
+                    showFileList: true,
+                    localization: {
+                        select: "Select File...",
+                        dropFilesHere: "Drop file here to upload"
+                    },
+                    success: function (e) {
+                        console.log("Upload success:", e);
+                        if (e.response && e.response.fileName) {
+                            uploadedEvidenceFileName = e.response.fileName;
+                        } else if (e.files && e.files.length > 0) {
+                            uploadedEvidenceFileName = e.files[0].name;
+                        }
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            // text: "Your evidence file has been uploaded successfully."
+                        });
+                    },
+                    error: function (e) {
+                        console.error("Upload failed:", e);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please check your file and try again"
+                        });
+                        uploadedEvidenceFileName = null;
+                    }
+                });
+
+                $("#btnSubmitReject").on("click", function (event) {
+                    event.preventDefault();
+
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    var $form = $("#RejectApprovalForm");
+
+                    // 🔹 Ambil value submit
+                    var documentApprovalId = $("#DocumentApprovalId").val() || $("#ID").val();
+                    var formTypeId = $("#FormTypeId").val();
+                    var notes = $("#Notes").val();
+                    var rejectReason = $("#RejectReason").val();
+                    var evidenceFile = $("#EvidenceFileHidden").val(); // nama file server-side
+
+                    // 🔹 Ambil role dari data attribute, sama seperti APPROVE
+                    const roles = $el.data('roles') || [];
+                    const isApprover = Array.isArray(roles) && roles.some(r =>
+                        ["APPROVER_QCARD1", "APPROVER_QCARD2", "APPROVER_QCARD3"].includes(r)
+                    );
+
+                    // 🔹 Evidence wajib kalau BUKAN approver
+                    if (!isApprover && (!uploadedEvidenceFileName || uploadedEvidenceFileName.trim() === "")) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please submit your evidence for rejection."
+                        });
+                        $el.prop("disabled", false);
+                        return;
+                    }
+
+                    // 🔹 Evidence opsional untuk approver
+                    var evidenceFileToSend = uploadedEvidenceFileName || null;
+
+                    // 🔹 Validasi alasan reject
+                    if (!rejectReason || rejectReason.trim() === "") {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please enter your reason for rejection."
+                        });
+                        $el.prop("disabled", false);
+                        return;
+                    }
+
+                    // 🔹 Build FormData
+                    var formData = new FormData();
+                    formData.append("FORM_TYPE_ID", formTypeId);
+                    formData.append("DOCUMENT_APPROVAL_IDS", documentApprovalId);
+                    formData.append("ACTION_NAME", "Rejected");
+                    formData.append("NOTES", notes);
+                    formData.append("REJECT_REASON", rejectReason);
+
+                    if (evidenceFileToSend) {
+                        formData.append("EVIDENCE_FILE_NAME", evidenceFileToSend);
+                    }
+
+                    console.log("Data to send:", {
+                        FormTypeId: formTypeId,
+                        DocumentApprovalIds: documentApprovalId,
+                        ActionName: "Rejected",
+                        Notes: notes,
+                        RejectReason: rejectReason,
+                        Evidence: evidenceFileToSend
+                    });
+
+                    // 🔹 AJAX Submit
+                    $.ajax({
+                        url: "@Url.Content("~/QCard/TaskApproval/Reject")",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message || "Reject failed."
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success",
+                                    // text: res.Message || "Reject successful.",
+                                    didOpen: () => {
+                                        $(".swal2-container").css("z-index", 99999);
+                                    }
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        history.back();
+                                    }
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        },
+                        error: function (xhr, status, err) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: `${status}: ${xhr.responseText || err}`
+                            });
+                        }
+                    });
+                });
+
+
+                $("#btnApprove").on("click", function (event) {
+                    event.preventDefault();
+
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    var $form = $("#FormApprovalDetail");
+
+                    // Ambil data dari hidden input
+                    var documentApprovalId = $("#ID").val();
+                    var formType = $("#FORM_TYPE").val();
+                    var actionName = $("#ACTION_NAME").val();
+                    var notes = $("#NOTES").val();
+
+                    // 🔹 Ambil role dari atribut data (dari server)
+                    const roles = $el.data('roles') || [];
+                    const isApprover = Array.isArray(roles) && roles.some(r =>
+                        ["APPROVER_QCARD1", "APPROVER_QCARD2", "APPROVER_QCARD3"].includes(r)
+                    );
+
+                    // 🔹 Cek apakah perlu evidence (bukan approver → wajib upload)
+                    if (!isApprover && (!uploadedEvidenceFileName || uploadedEvidenceFileName.trim() === "")) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please upload your evidence before submitting approval."
+                        });
+                        $el.prop("disabled", false);
+                        return; // ⛔ hentikan proses submit
+                    }
+
+                    // Evidence opsional → kalau kosong tapi approver, tetap lanjut
+                    var evidenceFileToSend = uploadedEvidenceFileName || null;
+
+                    var formData = new FormData();
+                    formData.append("FORM_TYPE_ID", formType);
+                    formData.append("DOCUMENT_APPROVAL_IDS", documentApprovalId);
+                    formData.append("ACTION_NAME", actionName);
+
+                    if (notes && notes.trim() !== "") {
+                        formData.append("NOTES", notes);
+                    }
+
+                    if (evidenceFileToSend) {
+                        formData.append("EVIDENCE_FILE_NAME", evidenceFileToSend);
+                    }
+
+                    console.log("Data to send:", {
+                        FormTypeId: formType,
+                        DocumentApprovalIds: documentApprovalId,
+                        ActionName: actionName,
+                        Notes: notes,
+                        Evidence: evidenceFileToSend
+                    });
+
+                    $.ajax({
+                        url: "@Url.Content("~/QCard/TaskApproval/Save")",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message || "Approval failed."
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success",
+                                    text: res.Message || "Approval successful."
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        // kembali ke halaman utama
+                                        history.back();
+                                    }
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                $('.k-grid').on('click', '.btnDetailHistory', function (e) {
+                    var $el = $(this);
+                    var approvalHistoryId = $el.data('id');
+                    $(".data-row").hide();
+
+                    $.post(
+                        "@Url.Content("~/QCard/TaskApproval/GetApprovalHistoryDetail")",
+                        { approvalHistoryId: approvalHistoryId},
+                        function (d) {
+                            var data = d.Data;
+                            var fields = {
+                            REQUESTED_BY: "#requestedBy",
+                            SUBMITTED_DATE: "#submittedDate",
+                            STATUS_NAME: "#status",
+                            EVIDENCE_1: "#evidence",
+                            REASON: "#reason",
+                            NOTES: "#notes",
+                            LAST_ACTION: "#lastAction"
+                        };
+
+                        Object.keys(fields).forEach(function (key) {
+                            var value = data[key];
+
+                            // If value exists and not null/empty
+                            if (value !== null && value !== "" && value !== undefined) {
+                                $(fields[key]).val(value);
+
+                                // Show corresponding row
+                                $("#row-" + key).show();
+                            }
+                        });
+
+                            var $modal = $.helper.getJqueryObject('HistoryDetailModal');
+                            $modal.modal("show");
+                        }
+                    )
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    })
+                    .always(function () {
+                        $el.prop("disabled", false);
+                    });
+                });
+
+                $("#btnDownloadEvidence").click(function () {
+                    var filename = $("#evidence").val();
+
+                    if (!filename || filename === "No file") {
+                        alert("Tidak ada evidence untuk didownload.");
+                        return;
+                    }
+
+                    var url = "/img/ApprovalEvidence/" + filename;
+
+                    // Trigger browser download
+                    var a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+    function setParameter() {
+        var documentId = $("#ID").val();
+        console.log(documentId)
+        return {
+            documentId: documentId,
+        };
+    }
+    function setParameterGrid() {
+        var machineId = $("#machineID").val();
+        console.log("MachineID:", machineId);
+        return {
+            machineId: machineId,
+        };
+    }
+</script>

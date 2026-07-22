@@ -1,0 +1,36 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.Program>()
+    .Name("SerialNoAddGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.ID).Title("Action").Sortable(false).Width(70).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false).ClientTemplate(
+        @"<div class=""btn-group"">" +
+            "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("SerialNoMaintenance", Feature.UPDATE_FEATURE).ToString().ToLower() + ")" +
+            "{#" +
+                @"<a class=""k-grid-edit cursor-pointer"" data-modal='SerialNoModal' data-ID='#: ID#' data-serialno='#: SERIAL_NO#' title=""Edit""><i class=""fa fa-edit fa-lg""></i></a>&nbsp;" +
+            "#}#" +
+            "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("SerialNoMaintenance", Feature.DELETE_FEATURE).ToString().ToLower() + ")" +
+            "{#" +
+                @"<a class=""k-grid-delete cursor-pointer"" data-ID='#: ID#' data-serialno='#: SERIAL_NO#' title=""Delete""><i class=""fas fa-trash-alt fa-lg""></i></a>&nbsp;" +
+            "#}#" +
+        @"</div>");
+        columns.Bound(o => o.PROGRAM_CODE).Title("Program Code").Width(200);
+        columns.Bound(o => o.PROGRAM_NAME).Title("Program Code").Width(200);
+        columns.Bound(o => o.PACKAGE_QTY).Title("Package Qty").Width(200);
+        columns.Bound(o => o.PRIORITY).Title("Priority").Width(200);
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Serial No List to display"))
+    .Pageable(pageable => pageable.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/core/serialno/read")))
+        .PageSize(10)
+        .Sort(sort => sort.Add("CREATED_DATE").Descending())
+    )
+    .AutoBind(false)
+)

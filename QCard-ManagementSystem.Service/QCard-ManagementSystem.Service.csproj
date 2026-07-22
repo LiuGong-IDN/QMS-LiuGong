@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Modules\Core\Service\BatchService.cs" />
+    <Compile Remove="Modules\Core\Service\DepotService.cs" />
+    <Compile Remove="Modules\Core\Service\LogService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="ExcelDataReader" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" />
+    <PackageReference Include="PdfiumViewer" />
+    <PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
+    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="ZXing.Net" />
+    <PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="OBS.SDK">
+      <HintPath>..\Lib\OBS.SDK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QCard-ManagementSystem.Domain\QCard-ManagementSystem.Domain.csproj" />
+    <ProjectReference Include="..\QCard-ManagementSystem.Infrastructure\QCard-ManagementSystem.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

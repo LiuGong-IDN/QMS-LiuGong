@@ -1,0 +1,512 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+    var selectedIds = [];
+    var allIds = [];
+
+    function QCardManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $('#QCardModal').on('shown.bs.modal', function () {
+                    const $input = $('#CARD_NO_VALUE');
+                    $input.off('keypress input');
+
+                    $input.on('keypress', function (e) {
+                        if (!/[0-9]/.test(e.key)) e.preventDefault();
+                    });
+
+                    $input.on('input', function (e) {
+                        let value = e.target.value.replace(/[^0-9]/g, '');
+                        if (value.length > 16) value = value.substring(0, 16);
+                        e.target.value = value.match(/.{1,4}/g)?.join('-') || '';
+                    });
+                });
+
+                $("#CUSTOMER").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetCustomerList")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select customer..."
+                });
+                $("#CUSTOMER_ID").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetCustomerList")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select customer..."
+                });
+
+                var monthDropdown = $("#VALID_TO_MONTH").kendoDropDownList({
+                    optionLabel: "Select month...",
+                    dataTextField: "text",
+                    dataValueField: "value",
+                    dataSource: generateMonthList(currentYear),
+                    filter: "contains"
+                }).data("kendoDropDownList");
+
+                var yearList = [];
+                for (let i = currentYear; i <= currentYear + 10; i++) {
+                    yearList.push({ text: i.toString(), value: i.toString() });
+                }
+
+                var yearDropdown = $("#VALID_TO_YEAR").kendoDropDownList({
+                    optionLabel: "Select year...",
+                    dataTextField: "text",
+                    dataValueField: "value",
+                    dataSource: yearList,
+                    index: 0,
+                    filter: "contains",
+                    change: function() {
+                        const selectedYear = this.value();
+                        monthDropdown.setDataSource(generateMonthList(selectedYear));
+                        monthDropdown.value(""); // reset pilihan bulan
+                    }
+                }).data("kendoDropDownList");
+            },
+            InitHandlers: function () {
+                const input = document.getElementById('CARD_NO');
+
+                input.addEventListener('keypress', function (e) {
+                    if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+
+                input.addEventListener('input', function (e) {
+                    let value = e.target.value.replace(/[^0-9]/g, '');
+
+                    if (value.length > 16) {
+                        value = value.substring(0, 16);
+                    }
+
+                    let formatted = value.match(/.{1,4}/g)?.join('-') || '';
+
+                    e.target.value = formatted;
+                });
+
+                $("#btnPrintQCard").unbind('click').on('click', function (e) {
+                    e.preventDefault();
+
+                    if (selectedIds.length === 0) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Please select at least one Q-Card to print!',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#3085d6'
+                        });
+                        return;
+                    }
+
+
+                    // ubah ke JSON string
+                    var jsonString = JSON.stringify(selectedIds);
+
+                    // encode agar aman di URL
+                    var encoded = encodeURIComponent(jsonString);
+
+                    // buka tab baru dengan parameter JSON
+                    window.open("/QCard/QCardList/Print?json=" + encoded, "_blank");
+                });
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    // reset input text
+                    $form.find("input[type='text']").val("");
+
+                    // reset dropdown CUSTOMER
+                    var ddl = $("#CUSTOMER").data("kendoDropDownList");
+                    if (ddl) {
+                        ddl.value("");
+                        ddl.select(0);
+                    }
+                    selectedIds = [];
+
+                    $(".row-checkbox").prop("checked", false);
+                    $("#checkAll").prop("checked", false);
+
+                    console.log("All checkboxes cleared. selectedIds:", selectedIds);
+                });
+
+                $("#btnAddQCard").unbind('click').on('click', function () {
+                    var $modal = $.helper.getJqueryObject('QCardModal'),
+                    $form = $modal.find("form");
+
+                    document.getElementById('modalTitle').innerHTML = "<b>Register Q-Card</b>";
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+
+                    $("#btnSaveQCard").show();
+                    $("#btnUpdateQCard").hide();
+
+                    $modal.modal("show");
+                });
+
+                $(".k-grid").on('click', ".k-grid-edit", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr),
+                        $modal = $.helper.getJqueryObject($el.data("modal")),
+                        $form = $modal.find("form");
+                        
+
+                    Id = $el.data('id');
+                    console.log("DOM ID:", Id);
+
+                    $.post("@Url.Content("~/QCard/QCardList/GetQCardByID")", { "ID": Id }, function (d) {
+                        var data = d.data
+                        Id = data.ID;
+
+                        document.getElementById('modalTitle').innerHTML = "Manage Model";
+                        clearValidation($modal);
+
+                        $("#btnSaveQCard").hide();
+                        $("#btnUpdateQCard").show();
+
+
+                        $.helper.form.fill($form, data);
+                        if (data.CARD_NO) {
+                            let formatted = data.CARD_NO.replace(/[^0-9]/g, '').match(/.{1,4}/g)?.join('-') || '';
+                            $('#CARD_NO_VALUE').val(formatted);
+                        }
+                        $("#CUSTOMER_ID").data("kendoDropDownList").value(data.CUSTOMER_ID);
+                        var yearDropdown = $("#VALID_TO_YEAR").data("kendoDropDownList");
+                        var monthDropdown = $("#VALID_TO_MONTH").data("kendoDropDownList");
+
+                        yearDropdown.value(data.VALID_TO_YEAR);
+
+                        var monthList = generateMonthList(data.VALID_TO_YEAR);
+                        monthDropdown.setDataSource(monthList);
+
+                        monthDropdown.value(data.VALID_TO_MONTH);
+
+                        $modal.modal("show");
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                })
+
+                $("#btnSaveQCard").on('click', function (event) {
+                    var $el = $(this),
+                        isError = false,
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+                    var Id = $("#ID").val() || "";
+                    var CustomerID = parseInt(formData.CUSTOMER_ID, 10);
+                    var cleanCardNo = formData.CARD_NO.replace(/\D/g, "");
+
+                    var dataToSave = {
+                        ID: Id,
+                        CUSTOMER_ID: CustomerID,
+                        CARD_NO: cleanCardNo,
+                        VALID_TO_MONTH: formData.VALID_TO_MONTH,
+                        VALID_TO_YEAR: formData.VALID_TO_YEAR
+                    };
+
+                    console.log(dataToSave);
+                    $.ajax({
+                        url: "@Url.Content("~/QCard/QCardList/Save")",
+                        type: "POST",
+                        data: { qcard: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    $modal.modal("hide");
+                                    $.helper.grid.refresh("QcardListGrid");
+                                });
+                            }
+                        },
+                        fail: function (e) {
+                            swal('Error', e.Message, 'error');
+                            $.helper.grid.refresh("QcardListGrid");
+                        }
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnUpdateQCard").unbind('click').on('click', function () {
+                    var $el = $(this),
+                        isError = false,
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+                    var Id = $("#ID").val() || "";
+                    var CustomerID = parseInt(formData.CUSTOMER_ID, 10);
+                    var cleanCardNo = formData.CARD_NO.replace(/\D/g, "");
+
+                    var dataToSave = {
+                        ID: Id,
+                        CUSTOMER_ID: CustomerID,
+                        CARD_NO: cleanCardNo,
+                        VALID_TO_MONTH: formData.VALID_TO_MONTH,
+                        VALID_TO_YEAR: formData.VALID_TO_YEAR
+                    };
+
+                    console.log(dataToSave);
+                    $.ajax({
+                        url: "@Url.Content("~/QCard/QCardList/Save")",
+                        type: "POST",
+                        data: { qcard: dataToSave },
+                        success: function (res) {
+                                if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    $modal.modal("hide");
+                                    $.helper.grid.refresh("QcardListGrid");
+                                });
+                            }
+                        },
+                        fail: function (e) {
+                            swal('Error', e.Message, 'error');
+                            $.helper.grid.refresh("QcardListGrid");
+                        }
+                    });
+                    $el.prop("disabled", false);
+                });
+
+
+                    // === CHECK ALL ===
+                $(document).on("change", "#checkAll", function () {
+                var checked = this.checked;
+
+                if (checked) {
+                    if (allIds.length === 0) {
+                        $.ajax({
+                            url: '/QCard/QCardList/GetAllQCardIds',
+                            type: 'GET',
+                            success: function (response) {
+                                if (response.success) {
+                                    allIds = response.data.map(String);
+                                    selectedIds = [...allIds];
+                                    $(".row-checkbox").prop("checked", true);
+                                    console.log("✅ Selected ALL IDs:", selectedIds);
+                                } else {
+                                    alert("Gagal mengambil semua ID: " + response.message);
+                                    $("#checkAll").prop("checked", false);
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                alert("Terjadi kesalahan: " + error);
+                                $("#checkAll").prop("checked", false);
+                            }
+                        });
+                    } else {
+                        selectedIds = [...allIds];
+                        $(".row-checkbox").prop("checked", true);
+                    }
+                } else {
+                    $(".row-checkbox").prop("checked", false);
+                    selectedIds = [];
+                }
+
+                console.log("Selected IDs:", selectedIds);
+            });
+
+            // === CHECK PER ROW ===
+            $(document).on("change", ".row-checkbox", function () {
+                var id = $(this).val();
+
+                if ($(this).is(":checked")) {
+                    if (!selectedIds.includes(id)) {
+                        selectedIds.push(id);
+                    }
+                } else {
+                    selectedIds = selectedIds.filter(function (val) {
+                        return val !== id;
+                    });
+                }
+
+                // Jika ada yang di-uncheck, otomatis hilangkan centang di #checkAll global
+                if (selectedIds.length < allIds.length) {
+                    $("#checkAll").prop("checked", false);
+                }
+
+                console.log("Selected IDs:", selectedIds);
+            });
+
+                $(".k-grid").on('click', ".k-grid-delete", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid");
+
+
+                    Id = $el.data('id');
+                    Swal.fire({
+                        title: "Delete this data?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "@Url.Content("~/QCard/QCardList/Delete")",
+                                type: "POST",
+                                data: {id : Id},
+                                success: function (res) {
+                                    if (res.Success == false || res.Success == "false") {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: res.Message
+                                        });
+                                    } else {
+                                        Swal.fire("Success!", "", "success");
+                                        $.helper.grid.refresh("QcardListGrid");
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+    function formatCardNo(cardNo) {
+        if (!cardNo) return "";
+        cardNo = cardNo.toString().replace(/\D/g, '');
+        return cardNo.match(/.{1,4}/g)?.join('-') || cardNo;
+    }
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    function generateMonthList(selectedYear) {
+        const startMonth = (parseInt(selectedYear) === currentYear) ? currentMonth : 0;
+        const monthNames = [];
+        for (let i = startMonth; i < 12; i++) {
+            const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
+            const monthValue = i + 1;
+            monthNames.push({ text: monthName, value: monthValue });
+        }
+        return monthNames;
+    }
+
+    window.onDataBound = function (e) {
+        recheckSelected();
+    };
+
+    window.onDataBinding = function (e) {
+        $("#checkAll").prop("checked", false);
+    };
+
+    function recheckSelected() {
+        $(".row-checkbox").each(function () {
+            var id = $(this).val();
+            $(this).prop("checked", selectedIds.includes(id));
+        });
+
+        // Jika semua ID global sudah dipilih, centang #checkAll
+        if (allIds.length > 0 && selectedIds.length === allIds.length) {
+            $("#checkAll").prop("checked", true);
+        } else {
+            $("#checkAll").prop("checked", false);
+        }
+
+        console.log("🔁 recheckSelected triggered. Selected IDs:", selectedIds);
+    }
+
+    // === PASTIKAN GRID SUDAH BIND ===
+    $(document).ready(function () {
+        setTimeout(function () {
+            try {
+                var grid = $("#QcardListGrid").data("kendoGrid");
+                if (grid) {
+                    grid.bind("dataBound", recheckSelected);
+                }
+            } catch (e) {
+                console.warn("⚠️ Kendo Grid belum siap, binding dilewati");
+            }
+        }, 500);
+    });
+
+</script>

@@ -1,0 +1,58 @@
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.UserView
+<div id="UserModal" class="modal fade bs-modal-lg" abindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" style="min-width: 50%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><label id="modalTitle">User</label></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="ID" data-bind="value: ID" />
+                    <div class="form-group">
+                        <label>First Name</label>
+                        @Html.TextBoxFor(x => x.FIRST_NAME, new { @class = "form-control", id = "FIRST_NAME" })
+                        <span class="text-danger id"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        @Html.TextBoxFor(x => x.LAST_NAME, new { @class = "form-control", id = "LAST_NAME" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group" id="passwordGroup">
+                        <label>Password</label>
+                        @Html.PasswordFor(x => x.PASSWORD, new { @class = "form-control", id = "PASSWORD" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone No.</label>
+                        @Html.TextBoxFor(x => x.PHONE_NUMBER, new { @class = "form-control", id = "PHONE_NUMBER" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        @Html.TextBoxFor(x => x.EMAIL, new { @class = "form-control", id = "EMAIL" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        @Html.TextBoxFor(x => x.ROLE_NAME, new { @class = "form-control", id = "ROLE" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>PDC</label>
+                        @Html.TextBoxFor(x => x.PDC_ID, new { @class = "form-control", id = "PDC_ID"})
+                        <span class="text-danger"></span>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-reset btn-sm" data-dismiss="modal"><i class="fa fa-times mr-1"></i> Close</button>
+                    @* <button type="button" class="btn btn-info btn-sm" id="btnSaveUser">Save</button> *@
+                    <button type="button" class="btn btn-default blue btn-sm" id="btnSaveUser" style="background-color:#002F75; border-color:#002F75;color:white;"><i class="fa fa-save"></i>&nbsp;Save</button>
+                    <button type="button" class="btn btn-default blue btn-sm" id="btnUpdateUser" style="background-color:#002F75; border-color:#002F75;color:white;"><i class="fa fa-save"></i>Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

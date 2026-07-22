@@ -1,0 +1,49 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.QCard.Model.ApprovalList>()
+    .Name("TaskApprovalGrid")
+    .Events(events => events
+        .DataBound("onDataBound")
+        .DataBinding("onDataBinding")
+    )
+    .Columns(columns =>
+            {columns.Template(
+             "<input type='checkbox' class='row-checkbox form-check-input' " +
+                "value='#: ID #' " +
+                "data-status-id='#: STATUS_ID #' " +
+                "data-formtype-id='#: FORM_TYPE #' " +
+                "data-document-approval-id='#: DOCUMENT_APPROVAL_ID #' " +
+                "style='width:20px; height:20px;' />"
+        )
+        .Title("<input type='checkbox' id='checkAll' style='width:20px; height:20px;' />")
+        .Width(50)
+        .HtmlAttributes(new { @class = "text-center" });
+        columns.Bound(o => o.ID).Title("Action").Sortable(false).Width(70).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false).ClientTemplate(
+            @"<div class=""btn-group"">" +
+                "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("TaskApprovalQCard", Feature.VIEW_FEATURE).ToString().ToLower() + ")" +
+                "{#" +
+                    @"<a href='" + Url.Action("Details", "TaskApproval", new { area = "QCard" }) + @"/#: ID#'>
+                        <i class='fa fa-file fa-lg'></i>
+                      </a>&nbsp;" +
+                "#}#" +
+            @"</div>");
+        // Data fields
+        columns.Bound(o => o.CARD_NO).Title("Q-Card No.").Width(150).ClientTemplate("#= formatCardNo(CARD_NO) #"); ;
+        columns.Bound(o => o.COMPANY_NAME).Title("Customer").Width(300);
+        columns.Bound(o => o.SERIAL_NO).Title("Serial No.").Width(150);
+        columns.Bound(o => o.CATEGORY_PROGRAM).Title("Category Claim").Width(150);
+        columns.Bound(o => o.STATUS_NAME).Title("Status").Width(250);
+        columns.Bound(o => o.TOPUP_DATE).Title("Top Up Date").Width(100).ClientTemplate("#= kendo.toString(TOPUP_DATE, 'dd-MMM-yyyy') #");
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Top Up List to display"))
+    .Pageable(p => p.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/QCard/TaskApproval/read")).Data("setParameter"))
+        .PageSize(10)
+    )
+)

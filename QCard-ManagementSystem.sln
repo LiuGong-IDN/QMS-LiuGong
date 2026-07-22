@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCard-ManagementSystem.Web", "QCard-ManagementSystem.Web\QCard-ManagementSystem.Web.csproj", "{96A3DF76-7AF0-4BDB-8C94-828408219552}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCard-ManagementSystem.Service", "QCard-ManagementSystem.Service\QCard-ManagementSystem.Service.csproj", "{DF0A77AA-1D9B-4FDC-962B-6DB799B7247A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCard-ManagementSystem.Domain", "QCard-ManagementSystem.Domain\QCard-ManagementSystem.Domain.csproj", "{59D9AF99-B30E-40BC-825A-BDD95F72F468}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCard-ManagementSystem.Infrastructure", "QCard-ManagementSystem.Infrastructure\QCard-ManagementSystem.Infrastructure.csproj", "{A459F024-C110-4BBD-9DBA-F985D0CD356A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QCard-ManagementSystem.Hangfire", "QCard-ManagementSystem.Hangfire\QCard-ManagementSystem.Hangfire.csproj", "{C9455DD1-8AF7-4549-9D07-47F34D9D3DBC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{96A3DF76-7AF0-4BDB-8C94-828408219552}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96A3DF76-7AF0-4BDB-8C94-828408219552}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96A3DF76-7AF0-4BDB-8C94-828408219552}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96A3DF76-7AF0-4BDB-8C94-828408219552}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF0A77AA-1D9B-4FDC-962B-6DB799B7247A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF0A77AA-1D9B-4FDC-962B-6DB799B7247A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF0A77AA-1D9B-4FDC-962B-6DB799B7247A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF0A77AA-1D9B-4FDC-962B-6DB799B7247A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59D9AF99-B30E-40BC-825A-BDD95F72F468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59D9AF99-B30E-40BC-825A-BDD95F72F468}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59D9AF99-B30E-40BC-825A-BDD95F72F468}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59D9AF99-B30E-40BC-825A-BDD95F72F468}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A459F024-C110-4BBD-9DBA-F985D0CD356A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A459F024-C110-4BBD-9DBA-F985D0CD356A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A459F024-C110-4BBD-9DBA-F985D0CD356A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A459F024-C110-4BBD-9DBA-F985D0CD356A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9455DD1-8AF7-4549-9D07-47F34D9D3DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9455DD1-8AF7-4549-9D07-47F34D9D3DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9455DD1-8AF7-4549-9D07-47F34D9D3DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9455DD1-8AF7-4549-9D07-47F34D9D3DBC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D0708DD-2FE5-4454-8EB9-B2C1DB6E1329}
+	EndGlobalSection
+EndGlobal

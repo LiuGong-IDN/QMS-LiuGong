@@ -1,0 +1,15 @@
+﻿@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.ProgramDetail>()
+    .Name("ProgramDetailGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(120);
+        columns.Bound(o => o.DESCRIPTION).Title("Description").Width(150);
+        columns.Bound(o => o.QTY).Title("Qty").Width(90).HtmlAttributes(new { style = "text-align:right; white-space:normal" });
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Machines List to display"))
+    .Pageable(p => p.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+)

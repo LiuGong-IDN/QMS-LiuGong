@@ -1,0 +1,285 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using QCard.ManagementSystem.Infrastructure.Session
+@using System.Globalization
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+@section scripts {
+    @await Html.PartialAsync("~/Areas/QCard/Views/TaskApproval/Script/_DetailApproval.cshtml")
+}
+@section modals {
+    @await Html.PartialAsync("~/Areas/QCard/Views/TaskApproval/Component/_RejectApprovalForm.cshtml")
+    @await Html.PartialAsync("~/Areas/QCard/Views/TaskApproval/Component/_HistoryDetails.cshtml")
+    @Html.Partial("~/Areas/QCard/Views/TaskApproval/Component/_RejectApprovalForm.cshtml")
+    @Html.Partial("~/Areas/QCard/Views/TaskApproval/Component/_HistoryDetails.cshtml")
+}
+@{
+    var role = SessionManager.Roles;
+}
+@{
+    var programList = Model.AdditionalData as List<QCard.ManagementSystem.Domain.Modules.Core.Model.MachineProgram>;
+}
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1><span>Q-Card Detail</span></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <button type="button" class="btn btn-reset" onclick="window.location.href='/QCard/TaskApproval/Index'">
+                <i class="fa fa-arrow-left mr-1"></i> Back
+            </button>
+        </div>
+    </div>
+    <br />
+
+    @{
+        var qcard = Model.Data as QCard.ManagementSystem.Domain.Modules.QCard.Model.ApprovalDetail;
+    }
+
+    <!-- MULAI FORM UTAMA -->
+    <form id="FormApprovalDetail" enctype="multipart/form-data" method="post">
+        @{
+            var hasPrograms = programList != null && programList.Any();
+
+            var hasVoucherAmount = qcard?.VOUCHER_AMOUNT != null && qcard.VOUCHER_AMOUNT > 0;
+            var hasCurrentAmount = qcard?.CURRENT_AMOUNT != null;
+
+            var showAmounts = hasVoucherAmount && hasCurrentAmount;
+        }
+        <input type="hidden" id="machineID" value="@qcard.MACHINE_ID" />
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="ID" name="ID" value="@qcard?.DOCUMENT_APPROVAL_ID" />
+        <input type="hidden" id="FORM_TYPE" name="FORM_TYPE" value="@qcard.FORM_TYPE"/>
+        <input type="hidden" id="ACTION_NAME" name="ACTION_NAME" value="@qcard.ACTION_NAME" />
+
+        <!-- ===================== Q-CARD DETAIL ===================== -->
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="form-group row mb-2">
+                        <label for="CUSTOMER_ADD" class="col-md-2 col-form-label">Customer</label>
+                        <div class="col-md-8">
+                            <input id="CUSTOMER_ADD" name="CUSTOMER_ADD" class="form-control"
+                                   readonly value="@qcard?.COMPANY_NAME" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Card No.</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="QCARD_NO" readonly value="@qcard?.CARD_NO" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Valid Thru</label>
+                        <div class="col-md-4">
+                            <input type="text" id="VALID_TO_MONTH" name="VALID_TO_MONTH"
+                                   class="form-control" readonly value="@qcard?.VALID_TO_MONTH" />
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="VALID_TO_YEAR" name="VALID_TO_YEAR"
+                                   class="form-control" readonly value="@qcard?.VALID_TO_YEAR" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== SERIAL NO DETAIL ===================== -->
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span>Serial No. Detail</span></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="form-group row mb-2">
+                        <label for="SERIAL_NO" class="col-md-2 col-form-label">Serial No.</label>
+                        <div class="col-md-8">
+                            <input id="SERIAL_NO" name="SERIAL_NO" class="form-control"
+                                   readonly value="@qcard?.SERIAL_NO" />
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label for="SERIAL_NO" class="col-md-2 col-form-label">PJB No.</label>
+                        <div class="col-md-8">
+                            <input id="PJB_NO" name="PJB_NO" class="form-control"
+                                   readonly value="@qcard?.PJB_NO" />
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Evidence PJB</label>
+                        <div class="col d-flex align-items-center">                            
+                            <div class="col-md-2">
+                                <input id="evidencePjb" name="EVIDENCE_PJB" class="form-control"
+                                        readonly value="@qcard?.EVIDENCE_PJB" />
+                            </div>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    id="btnDownloadEvidencePJB">
+                                <i class="fa fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Product Group</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="PRODUCT_GROUP" readonly value="@qcard?.PRODUCT_GROUP" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Product Model</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="PRODUCT_MODEL" readonly value="@qcard?.PRODUCT_MODEL" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Category Claim</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="CATEGORY_PROGRAM" readonly value="@qcard?.CATEGORY_PROGRAM" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                        <label class="col-md-2 col-form-label">Purchase Date</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="PURCHASE_DATE" readonly
+                                   value="@(qcard?.PURCHASE_DATE != null ? qcard.PURCHASE_DATE.ToString("dd-MMM-yyyy") : string.Empty)" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ===================== NOTES & EVIDENCE ===================== -->
+        @if (qcard.STATUS_ID != 20014 && qcard.STATUS_ID != 20010)
+        {
+            <div class="portlet light bordered mt-4">
+                <div class="portlet-body">
+                    <div class="inputs inputs-full-width">
+                        <div class="form-group row mb-2">
+                            <label class="col-md-2 col-form-label">Notes</label>
+                            <div class="col-md-8">
+                                <textarea class="form-control" id="NOTES" name="NOTES" rows="3"
+                                      placeholder="Enter notes here..."></textarea>
+                            </div>
+                        </div>
+                        @if (!(role.Contains("APPROVER_QCARD1") || role.Contains("APPROVER_QCARD2") || role.Contains("APPROVER_QCARD3")))
+                        {
+                            <div class="form-group row mb-2">
+                                <label class="col-md-2 col-form-label">Evidence<span class="required"> *</span></label>
+                                <div class="col-md-8">
+                                    <input type="file" id="EvidenceFile" name="EvidenceFile"
+                                           accept=".jpg,.jpeg,.png,.gif" class="form-control" />
+                                    <span class="text-danger id"></span>
+                                </div>
+                            </div>
+                        }
+                        <div class="form-group row mb-2">
+                            <div class="col-md-10 offset-md-2 text-end">
+                                <button type="button" id="btnApprove" data-roles='@Newtonsoft.Json.JsonConvert.SerializeObject(SessionManager.Roles)'
+                                        class="btn blue trigger">
+                                    <i class="fa fa-check"></i> Approve
+                                </button>
+
+                                <button type="button" id="btnReject" data-roles='@Newtonsoft.Json.JsonConvert.SerializeObject(SessionManager.Roles)' 
+                                        class="btn btn-danger">
+                                    <i class="fa fa-times"></i> Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </form>
+    @if (hasPrograms)
+    {
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span>Program Detail</span></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        @await Html.PartialAsync("~/Areas/Qcard/Views/TaskApproval/Grid/_SerialNoProgramGrid.cshtml")
+        <br />
+    }
+    @if (showAmounts)
+    {
+        <div id="divVoucherDetail" class="portlet light bordered" style="margin-bottom:0px;">
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="page-head">
+                        <div class="page-title">
+                            <h1><span><b>Voucher Detail</b></span></h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="VOUCHER_AMOUNT"><b>Voucher Amount</b></label>
+                                <input type="text" id="VOUCHER_AMOUNT" name="VOUCHER_AMOUNT" class="form-control" style="text-align:right;" disabled="disabled"
+                                       value="@string.Format(new System.Globalization.CultureInfo("id-ID"), "Rp {0:N0}", qcard.VOUCHER_AMOUNT)" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="CURRENT_AMOUNT"><b>Current Amount</b></label>
+                                <input type="text" id="CURRENT_AMOUNT" name="CURRENT_AMOUNT" class="form-control" style="text-align:right;" disabled="disabled"
+                                       value="@string.Format(new System.Globalization.CultureInfo("id-ID"), "Rp {0:N0}", qcard.CURRENT_AMOUNT)" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <br />
+    <!-- END FORM UTAMA -->
+    <!-- ===================== SERIAL NO LIST ===================== -->
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1><span>Approval History</span></h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    @await Html.PartialAsync("~/Areas/QCard/Views/TaskApproval/Grid/_ApprovalHistoryGrid.cshtml")
+</div>
+
+<script>
+    var existingPrograms = @Html.Raw(Json.Serialize(programList));
+    var isProgram = @(qcard.IS_PROGRAM ? "true" : "false");
+    var isVoucher = @(qcard.IS_VOUCHER ? "true" : "false");
+    var voucherAmount = @qcard.VOUCHER_AMOUNT.ToString(CultureInfo.InvariantCulture);
+    var currentAmount = @qcard.CURRENT_AMOUNT.ToString(CultureInfo.InvariantCulture);
+    $(document).ready(function () {
+        App.DetailApprovalManagement = new DetailApprovalManagement();
+        App.DetailApprovalManagement.InitManagement();
+    });
+</script>

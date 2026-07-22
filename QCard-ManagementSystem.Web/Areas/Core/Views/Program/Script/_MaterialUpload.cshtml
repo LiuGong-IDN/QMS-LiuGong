@@ -1,0 +1,299 @@
+﻿<script>
+    function MaterialUploadManager(){
+        return{
+            InitManagement: function () {
+                this.InitControl();
+                this.InitHandlers();
+                this.InitValidation();
+            },
+            InitControl: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                $("#fileUploadMaterial").kendoUpload({
+                    async: {
+                        saveUrl: "@Url.Content("~/Core/DataSource/UploadExcel")",
+                        autoUpload: true
+                    },
+                    validation: {
+                        allowedExtensions: [".xlsx"]
+                    },
+                    select: function (e) {
+                        if (e.files.length == 0) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: "No file has been uploaded"
+                            });
+                            return;
+                        }
+                        var data = new FormData();
+                        for (var i = 0; i < e.files.length; i++) {
+                            data.append("Upload", e.files[i].rawFile);
+                        }
+
+                        $.ajax({
+                            url: "@Url.Content("~/Core/Program/UploadProcess")",
+                            type: 'POST',
+                            contentType: false,
+                            processData: false,
+                            data: data,
+                            success: function (res) {
+                                if (res.isSaved == true) {
+                                    $("#TempCode").val(res.tempCode);
+                                    $('#MaterialUploadGrid').data("kendoGrid").dataSource.read();
+
+                                    if (res.canSubmit == false && res.message != null && res.message.trim() !== '') {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: res.message || "An error occurred while uploading"
+                                        });
+                                        $("#btnDownloadErrorUpload").hide();
+                                        $("#btnSubmitUpload").hide();
+                                    }
+                                    if (res.canSubmit == true) {
+                                        $("#btnSubmitUpload").show();
+                                        $("#btnDownloadErrorUpload").hide();
+                                    }
+                                    else {
+                                        $("#btnDownloadErrorUpload").show();
+                                        $("#btnSubmitUpload").hide();
+                                    }
+                                } else {
+                                    $("#btnSubmitUpload").hide();
+                                    $("#btnDownloadErrorUpload").hide();
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.message || "An error occurred while uploading"
+                                    });
+                                }
+                            }
+                        })
+                        .fail(function (xhr, status, err) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: `${status}: ${xhr.responseText || err}`
+                            });
+                        });
+                    },
+                    success: function (e) {
+                        console.log(e);
+                    },
+                    multiple: false,
+                });
+
+                $("#btnSubmitUpload").on('click', function (event) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal");
+
+                    var tempCode = $("#TempCode").val();
+                    $.post("@Url.Content("~/Core/Program/SubmitExcelUpload")", { tempCode: tempCode }, function (d) {
+                        if (d.status === "Success") {
+                            $modal.modal("hide");
+                            removeAllRow();
+                            Swal.fire("Success!", "", "success");
+                            $.helper.grid.refresh("MaterialUploadGrid");
+                            loadUploadedDataMaterial(tempCode);
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: d.message || "Upload failed. Please check your data."
+                            });
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    })
+                    .always(function () {
+                        $el.prop("disabled", false);
+                    });
+                });
+
+                $("#btnDownloadErrorUpload").on('click', function (event) {
+                    window.location.href = "@Url.Content("~/Core/Program/DownloadExcelError?tempCode=")" + $("#TempCode").val();
+                });
+            },
+        };
+    }
+
+    function sendTempCode() {
+        return {
+            tempCode: $("#TempCode").val()
+        };
+    }
+
+    function loadUploadedDataMaterial(tempCode) {
+        var partNoDataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "@Url.Content("~/Core/DataSource/GetPartNoList")",
+                    dataType: "json"
+                }
+            }
+        });
+
+        $.ajax({
+            url: '/Core/Program/GetUploadedMaterials',
+            type: 'GET',
+            data: { tempCode: tempCode }, // kirim parameter ke server
+            dataType: 'json',
+            success: function (response) {
+                var uploadedMaterials = response.Data;
+
+                uploadedMaterials.forEach(function (p) {
+                    var newRow = `
+                        <tr>
+                            <td class="text-center align-middle">
+                                <a class='k-grid-delete btnRemoveRow' title='Delete'>
+                                    <i class='fa fa-trash-alt fa-lg'></i>
+                                </a>&nbsp;
+                            </td>
+                            <td>
+                                <input name="PART_NO[]" class="form-control partNoDropdown" />
+                                <input type="hidden" name="PART_ID[]" value="${p.PART_ID}" />
+                            </td>
+                            <td>
+                                <input type="text" name="DESCRIPTION[]" class="form-control descriptionField" value="${p.PART_NAME}" readonly />
+                            </td>
+                            <td>
+                                <input type="number" name="QTY[]" class="form-control" value="${p.QTY}" />
+                            </td>
+                        </tr>
+                    `;
+
+                    $("#MaterialTable tbody").append(newRow);
+
+                    var $ddl = $("#MaterialTable tbody tr:last .partNoDropdown");
+
+                    // ==== Kendo dengan fetchPartNo (sama seperti ADD) ====
+                    $ddl.kendoDropDownList({
+                        dataTextField: "Text",
+                        dataValueField: "Value",
+                        filter: "contains",
+                        optionLabel: "Select Part No...",
+                        suggest: true,
+                        height: 400,
+
+                        filtering: function (e) {
+                            e.preventDefault();
+                            fetchPartNo(e.filter?.value || "", function (list) {
+                                var ds = createPartNoDataSource(list);
+                                $ddl.data("kendoDropDownList").setDataSource(ds);
+                            });
+                        },
+
+                        open: function () {
+                            fetchPartNo("", function (list) {
+                                var ds = createPartNoDataSource(list);
+                                $ddl.data("kendoDropDownList").setDataSource(ds);
+                            });
+                        },
+
+                        change: function () {
+                            var dataItem = this.dataItem(this.selectedIndex);
+                            var $row = $(this.element).closest("tr");
+                            var $descField = $row.find(".descriptionField");
+                            var $partId = $row.find("input[name='PART_ID[]']");
+
+                            if (dataItem) {
+                                $descField.val(dataItem.Name);
+                                $partId.val(dataItem.Text);
+                            } else {
+                                $descField.val("");
+                                $partId.val("");
+                            }
+                        }
+                    });
+
+                    var ddl = $ddl.data("kendoDropDownList");
+
+                    // ==== Set nilai dropdown sesuai existing ====
+                    if (p.PART_ID) {
+
+                        console.log("=== LOAD EXISTING PART_ID:", p.PART_ID, "===");
+
+                        // Fetch data PART_ID ini supaya muncul di dropdown
+                        fetchPartNoById(p.PART_ID, function (list) {
+
+                            console.log("Result fetchPartNo for existing:", list);
+
+                            var ds = createPartNoDataSource(list);
+
+                            ddl.setDataSource(ds);
+
+                            // Coba ambil dataItem sebelum value di-set
+                            console.log("DataSource items before set:", ds.data());
+
+                            // set nilainya
+                            ddl.value(p.PART_ID);
+
+                            // Cek dataItem setelah value diset
+                            var dataItem = ddl.dataItem();
+
+                            console.log("DataItem AFTER ddl.value():", dataItem);
+
+                        });
+                    }
+                });
+            }
+        })
+        .fail(function (xhr, status, err) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: `${status}: ${xhr.responseText || err}`
+            });
+        });
+    }
+    function fetchPartNo(filterText, callback) {
+        $.ajax({
+            url: "@Url.Content("~/Core/DataSource/GetPartNoList")", // <-- endpoint baru
+            type: "POST",
+            data: { filter: filterText },
+            dataType: "json",
+            success: function (data) {
+                callback(data);
+            },
+            error: function () {
+                Swal.fire("Error", "Failed to load Part No", "error");
+            }
+        });
+    }
+    function fetchPartNoById(partId, callback) {
+        // panggil API dengan filter berdasarkan ID (Value)
+        $.ajax({
+            url: "@Url.Content("~/Core/DataSource/GetPartNoList")",
+            type: "POST",
+            data: { partId: partId }, // <-- tambahkan parameter baru ke endpoint kamu
+            dataType: "json",
+            success: function (data) {
+                callback(data);
+            },
+            error: function () {
+                Swal.fire("Error", "Failed to load Part No for existing row", "error");
+            }
+        });
+    }
+    function createPartNoDataSource(response) {
+        return new kendo.data.DataSource({
+            transport: {
+                read: function (options) {
+                    options.success(response);
+                }
+            }
+        });
+    }
+    $(document).ready(function () {
+        MaterialUploadManager = new MaterialUploadManager();
+        MaterialUploadManager.InitManagement();
+    });
+</script>

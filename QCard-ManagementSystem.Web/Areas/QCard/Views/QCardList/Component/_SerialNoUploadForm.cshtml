@@ -1,0 +1,52 @@
+﻿<div id="SerialNoUploadModal" class="modal fade bs-modal-lg" abindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-lg" style="min-width: 50%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Upload Serial No.</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+            </div>
+            <div class="modal-body">
+                <form id="UploadSerialNoForm">
+                    <div class="row form-group">
+                        <label class="col-md-12">File<span class="required"> *</span></label>
+                        <div class="col-md-12">
+                            <div id="uploadDiv">
+                                <input type="file" id="fileUploadSerialNo" name="fileUploadSerialNo" accept=".xlsx" multiple>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="TempCode" />
+                </form>
+                @await Html.PartialAsync("~/Areas/QCard/Views/QCardList/Grid/_SerialNoUploadGrid.cshtml")
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-reset btn-sm" data-dismiss="modal"><i class="fa fa-times"></i>Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="SerialNoUploadButtons">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <br />
+                <button type="button" class="btn btn-success btn-sm" id="btnSubmitUpload" title="Create" style="width:50px; display: none;">Submit</button>
+                <button type="button" class="btn btn-danger btn-sm" id="btnDownloadErrorUpload" title="Download" style="width:160px; display: none;">Download Error Message</button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script>
+    $(document).ready(function () {
+        var templateHtml = $("#SerialNoUploadButtons").html();
+        $("#SerialNoUploadGrid .k-grid-toolbar").html(templateHtml);
+    });
+</script>
+
+<style>
+    #SerialNoUploadGrid .k-grid-toolbar {
+        background-color: #e9ecef;
+    }
+</style>

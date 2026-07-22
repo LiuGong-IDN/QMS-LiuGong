@@ -1,0 +1,304 @@
+﻿<script type="text/javascript">
+    var SourceData;
+
+    function ClaimHistoryVoucherDetailManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+
+            InitControls: function () {
+                var statusId = parseInt($("#statusId").val(), 10);
+                if (statusId != 2 || statusId != 3 || statusId != 9) {
+                    console.log('merge')
+                    mergeCellProgramDetailGrid();
+                }
+                var grid = $("#ClaimVoucherDetailGrid").data("kendoGrid");
+
+                if (grid) {
+                    grid.bind("dataBound", function () {
+                        var isEditable = [2, 3, 9].includes(statusId);
+                        $(".claimQty").each(function () {
+                            $(this).prop("readonly", !isEditable);
+                        });
+                    });
+
+                    if (grid.dataSource.view().length > 0) {
+                        grid.trigger("dataBound");
+                    }
+                } else {
+                    setTimeout(function () {
+                        ClaimHistoryProgramDetailManagement.InitValidation();
+                    }, 500);
+                }
+
+                $(document).on("keyup change", ".claimQty", function () {
+                    let qty = parseInt($(this).val(), 10);
+
+                    if (!qty || qty <= 0) {
+                        $(this).val(1);
+                        qty = 1;
+                    }
+
+                    let tr = $(this).closest("tr");
+                    let grid = $("#ClaimVoucherDetailGrid").data("kendoGrid");
+                    let dataItem = grid.dataItem(tr);
+
+                    dataItem.set("CLAIM_QTY", qty);
+                    totalPartPrice(dataItem);
+                });
+            },
+
+            InitValidation: function () {
+            },
+
+            InitHandlers: function () {
+                $("#btnClaimVoucher").on("click", function () {
+                    var $el = $(this);
+                    var claimId = $("#claimId").val();
+                    var dataToSave = buildDataToSave(claimId);
+
+                    console.log(dataToSave)
+
+
+                    $el.prop("disabled", true);
+                    Swal.fire({
+                        title: "Are you sure?",
+                        text: "Are you sure you want to claim the selected Part? Your Voucher Balance will be deducted after claim",
+                        icon: "question",
+                        showCancelButton: true,
+                        cancelButtonText: "No",
+                        confirmButtonText: "Yes"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '@Url.Action("UpdateClaimVoucher", "ClaimHistory", new { area = "MyQCard" })',
+                                type: "POST",
+                                data: { request: dataToSave },
+                                success: function (res) {
+                                    if (!res.Success) {
+                                        if (!res.Validate) {
+                                            ShowErrorMessage($form, JSON.parse(res.Message));
+                                        } else {
+                                            Swal.fire({
+                                                title: "Error",
+                                                text: res.Message,
+                                                icon: "error"
+                                            });
+                                        }
+                                    } else {
+                                        Swal.fire({
+                                            icon: "success",
+                                            title: "Success"
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                window.location.href = "/MyQCard/ClaimHistory/Index";
+                                            }
+                                        });
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnConfirmPartial").on("click", function () {
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    var claimNo = $("#claimNo").val();
+
+                    $.ajax({
+                        url: '@Url.Action("ConfirmPartialPickup", "ClaimHistory", new { area = "MyQCard" })',
+                        type: "POST",
+                        data: { claimNo: claimNo },
+                        success: function (res) {
+                            if (!res.Success) {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success",
+                                    text: res.Message
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/MyQCard/ClaimHistory/Index";
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        ClaimHistoryVoucherDetailManagement = new ClaimHistoryVoucherDetailManagement();
+        ClaimHistoryVoucherDetailManagement.InitManagement();
+    });
+
+    function setParameter() {
+        var claimId = $("#claimId").val();
+        return { claimId: claimId };
+    }
+    function toRupiah(value) {
+        if (value == null || value === "") return "Rp 0";
+        return "Rp " + new Intl.NumberFormat("id-ID", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    }
+
+    function parseRupiah(str) {
+        if (!str) return 0;
+        return parseInt(str.replace(/[^0-9]/g, "")) || 0;
+    }
+
+    function totalPartPrice(dataItem) {
+       let total = (dataItem.RETAIL_PRICE || 0) * (dataItem.CLAIM_QTY || 0);
+        dataItem.set("TOTAL_PART_PRICE", total);
+
+    calculateSummary();
+    }
+
+    function calculateSummary() {
+        let claimPpn = parseFloat($("#claimPpn").val()) || 0;
+        let claimAmount = parseFloat(getClaimAmount()) || 0;
+        let ppn = Math.round(claimAmount * claimPpn / 100);
+
+
+        let currentVoucherAmount = parseRupiah($("#currentVoucherAmount").val());
+        let latestGrandTotal =  parseRupiah($("#latestGrandTotal").val());
+        let voucherWhenClaim = currentVoucherAmount + latestGrandTotal;
+
+        let grandTotal = claimAmount + ppn;
+        let remaining = voucherWhenClaim - (claimAmount + ppn);
+
+        $("#claimAmount").val(toRupiah(claimAmount));
+        $("#grandTotal").val(toRupiah(grandTotal));
+        $("#PPN").val(toRupiah(ppn));
+        $("#reminingBalance").val(toRupiah(remaining));
+    }
+
+    function getClaimAmount() {
+        let total = 0;
+
+        $(".totalPrice").each(function () {
+            let text = $(this).text();
+            let num = parseInt(text.replace(/[^0-9]/g, "")) || 0;
+            total += num;
+        });
+        return total;
+    }
+
+    function buildDataToSave(claimId) {
+        var grid = $("#ClaimVoucherDetailGrid").data("kendoGrid");
+        var dataItems = grid.dataSource.view();
+        var partList = [];
+
+        $("#ClaimVoucherDetailGrid tbody tr").each(function (i, row) {
+
+            var dataItem = dataItems[i];
+
+            var qty = $(row).find("input.claimQty").val();
+
+            if (qty && qty !== "" && parseInt(qty) > 0) {
+                partList.push({
+                    PART_ID: dataItem.PART_ID,
+                    DISCOUNT: dataItem.DISCOUNT ?? 0,
+                    QTY: qty
+                });
+            }
+        });
+
+        return {
+            CLAIM_ID: claimId,
+            PART_LIST: partList
+        };
+    }
+
+    function mergeCellProgramDetailGrid() {
+        var grid = $("#ClaimVoucherDetailGrid").data("kendoGrid");
+        if (grid) {
+            grid.bind("dataBound", function () {
+
+                const rows = this.tbody.find("tr");
+                const mergeColumns = [2,3,4,5,6,7,8,9,10,11,12];  // kolom yang ingin di-merge
+                const sortedColumns = mergeColumns.slice().sort((a, b) => b - a); // sort desc
+
+                sortedColumns.forEach(function (colIndex) {
+                    let prevText = null;
+                    let prevCell = null;
+
+                    rows.each(function () {
+                        const cell = $(this).find("td").eq(colIndex);
+                        const text = cell.text().trim();
+
+                        if (!text) {
+                            prevText = null;
+                            prevCell = null;
+                            return;
+                        }
+
+                        if (prevText === text) {
+                            // increment rowspan
+                            prevCell[0].rowSpan++;
+                            cell.remove();
+                        } else {
+                            prevText = text;
+                            prevCell = cell;
+                        }
+                    });
+                });
+            });
+
+            // trigger jika ada data
+            if (grid.dataSource.view().length > 0) {
+                grid.trigger("dataBound");
+            }
+        } else {
+            setTimeout(function () {
+                ClaimProcessManagement.InitValidation();
+            }, 500);
+        }
+    }
+    function onClaimVoucherDetailDataBound(e) {
+        var grid = e.sender;
+        var statusId = parseInt($("#claimStatusId").val(), 10);
+
+        // STATUS_ID = 2 → disable Qty
+        if (statusId === 2) {
+            grid.tbody.find("input.claimQty").each(function () {
+                $(this)
+                    .prop("disabled", true)
+                    .addClass("qty-disabled");
+            });
+        }
+    }
+</script>

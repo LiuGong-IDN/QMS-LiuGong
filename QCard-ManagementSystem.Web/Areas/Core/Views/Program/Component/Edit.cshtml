@@ -1,0 +1,171 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+@{
+    var partNoList = Model.AdditionalData as List<QCard.ManagementSystem.Domain.Modules.Core.Model.ProgramMaterial>;
+}
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/Program/Script/_ProgramEdit.cshtml")
+    @Html.Partial("~/Areas/Core/Views/Program/Script/_MaterialUpload.cshtml")
+
+}
+@section modals {
+    @Html.Partial("~/Areas/Core/Views/Program/Component/_MaterialUploadForm.cshtml")
+}
+
+<form id="ProgramForm" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="portlet light margin-bottom-0">
+        <!-- Machine Detail -->
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span><b>Program Detail</b></span></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6 text-right">
+                <button type="button"
+                        class="btn btn-reset"
+                        onclick="window.location.href='/Core/Program/Index'">
+                    <i class="fa fa-arrow-left mr-1"></i> Back
+                </button>
+            </div>
+        </div>
+        <br />
+
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                @{
+                    var program = Model.Data as QCard.ManagementSystem.Domain.Modules.Core.Model.ProgramModel;
+                }
+                <input type="hidden" id="programID" name="ID" value="@program.ID" />
+                <div class="row">
+                    <!-- Bagian kiri: detail machine -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Program Category</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="PROGRAM_NO" name="PROGRAM_NO" class="form-control text-uppercase" value="@program.PROGRAM_CODE" />
+                                <span class="text-danger id"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Program Name</b></label></div>
+                            <div class="col-md-8">
+                                <input type="text" id="PROGRAM_NAME" name="PROGRAM_NAME" class="form-control text-uppercase" value="@program.PROGRAM_NAME" />
+                                <span class="text-danger id"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product Group</b></label></div>
+                            <div class="col-md-8">
+                                <input id="ASSET_TYPE_VALUE" input type="hidden" name="ASSET_TYPE_VALUE" value="@program.ASSET_TYPE_ID" />
+                                <input id="ASSET_TYPE_ID" name="ASSET_TYPE_ID" class="form-control" />
+                                <span class="text-danger id"></span>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product Model</b></label></div>
+                            <div class="col-md-8">
+                                <input id="MODEL_ID_VALUE" input type="hidden" name="MODEL_VALUE" value="@program.MODEL_ID" />
+                                <input id="MODEL_ID" name="MODEL_ID" class="form-control" />
+                                <span class="text-danger id"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Priority</b></label></div>
+                            <div class="col-md-8">
+                                <input id="PRIORITY_VALUE" input type="hidden" name="PRIORITY_VALUE" value="@program.PRIORITY_ID" />
+                                <input id="PRIORITY" name="PRIORITY" class="form-control" />
+                                <span class="text-danger id"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bagian kanan: area gambar -->
+                    <div class="col-md-6 text-center">
+                        <div id="MachineImageArea" class="border p-2">
+                            <img id="MachineImagePreview" class="img-thumbnail" style="max-width:100%; height:auto;" src="@Url.Content(program.IMAGE_PATH ?? "~/img/liugongQcard.png")" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Material Detail -->
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span><b>Material Detail</b></span></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <a href="#" class="btn btn-success btn-sm" id="btnAddMaterialDetail">
+                            <i class="fa fa-plus"></i>Add Material
+                        </a>
+                        <a href="#" class="btn blue bt trigger btn-sm" id="btnUploadMaterialDetail">
+                            <i class="fa fa-upload"></i>Upload Part No.
+                        </a>
+                        <a href="#" class="btn btn-reset btn-sm" id="btnDownloadMaterialDetail">
+                            <i class="fa fa-download"></i>Download Template
+                        </a>
+
+                        <table class="table table-bordered table-striped detail-table" id="MaterialTable" style="margin-top: 8px">
+                            <thead class="detail-table-header">
+                                <tr>
+                                    <th style="width: 5%;">Action</th>
+                                    <th style="width: 35%;">Part No.</th>
+                                    <th style="width: 50%;">Description</th>
+                                    <th style="width: 10%;">Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Row akan ditambahkan via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <div class="form-group" style="margin-top:10px;">
+                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ProgramMaintenance", Feature.CREATE_FEATURE))
+                    {
+                        <button type="submit" class="btn blue trigger" id="btnSaveProgram" style="background-color:#002F75; border-color:#002F75; color:white;">
+                            <i class="fa fa-save"></i><span class="hidden-xs">Save</span>
+                        </button>
+                    }
+                    <a class="btn btn-reset" id="btnReset">
+                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<style>
+    .row + .row {
+        margin-top: 10px;
+    }
+</style>
+<script>
+    var existingDetails = @Html.Raw(Json.Serialize(partNoList));
+    $(document).ready(function () {
+        App.ProgramEditManagement = new ProgramEditManagement();
+        App.ProgramEditManagement.InitManagement();
+    });
+</script>

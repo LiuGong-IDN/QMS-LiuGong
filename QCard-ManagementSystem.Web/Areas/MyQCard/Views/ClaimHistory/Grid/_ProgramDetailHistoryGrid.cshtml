@@ -1,0 +1,26 @@
+﻿@(Html.Kendo().Grid<Modules.MyQCard.Model.ClaimProgramHistoryDetail>()
+    .Name("ProgramDetailHistoryGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(100);
+        columns.Bound(o => o.PART_NAME).Title("Part Name").Width(120);
+        columns.Bound(o => o.PICKED_UP_DATE).Title("Picked-up by Customer Date")
+            .ClientTemplate("#= PICKED_UP_DATE ? kendo.toString(kendo.parseDate(PICKED_UP_DATE), 'dd-MMM-yyyy HH:mm:ss') : '' #")
+            .Width(130);
+        columns.Bound(o => o.DELIVERY_NOTE).Title("Delivery Note No.").Width(150);
+        columns.Bound(o => o.RESI).Title("No. Resi").Width(150);
+        columns.Bound(o => o.QTY).Title("Qty").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.AVAILABLE_QTY).Title("Available Qty").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.PENDING_QTY).Title("Pending Qty").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.CLAIMED_QTY).Title("Claimed Qty").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Data to display"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+)

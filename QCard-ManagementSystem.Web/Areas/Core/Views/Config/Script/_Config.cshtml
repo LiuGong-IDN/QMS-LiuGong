@@ -1,0 +1,196 @@
+﻿<script type="text/javascript">
+    function ConfigManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    $form.find("input[type='text']").val("");
+
+
+                });
+                $(".k-grid").on('click', ".k-grid-edit", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr),
+                        $modal = $.helper.getJqueryObject($el.data("modal")),
+                        $form = $modal.find("form");
+
+                    $("#btnSaveConfig").hide();
+                    $("#btnUpdateConfig").show();
+                    $("#SYSTEM_ID").prop('readonly', true);
+                    $("#SYSTEM_TYPE").prop('readonly', true);
+                    document.getElementById('modalTitle').innerHTML = "Edit";
+
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+                    $.helper.form.fill($form, dataItem);
+                    $modal.modal("show");
+                })
+
+                $("#btnSaveConfig").unbind('click').on('click', function () {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+                    var dataGrid = $("#ConfigGrid").data("kendoGrid").dataSource.data();
+                    var data = $.helper.form.serializeObject($form);
+                    datasend = JSON.stringify(data);
+
+                    var formData = new FormData();
+                    formData.append("data", datasend);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Config/Save")",
+                        type: "POST",
+                        data: formData,
+                        dataType: 'json',
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if(!res.Validate){
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                }else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            } else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("ConfigGrid");
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                $("#btnUpdateConfig").unbind('click').on('click', function (event) {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+                    var dataGrid = $("#ConfigGrid").data("kendoGrid").dataSource.data();
+                    var data = $.helper.form.serializeObject($form);
+                    datasend = JSON.stringify(data);
+
+                    var formData = new FormData();
+                    formData.append("data", datasend);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Config/Update")",
+                        type: "POST",
+                        data: formData,
+                        dataType: 'json',
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if(!res.Validate){
+                                ShowErrorMessage($form, JSON.parse(res.Message));
+                            }else{
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: res.Message
+                                });
+                            }
+                            } else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("ConfigGrid");
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                })
+
+                $(".k-grid").on('click', ".k-grid-delete", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr);
+                    Swal.fire({
+                        title: "Delete this data?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "@Url.Content("~/Core/Config/Delete")",
+                                type: "POST",
+                                data: {systemId : dataItem.SYSTEM_ID, systemType : dataItem.SYSTEM_TYPE},
+                                success: function (res) {
+                                    if (res.Success == false || res.Success == "false") {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: res.Message
+                                        });
+                                    } else {
+                                        Swal.fire("Success!", "", "success");
+                                        $.helper.grid.refresh("ConfigGrid");
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                })
+
+                $("#btnTemplateConfig").on('click', function (event) {
+                    window.location.href = "@Url.Content("~/Core/Config/DownloadTemplate")";
+                });
+            },
+
+            CreateConfig: function () {
+                var $modal = $.helper.getJqueryObject('ConfigModal'),
+                    $form = $modal.find("form");
+
+                $.helper.form.clear($form);
+                clearValidation($modal);
+                $("#btnSaveConfig").show();
+                $("#btnUpdateConfig").hide();
+                $("#SYSTEM_ID").prop('readonly', false);
+                $("#SYSTEM_TYPE").prop('readonly', false);
+                document.getElementById('modalTitle').innerHTML = "Add";
+
+                $modal.modal("show");
+            },
+        };
+    }
+</script>

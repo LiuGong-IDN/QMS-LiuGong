@@ -1,0 +1,19 @@
+﻿@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.MyQCard.Model.ClaimStatusHistory>()
+    .Name("ClaimStatusHistory")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.STATUS).Title("Status").Width(120);
+        columns.Bound(o => o.PIC).Title("PIC").Width(150);
+        columns.Bound(o => o.DATE).Title("Date").Format("{0:dd-MMM-yyyy HH:mm:ss}").Width(110);
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Status List to display"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/QCard/ClaimProcess/GetClaimStatusHistory")).Data("setParameterStatusHistory"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("aph.CREATED_DATE").Descending())
+    )
+    .Sortable()
+)

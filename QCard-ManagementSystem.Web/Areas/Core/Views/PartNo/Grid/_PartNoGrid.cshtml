@@ -1,0 +1,46 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.ViewModel.PartNoView>()
+    .Name("PartNoGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.ID).Title("Action").Sortable(false).Width(70).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false).ClientTemplate(
+        @"<div class=""btn-group action-btn-group"">" +
+            "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("PartNoMaintenance", Feature.UPDATE_FEATURE).ToString().ToLower() + ")" +
+            "{#" +
+                @"<a class=""k-grid-edit cursor-pointer action-btn"" data-modal='PartNoModal' data-ID='#: ID#' title=""Edit""><i class=""fa fa-edit fa-lg""></i></a>&nbsp;" +
+            "#}#" +
+            "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("PartNoMaintenance", Feature.DELETE_FEATURE).ToString().ToLower() + ")" +
+            "{#" +
+                @"<a class=""k-grid-delete cursor-pointer action-btn"" data-ID='#: ID#' title=""Delete""><i class=""fas fa-trash-alt fa-lg""></i></a>&nbsp;" +
+            "#}#" +
+        @"</div>");
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(200);
+        columns.Bound(o => o.PART_NAME).Title("Description").Width(200);
+        columns.Bound(o => o.RETAIL_PRICE).Title("Retail Price").HtmlAttributes(new { @class = "text-right", style = "overflow: visible;" }).Width(200).ClientTemplate("Rp #= kendo.toString(RETAIL_PRICE, 'n0').replace(/,/g, '.') #");
+        columns.Bound(o => o.CREATED_DATE).Title("Created Date").Width(200).ClientTemplate("#= kendo.toString(CREATED_DATE, 'dd-MMM-yyyy hh:mm:ss') #");
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Part No. List to display"))
+    .Pageable(pageable => pageable.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/core/partno/read")).Data("setParameter"))
+        .PageSize(10)
+    )
+)
+<style>
+    .action-btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 4px; /* jarak antar button */
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+    }
+</style>

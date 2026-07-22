@@ -1,0 +1,19 @@
+﻿@{
+    Layout = "_LoginLayout";
+    ViewBag.Title = "Error Message";
+}
+
+<div style="display: flex;justify-content: center; align-items: center; height: 100vh;background-image: url(@Url.Content("~/img/19366.jpg"))">
+    <div style="text-align: center;">
+        <h1>@ViewBag.ErrorHeader</h1>
+        <h3>@ViewBag.ErrorMessage</h3>
+        <br />
+        <div class="btn btn-brand btn-elevate">
+            <a href="@Url.Content("~/Home")" class="text-light">
+                <h5>Back</h5>
+            </a>
+            <div class="menu-toggler sidebar-toggler">
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,290 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function ModelManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("input.text-uppercase").on("input", function () {
+                    this.value = this.value.toUpperCase();
+                });
+                $("input.no-space").on("input", function () {
+                    this.value = this.value.replace(/\s+/g, "");
+                });
+                $("#ASSET_TYPE-FILTER").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetAssetType")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select product group..."
+                });
+                $("#ASSET_TYPE_ID").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetAssetType")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select product group..."
+                });
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {  
+                $(".k-grid").on('click', ".k-grid-edit", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr),
+                        $modal = $.helper.getJqueryObject($el.data("modal")),
+                        $form = $modal.find("form");
+
+                    Id = $el.data('id');
+
+                    $.post("@Url.Content("~/Core/Model/GetModelByID")", { "ID": Id}, function (d) {
+                        var data = d.data
+                        Id = data.ID;
+                        
+                        document.getElementById('modalTitle').innerHTML = "Manage Model";
+                        clearValidation($modal);
+
+                        $("#btnSaveModel").hide();
+                        $("#btnUpdateModel").show();
+
+                        
+                        $.helper.form.fill($form, data);
+                        $("#ASSET_TYPE_ID").data("kendoDropDownList").value(data.ASSET_TYPE_ID);
+
+                        $modal.modal("show");
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                })
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    $form.find("input[type='text']").val("");
+
+                    var ddl = $("#ASSET_TYPE-FILTER").data("kendoDropDownList");
+                    if (ddl) {
+                        ddl.value("");       // kosongkan value
+                        ddl.select(0);       // kembali ke optionLabel
+                    }
+
+                });
+
+                $("#btnAddModel").unbind('click').on('click', function () {
+                    var $modal = $.helper.getJqueryObject('ModelModal'),
+                    $form = $modal.find("form");
+
+                    document.getElementById('modalTitle').innerHTML = "<b>Register Product Model</b>";
+                    clearValidation($modal);
+                    $.helper.form.clear($form);
+
+                    $("#btnSaveModel").show();
+                    $("#btnUpdateModel").hide();
+
+                    $modal.modal("show");
+                });
+
+                $("#btnSaveModel").on('click', function (event) {
+                    var $el = $(this),
+                        isError = false,
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+                    var Id = $("#ID").val() || "";
+                    var AssetTypeCode = parseInt($("#ASSET_TYPE_ID").data("kendoDropDownList").value(), 10);    
+                    dataToSave = {
+                        ID: Id,
+                        ASSET_TYPE_ID: AssetTypeCode,
+                        MODEL_CODE: formData.MODEL_CODE,
+                        MODEL_NAME: formData.MODEL_NAME,
+                    }
+                    console.log(dataToSave)
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Model/Save")",
+                        type: "POST",
+                        data: { model: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    $modal.modal("hide");
+                                    $.helper.grid.refresh("ModelGrid");
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnUpdateModel").unbind('click').on('click', function () {
+                    var $el = $(this),
+                        isError = false,
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form");
+
+                    var formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+                    var Id = $("#ID").val() || "";
+                    var AssetTypeCode = parseInt($("#ASSET_TYPE_ID").data("kendoDropDownList").value(), 10);
+                    dataToSave = {
+                        ID: Id,
+                        ASSET_TYPE_ID: AssetTypeCode,
+                        MODEL_CODE: formData.MODEL_CODE,
+                        MODEL_NAME: formData.MODEL_NAME,
+                    }
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Model/Save")",
+                        type: "POST",
+                        data: { model: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    $modal.modal("hide");
+                                    $.helper.grid.refresh("ModelGrid");
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $(".k-grid").on('click', ".k-grid-delete", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid");
+
+
+                    Id = $el.data('id');
+                     Swal.fire({
+                        title: "Delete this data?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "@Url.Content("~/Core/Model/Delete")",
+                                type: "POST",
+                                data: {id : Id},
+                                success: function (res) {
+                                    if (res.Success == false || res.Success == "false") {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: res.Message
+                                        });
+                                    } else {
+                                        Swal.fire("Success!", "", "success");
+                                        $.helper.grid.refresh("ModelGrid");
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+</script>

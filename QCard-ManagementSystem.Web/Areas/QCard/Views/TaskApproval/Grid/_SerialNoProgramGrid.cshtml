@@ -1,0 +1,22 @@
+﻿@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.SerialNoProgramModel>()
+    .Name("SerialNoProgramGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.PROGRAM_CODE).Title("Program Category").Width(200);
+        columns.Bound(o => o.PROGRAM_NAME).Title("Program Name").Width(200);
+        columns.Bound(o => o.PACKAGE_QTY).Title("Package Qty").Width(200).HtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(o => o.PRIORITY).Title("Priority").Width(200);
+        columns.Bound(o => o.CLAIM_QTY).Title("Claim Qty").Width(200).HtmlAttributes(new { style = "text-align:right;" });
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Material List to display"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/qcard/taskapproval/GetProgramListByMachineId")).Data("setParameterGrid"))
+        .Sort(sort => sort.Add("ORDER_INDEX").Ascending())
+    )
+    .AutoBind(true)
+)

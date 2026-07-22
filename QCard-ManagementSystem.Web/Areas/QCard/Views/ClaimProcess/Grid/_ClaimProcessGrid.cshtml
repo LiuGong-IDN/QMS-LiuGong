@@ -1,0 +1,47 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+@using QCard.ManagementSystem.Domain.Modules.QCard.Model
+@(Html.Kendo().Grid<ClaimProcessModel>()
+    .Name("ClaimProcessGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.CLAIM_ID).Title("Action").Sortable(false).Width(60).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" })
+        .Filterable(false)
+        .ClientTemplate(
+        @"<div class=""btn-group"">" +
+            "#if (" + @QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ClaimProcess", Feature.UPDATE_FEATURE).ToString().ToLower() + ")" +
+            "{#" +
+                @"<a href='" + Url.Action("ClaimDetailProcess", "ClaimProcess", new { area = "QCard" }) +
+                @"?claimNo=#: encodeURIComponent(CLAIM_NO) #&claimType=#: encodeURIComponent(CLAIM_TYPE) #'
+                class=""k-grid-edit cursor-pointer"" data-ID='#: CLAIM_ID#'
+                title=""Process""><i class=""fa fa-tasks-alt fa-lg""></i></a>&nbsp;" +
+            "#}#" +
+        @"</div>");
+        columns.Bound(o => o.CLAIM_NO).Title("Claim No.").Width(170);
+        columns.Bound(o => o.CLAIM_TYPE).Title("Category Claim").Width(75);
+        columns.Bound(o => o.SERIAL_NO).Title("Serial No.").Width(150);
+        columns.Bound(o => o.ASSET_TYPE_NAME).Title("Product Group").Width(110);
+        columns.Bound(o => o.MODEL_NAME).Title("Product Model").Width(110);
+        columns.Bound(o => o.CLAIM_DATE).Title("Claim Date").Width(150).Format("{0:dd-MMM-yyyy HH:mm:ss}");
+        columns.Bound(o => o.PDC_NAME).Title("PDC").Width(100);
+        columns.Bound(o => o.STATUS).Title("Status").Width(110);
+        columns.Bound(o => o.LATEST_UPDATED_DATE).Title("Updated Date").Format("{0:dd-MMM-yyyy HH:mm:ss}").Width(150);
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Claim List to display"))
+    .Pageable(p => p.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .Events(ev => ev.DataBound("onDataBound"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/QCard/ClaimProcess/Read")).Data("setParameter"))
+        .PageSize(10)
+    )
+)
+
+    <style>
+        .trBoldClass {
+            font-weight: bold;
+        }
+    </style>

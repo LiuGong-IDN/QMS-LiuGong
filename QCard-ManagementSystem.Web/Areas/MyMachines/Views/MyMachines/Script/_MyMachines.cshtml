@@ -1,0 +1,98 @@
+﻿<script type="text/javascript">
+    function MyMachinesManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("#MACHINE_TYPE-FILTER").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetAssetType")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select product group..."
+                });
+
+                $("#MODEL-FILTER").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: "@Url.Content("~/Core/DataSource/GetModelList")",
+                                dataType: "json"
+                            }
+                        }
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select product model..."
+                });
+            },
+            InitValidation: function () {
+                document.getElementById("SERIAL_NO-FILTER").addEventListener("input", function () {
+                    // Hapus karakter selain huruf dan angka
+                    this.value = this.value.replace(/[^A-Za-z0-9]/g, '');
+
+                    // Batasi maksimal 32 karakter
+                    if (this.value.length > 32) {
+                        this.value = this.value.slice(0, 32);
+                    }
+                });
+            },
+            InitHandlers: function () {
+                window.addEventListener("pageshow", function (event) {
+                    if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+                        $.helper.grid.refresh("MyMachinesGrid");
+                    }
+                });
+
+                $("#btnSearch").on('click', function (e) {
+                    $('#MyMachinesGrid').data("kendoGrid").dataSource.page(1);
+                });
+
+                $("#btnDownloadAll").on("click", function () {
+                window.location.href = '@Url.Action("ExportMyMachinesToExcel", "MyMachines", new { area = "MyMachines" })';
+                });
+
+                $("#btnClear").on("click", function () {
+                    $("#SERIAL_NO-FILTER").val("");
+                    $("#MACHINE_TYPE-FILTER").data("kendoDropDownList").value("");
+                    $("#MODEL-FILTER").data("kendoDropDownList").value("");
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        MyMachinesManagement = new MyMachinesManagement();
+        MyMachinesManagement.InitManagement();
+    });
+
+    function setParameter() {
+        var serialNo = $("#SERIAL_NO-FILTER").val();
+        var machineTypeDdl = $("#MACHINE_TYPE-FILTER").data("kendoDropDownList");
+        var modelDdl = $("#MODEL-FILTER").data("kendoDropDownList");
+        var machineType = machineTypeDdl ? machineTypeDdl.value() : null;
+        var model = modelDdl ? modelDdl.value() : null;
+
+        return {
+            serialNo: serialNo,
+            machineType: machineType,
+            model: model,
+        };
+    }
+</script>

@@ -1,0 +1,77 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/Program/Script/_Program.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Program List</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            <form data-grid="ProgramGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="programNo"><b>Program Category</b></label>
+                                <input id="programNo" type="text" class="form-control text-uppercase" data-filter='{ "operator": "contains", "field": "PROGRAM_NO" }' />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="MODEL_ID-FILTER"><b>Product Model</b></label>
+                                <input id="MODEL_ID-FILTER" name="MODEL_ID" class="form-control" data-filter='{ "operator": "eq", "field": "MODEL_ID" }' />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ProgramMaintenance", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+
+                                </text>
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ProgramMaintenance", Feature.CREATE_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-success pull-right" id="btnAddProgram">
+                                        <i class="fa fa-plus"></i><span class="hidden-xs">Add Program</span>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/Core/Views/Program/Grid/_ProgramGrid.cshtml")
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        App.ProgramManagement = new ProgramManagement();
+        App.ProgramManagement.InitManagement();
+    });
+</script>

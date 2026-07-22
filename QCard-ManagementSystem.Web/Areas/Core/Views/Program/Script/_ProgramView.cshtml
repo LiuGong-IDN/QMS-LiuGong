@@ -1,0 +1,175 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function ProgramViewManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("#ASSET_TYPE").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetAssetType")",
+                                dataType: "json"
+                            }
+                        }
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select your asset type...",
+                    change: function () {
+                        var assetTypeId = this.value();
+                        var modelDropdown = $("#MODEL").data("kendoDropDownList");
+
+                        // refresh data model sesuai asset type
+                        modelDropdown.dataSource.transport.options.read.url =
+                            "@Url.Content("~/Core/DataSource/GetModelByAssetTypeList")?assetTypeId=" + assetTypeId;
+                        modelDropdown.dataSource.read();
+                        modelDropdown.value(""); // reset pilihan model
+                    }
+                });
+
+                $("#MODEL").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: "@Url.Content("~/Core/DataSource/GetModelByAssetTypeList")",
+                                dataType: "json"
+                            }
+                        }
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select your model..."
+                });
+
+                $("#PRIORITY").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    optionLabel: "Select your priority...",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: "@Url.Content("~/Core/DataSource/GetPriorityList")",
+                                dataType: "json"
+                            }
+                        }
+                    }
+                });
+                $("#PROGRAM_CATEGORY").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    optionLabel: "Select your category...",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: "@Url.Content("~/Core/DataSource/GetProgramCategoryList")",
+                                dataType: "json"
+                            }
+                        }
+                    }
+                });
+                
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                
+                // Add Material Detail
+                $("#btnAddMaterialDetail").on("click", function (e) {
+                    e.preventDefault();
+
+                    var newRow = `
+                        <tr>
+                            <td>
+                                <input name="PART_NO[]" class="form-control partNoDropdown" />
+                            </td>
+                            <td>
+                                <input type="text" name="DESCRIPTION[]" class="form-control descriptionField" readonly />
+                            </td>
+                            <td>
+                                <input type="number" name="QTY[]" class="form-control" />
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-danger btn-sm btnRemoveRow">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    $("#MaterialTable tbody").append(newRow);
+
+                    // apply kendo dropdown untuk Part No di row baru
+                    var $partNoDropdown = $("#MaterialTable tbody tr:last .partNoDropdown").kendoDropDownList({
+                        dataTextField: "Text",
+                        dataValueField: "Value",
+                        dataSource: {
+                            transport: {
+                                read: {
+                                    url: "@Url.Content("~/Core/DataSource/GetPartNoList")",
+                                    dataType: "json"
+                                }
+                            }
+                        },
+                        filter: "contains",
+                        optionLabel: "Select Part No...",
+                        change: function (e) {
+                            var dataItem = this.dataItem(this.selectedIndex);
+                            var $row = $(this.element).closest("tr");
+                            var $descField = $row.find(".descriptionField");
+
+                            if (dataItem && dataItem.Name) {
+                                $descField.val(dataItem.Name);
+                            } else {
+                                $descField.val("");
+                            }
+                        }
+                    }).data("kendoDropDownList");
+                });
+
+                // hapus row
+                $(document).on("click", ".btnRemoveRow", function () {
+                    $(this).closest("tr").remove();
+                });
+
+                // back button
+                $(document).on("click", "#btnBack", function (e) {
+                    e.preventDefault();
+                    window.history.back();
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+            if (excludeIds && excludeIds.includes(id)) {
+                return;
+            }
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+    function setParameter() {
+        var programID = $("#programID").val();
+        console.log(programID)
+        return {
+            ProgramID: programID,
+        };
+    }
+</script>

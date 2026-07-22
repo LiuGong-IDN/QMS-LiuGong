@@ -1,0 +1,30 @@
+﻿@using Kendo.Mvc.UI;
+@using QCard.ManagementSystem.Domain.Modules.QCard.ViewModel;
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.QCard.Model.SerialNoUploadResponse>()
+    .Name("SerialNoUploadGrid")
+    .ToolBar(toolbar => { toolbar.Custom().Text(" "); })
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.NO).Title("No.").Width(60).HtmlAttributes(new { style = "text-align: center;white-space:normal" });
+        columns.Bound(o => o.STATUS).Title("Status").Width(100).HtmlAttributes(new { style = "text-align: center;white-space:normal" });
+        columns.Bound(o => o.SERIAL_NO).Title("Serial No.").Width(170).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.UPLOADED_PRODUCT_GROUP).Title("Uploaded Product Group").Width(120).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.UPLOADED_PRODUCT_MODEL).Title("Uploaded Product Model").Width(120).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.SERIAL_NO_MATCH_STATUS).Title("Serial No. Match Status").Width(120).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.MESSAGE).Title("Message").Width(150).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Data List to display"))
+    .Pageable(pageable => pageable.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/QCard/QCardList/ReadUploadedData")).Data("sendTempCode"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("NO").Ascending())
+    )
+    .AutoBind(false)
+)

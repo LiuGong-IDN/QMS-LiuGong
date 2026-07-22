@@ -1,0 +1,178 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using System.Globalization
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+@{
+    var programList = Model.AdditionalData as List<QCard.ManagementSystem.Domain.Modules.Core.Model.MachineProgram>;
+}
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/SerialNo/Script/_SerialNoView.cshtml")
+}
+
+<form id="MachineForm" method="post">
+    @Html.AntiForgeryToken()
+    <div class="portlet light margin-bottom-0">
+        <!-- Machine Detail -->
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1><span>View Serial No.</span></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6 text-right">
+                <button type="button"
+                        class="btn btn-reset"
+                        onclick="history.back();">
+                    <i class="fa fa-arrow-left mr-1"></i> Back
+                </button>
+            </div>
+        </div>
+        <br />
+        
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                @{
+                    var machine = Model.Data as QCard.ManagementSystem.Domain.Modules.Core.Model.MachineDetail;
+                    var hasPrograms = programList != null && programList.Any();
+
+                    var hasVoucherAmount = machine?.VOUCHER_AMOUNT != null && machine.VOUCHER_AMOUNT > 0;
+                    var hasCurrentAmount = machine?.CURRENT_AMOUNT != null;
+
+                    var showAmounts = hasVoucherAmount && hasCurrentAmount;
+                }
+                <input type="hidden" id="machineID" value="@machine.ID" />
+                <div class="row">
+                    <!-- Bagian kiri: detail machine -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Customer</b></label></div>
+                            <div class="col-md-8"><label id="customer">@machine.COMPANY_NAME</label></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Serial No.</b></label></div>
+                            <div class="col-md-8"><label id="serialNo">@machine.SERIAL_NO</label></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>PJB No.</b></label></div>
+                            <div class="col-md-8"><label id="PJBNo">@machine.PJB_NO</label></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label><b>Evidence PJB</b></label>
+                            </div>
+                            <div class="col-md-8">
+                                <label id="evidencePjb">@machine.EVIDENCE_PJB</label>
+                                <br />
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary mt-1"
+                                        id="btnDownloadEvidence">
+                                    <i class="fa fa-download"></i>
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product Group</b></label></div>
+                            <div class="col-md-8"><label id="machineType">@machine.MACHINE_TYPE</label></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Product Model</b></label></div>
+                            <div class="col-md-8"><label id="model">@machine.MODEL</label></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Purchase Date</b></label></div>
+                            <div class="col-md-8"><label id="purchaseDate">@machine.PURCHASE_DATE.ToString("dd-MMM-yyyy")</label></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Service Party</b></label></div>
+                            <div class="col-md-8"><label id="serviceParty">@machine.SERVICE_PARTY</label></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><label><b>Branch</b></label></div>
+                            <div class="col-md-8"><label id="branch">@machine.BRANCH</label></div>
+                        </div>
+
+                    </div>
+
+                    <!-- Bagian kanan: area gambar -->
+                    <div class="col-md-6 text-center">
+                        <div id="MachineImageArea" class="border p-2">
+                            <img id="MachineImagePreview" class="img-thumbnail" style="max-width:100%; height:auto;" src="@Url.Content(machine.IMAGE_PATH ?? "~/img/liugongQcard.png")" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Material Detail -->
+        @if (hasPrograms)
+        {
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="page-head">
+                        <div class="page-title">
+                            <h1><span>Program Detail</span></h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            @await Html.PartialAsync("~/Areas/Core/Views/SerialNo/Grid/_SerialNoProgramGrid.cshtml")
+            <br />
+        }
+        @if (showAmounts)
+        {
+            <div id="divVoucherDetail" class="portlet light bordered" style="margin-bottom:0px;">
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div class="page-head">
+                            <div class="page-title">
+                                <h1><span><b>Voucher Detail</b></span></h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="portlet-body">
+                    <div class="inputs inputs-full-width">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="VOUCHER_AMOUNT"><b>Voucher Amount</b></label>
+                                    <input type="text" id="VOUCHER_AMOUNT" name="VOUCHER_AMOUNT" class="form-control" style="text-align:right;" disabled="disabled"
+                                           value="@string.Format(new System.Globalization.CultureInfo("id-ID"), "Rp {0:N0}", machine.VOUCHER_AMOUNT)" />
+                                    <span class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="CURRENT_AMOUNT"><b>Current Amount</b></label>
+                                    <input type="text" id="CURRENT_AMOUNT" name="CURRENT_AMOUNT" class="form-control" style="text-align:right;" disabled="disabled"
+                                           value="@string.Format(new System.Globalization.CultureInfo("id-ID"), "Rp {0:N0}", machine.CURRENT_AMOUNT)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</form>
+
+<style>
+    .row + .row {
+        margin-top: 10px;
+    }
+</style>
+<script>
+    var existingPrograms = @Html.Raw(Json.Serialize(programList));
+    var isProgram = @(machine.IS_PROGRAM ? "true" : "false");
+    var isVoucher = @(machine.IS_VOUCHER ? "true" : "false");
+    var voucherAmount = @machine.VOUCHER_AMOUNT.ToString(CultureInfo.InvariantCulture);
+    var currentAmount = @machine.CURRENT_AMOUNT.ToString(CultureInfo.InvariantCulture);
+    $(document).ready(function () {
+        App.SerialNoAddManagement = new SerialNoAddManagement();
+        App.SerialNoAddManagement.InitManagement();
+    });
+</script>

@@ -1,0 +1,83 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using QCard.ManagementSystem.Domain.Modules.QCard.ViewModel
+@using QCard.ManagementSystem.Infrastructure.Session
+@{
+    string heading = "Dashboard";
+    string controllerName = "Dashboard";
+}
+@section Styles {
+    <style type="text/css">
+        [title="JavaScript charts"] {
+            display: none !important;
+        }
+    </style>
+}
+
+@section scripts {
+    <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amcharts/amcharts.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amcharts/serial.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amcharts/pie.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amcharts/radar.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amcharts/themes/light.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amcharts/themes/patterns.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amcharts/themes/chalk.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/ammap/ammap.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/ammap/maps/js/worldLow.js" type="text/javascript"></script>
+    <script src="~/Content/theme/Metronic/global/plugins/amcharts/amstockcharts/amstock.js" type="text/javascript"></script>
+    <!-- END PAGE LEVEL PLUGINS -->
+    @await Html.PartialAsync($"~/Views/Home/Script/_DefaultScript.cshtml")
+
+    @{
+        if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("DashboardAdmin", Feature.VIEW_FEATURE))
+        {
+            @await Html.PartialAsync($"~/Areas/Dashboard/Views/DashboardAdmin/Script/_DashboardAdmin.cshtml")
+        }
+        else if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("DashboardCustomer", Feature.VIEW_FEATURE))
+        {
+            @await Html.PartialAsync($"~/Areas/Dashboard/Views/DashboardCustomer/Script/_DashboardCustomer.cshtml")
+        }
+        else if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("DashboardPDC", Feature.VIEW_FEATURE))
+        {
+            @await Html.PartialAsync($"~/Areas/Dashboard/Views/DashboardPDC/Script/_DashboardPDC.cshtml")
+        }
+    }
+}
+@{
+    if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("DashboardAdmin", Feature.VIEW_FEATURE))
+    {
+        @await Html.PartialAsync("~/Areas/Dashboard/Views/DashboardAdmin/Index.cshtml")
+    }
+    else if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("DashboardCustomer", Feature.VIEW_FEATURE))
+    {
+        @await Html.PartialAsync("~/Areas/Dashboard/Views/DashboardCustomer/Index.cshtml")
+    }
+    else if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("DashboardPDC", Feature.VIEW_FEATURE))
+    {
+        @await Html.PartialAsync("~/Areas/Dashboard/Views/DashboardPDC/Index.cshtml")
+    }
+    else
+    {
+        <div class="portlet light" style="margin-top: -23px;">
+            <div class="portlet-body text-center" style="padding: 60px 20px;">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="background-color: #f3f6f9; border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                        <i class="fas fa-chart-bar" style="font-size: 40px; color: #5b9bd5;"></i>
+                    </div>
+
+                    <h3 style="color: #333; font-weight: 600;">No Dashboard Available</h3>
+                    <p style="color: #777; font-size: 16px; max-width: 600px;">
+                        It looks like you don't have access to any dashboard at the moment.<br />
+                        If you believe this is an error, please contact our system administrator.
+                    </p>
+
+                    <a href="mailto:admin@mail.com?subject=Dashboard%20Access%20Request&body=Hello%20Admin,%0D%0A%0D%0AI%20cannot%20access%20my%20dashboard%20on%20QCard%20Management%20System.%0D%0A%0D%0AHere%20are%20my%20details:%0D%0A-%20Name:%20%5BYour%20Name%5D%0D%0A-%20Email:%20%5BYour%20Email%5D%0D%0A-%20Role(s):%20%5BYour%20Role%5D%0D%0A%0D%0APlease%20help%20check%20and%20grant%20access%20if%20applicable.%0D%0A%0D%0AThank%20you."
+                       class="btn btn-primary mt-3"
+                       style="margin-top: 20px;">
+                        <i class="fas fa-envelope"></i> Send Email to Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+}

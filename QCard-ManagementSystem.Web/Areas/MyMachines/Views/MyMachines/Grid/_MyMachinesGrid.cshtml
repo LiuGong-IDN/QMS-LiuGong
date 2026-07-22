@@ -1,0 +1,95 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<Modules.MyMachines.ViewModel.MyMachinesView>()
+    .Name("MyMachinesGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.ID).Title("Category Claim").Sortable(false).Width(80)
+        .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" })
+        .Filterable(false)
+        .ClientTemplate(
+        @"
+        <div class='btn-group action-btn-group'>
+            # if (IS_PROGRAM) { #
+                <a href='" + Url.Action("MachinesDetailProgram", "MyMachines", new { area = "MyMachines" }) + @"/#: ID#'
+                   class='k-grid-edit cursor-pointer action-btn'
+                   data-ID='#: ID#'
+                   title='Claim Programs'>
+                    <i class='fa fa-file fa-lg'></i>
+                </a>&nbsp;
+            # } #
+
+            # if (IS_VOUCHER) { #
+                <a href='" + Url.Action("MachinesDetailVoucher", "MyMachines", new { area = "MyMachines" }) + @"/#: ID#'
+                   class='k-grid-edit voucher cursor-pointer action-btn'
+                   data-ID='#: ID#'
+                   title='Claim Voucher'>
+                    <img src='" + Url.Content("~/img/icon/voucher_action_icon.png") + @"'
+                         style='width:22px;height:22px;' />
+                </a>&nbsp;
+            # } #
+        </div>
+        ");
+        columns.Bound(o => o.SERIAL_NO).Title("Serial No.").Width(150);
+        columns.Bound(o => o.MACHINE_TYPE).Title("Product Group").Width(125);
+        columns.Bound(o => o.MODEL).Title("Product Model").Width(115);
+        columns.Bound(o => o.PURCHASE_DATE).Title("Purchase Date").Format("{0:dd-MMM-yyyy}").Width(100);
+        columns.Bound(o => o.SERVICE_PARTY).Title("Service Party").Width(260);
+        columns.Bound(o => o.AVAILABLE_PROGRAM).Title("Available Program").Width(80)
+            .HtmlAttributes(new { style = "text-align:right; white-space:normal" });
+        columns.Group(group => group
+            .Title("Voucher Detail")
+            .Columns(info => { 
+                info.Bound(x => x.INITIAL_BALANCE).Title("Initial Balance").Width(150)
+                    .HtmlAttributes(new { style = "text-align:right; white-space:normal" })
+                    .ClientTemplate("Rp #= kendo.toString(INITIAL_BALANCE, 'n0').replace(/,/g, '.') #");
+                info.Bound(x => x.USED_BALANCE).Title("Used Balance").Width(150)
+                    .HtmlAttributes(new { style = "text-align:right; white-space:normal" })
+                    .ClientTemplate("Rp #= kendo.toString(USED_BALANCE, 'n0').replace(/,/g, '.') #");
+                info.Bound(x => x.REMAINING_BALANCE).Title("Remaining Balance").Width(150)
+                    .HtmlAttributes(new { style = "text-align:right; white-space:normal" })
+                    .ClientTemplate("Rp #= kendo.toString(REMAINING_BALANCE, 'n0').replace(/,/g, '.') #");
+            })
+        );
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Machines List to display"))
+    .Pageable(pageable => pageable.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .PersistSelection()
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .ServerOperation(true)
+        .Read(read => read.Url(Url.Content("~/mymachines/mymachines/read")).Data("setParameter"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("CREATED_DATE").Descending())
+        .Model(model =>
+        {
+            model.Id(p => p.ID);
+            model.Field(p => p.ID).Editable(false);
+        })
+    )
+)
+<style>
+    .action-btn-group {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2px; /* jarak antar button */
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        cursor: pointer;
+    }
+
+        .action-btn:hover {
+            opacity: 0.75;
+        }
+
+</style>

@@ -1,0 +1,60 @@
+@model QCard.ManagementSystem.Domain.Modules.Core.Model.Menu
+
+<div id="MenuModal" class="modal fade bs-modal-lg" abindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                <h4 class="modal-title">Manage Menu</h4>
+            </div>
+            <div class="modal-body">
+                <form id="MenuForm">
+                    @Html.TextBoxFor(x => x.ID, new { @class = "form-control", id = "ID", type = "hidden" })
+                    @Html.TextBoxFor(x => x.PARENT_ID, new { @class = "form-control", id = "ParentID", type = "hidden" })
+                    <div class="form-group">
+                        <label>Title</label>
+                        @Html.TextBoxFor(x => x.TITLE, new { @class = "form-control", id = "Title" })
+                        <span class="field-validation-valid" data-valmsg-for="Title"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Url</label>
+                        @Html.TextBoxFor(x => x.URL, new { @class = "form-control", id = "Url" })
+                    </div>
+
+                    <div class="form-group">
+                        <label>Icon Class</label>
+                        @Html.TextBoxFor(x => x.ICON_CLASS, new { @class = "form-control iconpicker", id = "IconClass" })
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        @Html.TextBoxFor(x => x.DESCRIPTION, new { @class = "form-control", id = "Description" })
+                        <span class="field-validation-valid" data-valmsg-for="Description"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Function</label>
+                        @Html.TextBoxFor(x => x.FUNCTION_ID, new { @class = "form-control", id = "FunctionID" })
+                        <span class="field-validation-valid" data-valmsg-for="FunctionID"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="mt-checkbox-list">
+                            <label class="mt-checkbox mt-checkbox-outline">
+                                @Html.CheckBoxFor(x => x.STATUS, new { id = "Status" }) Active
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-reset btn-sm" data-dismiss="modal"><i class="fa fa-times mr-1"></i> Close</button>
+                    @* <button type="button" class="btn btn-info btn-sm" id="btnSaveUser">Save</button> *@
+                    <button type="button" class="btn blue trigger btn-sm" id="btnSaveMenu"><i class="fa fa-save"></i>&nbsp;Save</button>
+                    <button type="button" class="btn blue trigger btn-sm" id="btnEditMenu"><i class="fa fa-save"></i>Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

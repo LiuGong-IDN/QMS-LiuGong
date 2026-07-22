@@ -1,0 +1,449 @@
+﻿<link href="~/Content/theme/Metronic/global/css/open-sans.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/css/roboto.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/plugins/simple-line-icons/simple-line-icons.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/plugins/select2/css/select2-bootstrap.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/css/components-md.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/global/css/plugins-md.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/layout/css/layout.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/layout/css/custom.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Metronic/layout/css/themes/default.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Kendo/kendo.common-bootstrap.core.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Kendo/kendo.common-bootstrap.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/theme/Kendo/kendo.bootstrap.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/custom.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/kendo.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/kendo.custom.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/codemarvel.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/Content/validator.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+<link href="~/lib/approval-icons/style.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+
+<style type="text/css">
+    .detail-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .detail-table-header th {
+        text-align: center;
+        vertical-align: middle;
+        background-color: #002F75;
+        color: #FFFFFF;
+    }
+
+    .detail-icon {
+        vertical-align: -50% !important;
+    }
+
+    .table .center-cell {
+        display: flex;
+        justify-content: center; /* posisi horizontal center */
+        align-items: center; /* posisi vertikal center */
+    }
+
+    .img-product {
+        max-height:300px;
+    }
+
+    .header-details {
+        display: flex;
+        flex-direction: column;
+        border-radius: 8px;
+        flex: 1;
+        padding: 0;
+    }
+
+    .swal2-container {
+        z-index: 900000 !important; /* lebih tinggi dari Bootstrap modal (biasanya 1050–1060) */
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 15px;
+        border-bottom: 1px dashed #ddd;
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        font-weight: 600;
+        color: #444;
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: #222;
+        text-align: right;
+    }
+
+    .machine-image-preview {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .font-35 {
+        font-size: 35px;
+    }
+
+    .page-head {
+        margin-bottom: 0;
+    }
+
+        .page-head .page-title {
+            margin-top: 5px;
+            padding: 0;
+        }
+
+    .tooltip-inner {
+        max-width: 200px;
+        padding: 3px 8px;
+        color: #ffffff;
+        font-size: 14px;
+        background-color: #515f6b;
+        border-radius: 4px;
+    }
+
+    .tooltip .arrow::before {
+        border-top-color: #515f6b;
+        border-bottom-color: #515f6b;
+    }
+
+    .btn-reset {
+        background-color: #BBBBBB;
+        border-color: #BBBBBB;
+        color: black;
+    }
+
+    .btn-grey {
+        color: #fff;
+        background-color: #9e9e9e;
+        border-color: #9e9e9e;
+    }
+
+        .btn-grey:hover,
+        .btn-grey:focus {
+            color: #fff;
+            background-color: #919191;
+            border-color: #919191;
+        }
+
+        .btn-grey:not(:disabled):not(.disabled).active,
+        .btn-grey:not(:disabled):not(.disabled):active {
+            color: #fff;
+            background-color: #858484;
+            border-color: #858484;
+        }
+
+        .btn-grey.disabled,
+        .btn-grey:disabled {
+            color: #fff;
+            background-color: #cecece;
+            border-color: #cecece;
+        }
+
+    .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+        background-color: #eef1f5;
+        opacity: 1;
+    }
+
+    .k-autocomplete .k-i-loading, .k-multiselect .k-i-loading {
+        display: none;
+    }
+
+    .k-multiselect .k-button {
+        margin: 1px;
+        margin-left: 2px;
+    }
+
+    .k-multiselect-wrap {
+        margin: 3px !important;
+    }
+
+    .k-callout, .k-callout-n {
+        color: #808080 !important;
+        border-bottom-color: #808080 !important;
+    }
+
+    .k-tooltip {
+        background: #808080 !important;
+    }
+
+    .k-grid td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+        .k-grid td:first-child {
+            overflow: visible;
+        }
+
+    body.modal-open {
+        overflow: hidden !important;
+    }
+
+    .k-grid-header {
+        padding: 0 !important;
+    }
+
+    .k-grid-content {
+        overflow-y: hidden;
+    }
+
+    .k-grid tbody tr {
+        background-color: #fafafa !important;
+    }
+
+    .swal-overlay {
+        z-index: 99999 !important;
+    }
+
+    .k-datetimepicker .k-picker-wrap .k-i-warning {
+        display: none;
+    }
+
+    .k-datepicker .k-i-warning {
+        display: none;
+    }
+
+    .k-datepicker .k-icon {
+        margin-top: 0px;
+    }
+
+    .k-picker-wrap {
+        border-radius: 4px;
+    }
+
+    .percent-input {
+        position: relative;
+    }
+
+        .percent-input span {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            line-height: 100%;
+            vertical-align: middle;
+        }
+
+    #customTab ul li.active a {
+        background-color: #ebf2ff !important;
+    }
+
+    .span-form-control {
+        position: absolute;
+        top: 24px;
+        line-height: 150%;
+        width: 28%;
+        background-color: #eef1f5;
+        opacity: 1;
+    }
+
+    .k-state-active {
+        background-color: #adadad !important;
+    }
+
+    /* notification-wrapper */
+    .notification-wrapper .dropdown-menu .list-notifications a .task .percent {
+        float: right;
+        font-weight: 600;
+        display: inline-block;
+        display: block;
+        height: 8px;
+    }
+
+    .list-notifications .progress {
+        display: block;
+        /*display: flex;*/
+        height: 10px;
+        margin: 8px 0 2px;
+        border-radius: .25rem !important;
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .progress-bar-success {
+        background-color: #36c6d3;
+    }
+
+    .progress-bar {
+        float: left;
+        width: 0;
+        height: 100%;
+        font-size: 12px;
+        line-height: 20px;
+        color: #fff;
+        text-align: center;
+        background-color: #337ab7;
+        -webkit-box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
+        box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
+        -webkit-transition: width .6s ease;
+        -o-transition: width .6s ease;
+        transition: width .6s ease;
+    }
+
+    .mt-1 {
+        margin-top: 1px;
+    }
+
+    .mb-1 {
+        margin-bottom: 1px;
+    }
+
+    .ml-auto {
+        margin-left: auto !important;
+    }
+
+    .d-flex {
+        display: -ms-flexbox !important;
+        display: flex !important;
+    }
+
+    .pr-0, .px-0 {
+        padding-right: 0 !important;
+    }
+
+    .pl-3, .px-3 {
+        padding-left: 1rem !important;
+    }
+
+    .align-middle {
+        vertical-align: middle !important;
+    }
+
+    .position-relative {
+        position: relative !important;
+    }
+
+    .approved-color {
+        color: #1db624;
+    }
+
+    .revised-color {
+        color: #F1C40F;
+    }
+
+    .rejected-color {
+        color: #ff0007;
+    }
+
+    .no-table-header table thead, table.no-table-header thead {
+        display: none;
+    }
+
+    .no-table-header table tbody tr:first-child td, table.no-table-header tbody tr:first-child td {
+        border-top: 0;
+    }
+
+    .no-table-header table tbody tr:last-child td, table.no-table-header tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* Comments */
+    .mt-comments .mt-comment .mt-comment-body {
+        margin-left: 3.7rem;
+        position: relative;
+    }
+
+    .mt-comment-author {
+        display: contents !important;
+    }
+
+    .mt-comment-status {
+        float: right;
+    }
+
+    .mt-comment-sub-info {
+        display: block;
+        text-transform: uppercase;
+        color: #657b8d;
+    }
+
+    .mt-comment-info {
+        margin-bottom: 10px;
+    }
+
+    .mt-comment-time {
+        display: block;
+        font-size: 1rem;
+    }
+
+    .mt-comment-text {
+        color: #55595c !important;
+    }
+
+    .mt-comments.mt-comments-bordered .mt-comment:first-child {
+        border-top: 0;
+        border-top-width: 0px;
+        border-top-style: initial;
+        border-top-color: initial;
+    }
+
+    .mt-comments.mt-comments-bordered .mt-comment {
+        border-top: 1px solid #e4e7ed;
+        border-top-width: 1px;
+        border-top-style: solid;
+        border-top-color: rgb(228, 231, 237);
+    }
+
+    .panel-title {
+        position: relative;
+    }
+
+        .panel-title::after {
+            content: "\f107";
+            color: #333;
+            top: -2px;
+            right: 0px;
+            font-size: 25px;
+            position: absolute;
+            font-family: "FontAwesome"
+        }
+
+        .panel-title[aria-expanded="true"]::after {
+            content: "\f106";
+        }
+
+    /*
+        * Added 12-27-20 to showcase full title clickthrough
+        */
+
+    .panel-heading-full.panel-heading {
+        padding: 0;
+    }
+
+    .panel-heading-full .panel-title {
+        padding: 10px 15px;
+    }
+
+        .panel-heading-full .panel-title::after {
+            top: 10px;
+            right: 15px;
+        }
+
+    .btn-yellow {
+        background: #dfd73feb;
+        border-color: #dfd73feb;
+    }
+
+        .btn-yellow:hover {
+            background: #dfd73feb;
+            border-color: #dfd73feb;
+        }
+
+    .k-popup > .k-list {
+        white-space: nowrap;
+        min-width: max-content;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+</style>

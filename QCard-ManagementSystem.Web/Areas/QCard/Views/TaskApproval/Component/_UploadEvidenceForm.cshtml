@@ -1,0 +1,31 @@
+﻿<div id="UploadEvidenceModal" class="modal fade bs-modal-lg" abindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><label id="modalTitle">Approval Corfirmation</label></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+            </div>
+            <div class="modal-body">
+                <form id="UploadEvidenceForm" enctype="multipart/form-data">
+                    <input type="hidden" id="FormTypeId" name="FormTypeId" />
+                    <input type="hidden" id="DocumentApprovalId" name="DocumentApprovalId" />
+                    <div class="row form-group">
+                        <label class="col-md-12">
+                            Evidence<span class="required"> *</span>
+                        </label>
+                        <div class="col-md-12">
+                            <div id="uploadDiv">
+                                <input type="file" id="EvidenceFile" name="EvidenceFile" accept=".jpg,.jpeg,.png,.gif">
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="ID" data-bind="value: ID" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-reset btn-sm" data-dismiss="modal"><i class="fa fa-times"></i>Close</button>
+                <button type="button" class="btn blue trigger btn-sm" id="btnSubmitEvidence"><i class="fa fa-save"></i>&nbsp;Submit</button>
+            </div>
+        </div>
+    </div>
+</div>

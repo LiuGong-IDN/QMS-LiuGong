@@ -1,0 +1,18 @@
+using Dapper;
+using System.Data;
+using QCard.ManagementSystem.Domain.Modules.Core.Model;
+
+namespace QCard.ManagementSystem.Domain.Modules.Core.Repository
+{
+    public partial interface IFunctionRepository : IDapperRepository<Function>
+    {
+    }
+
+    public partial class FunctionRepository : DapperRepository<Function>, IFunctionRepository
+    {
+        public FunctionRepository(IDbConnection connection, IDbTransaction transaction) : base(connection, transaction)
+        {
+        }
+    }
+}
+

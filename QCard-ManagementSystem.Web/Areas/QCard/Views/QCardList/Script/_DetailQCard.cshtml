@@ -1,0 +1,63 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function DetailQCardManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                var month = $("#VALID_TO_MONTH").val();
+                var year = $("#VALID_TO_YEAR").val();
+
+                if (month && year) {
+                    // Pastikan bulan dua digit
+                    month = month.toString().padStart(2, '0');
+                    $("#VALID_THRU").text(month + "/" + year);
+                }
+
+                // Format card number
+                var $cardLabel = $("#CARD_NO_LABEL");
+                var cardVal = $cardLabel.text().replace(/\D/g, ''); // hapus non-digit
+                if (cardVal) {
+                    var formattedCard = cardVal.match(/.{1,4}/g)?.join('-') || cardVal;
+                    $cardLabel.text(formattedCard);
+                }
+                $("#btnBack").on("click", function () {
+                    window.history.back();
+                });
+            }
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+    function setParameter() {
+        var cardID = $("#CARD_ID").val();
+        console.log(cardID)
+        return {
+            CardID: cardID,
+        };
+    }
+</script>

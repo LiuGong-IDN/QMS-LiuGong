@@ -1,0 +1,49 @@
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.SerialNoView
+<div id="SerialNoModal" class="modal fade bs-modal-lg" abindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" style="min-width: 50%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><label id="modalTitle">Machine Detail</label></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+            </div>
+            <div class="modal-body">
+                <form id="serialnoForm">
+                    <input type="hidden" id="ID" data-bind="value: ID" />
+                    @* <div class="form-group">
+                        <label>Serial No</label>
+                        @Html.TextBoxFor(x => x.SERIAL_NO, new { @class = "form-control", id = "SERIAL_NO" })
+                        <span class="text-danger id"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Customer</label>
+                        @Html.TextBoxFor(x => x.CUSTOMER_ID, new { @class = "form-control", id = "CUSTOMER_ID" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Type</label>
+                        @Html.TextBoxFor(x => x.ASSET_TYPE_CODE, new { @class = "form-control", id = "ASSET_TYPE_CODE" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Model</label>
+                        @Html.TextBoxFor(x => x.MODEL_CODE, new { @class = "form-control", id = "MODEL_CODE" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Service Party</label>
+                        @Html.TextBoxFor(x => x.SERVICE_PARTY_ID, new { @class = "form-control", id = "SERVICE_PARTY_ID" })
+                        <span class="text-danger"></span>
+                    </div> *@
+
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-outline-brand btn-square" data-dismiss="modal">Close</button>
+                    @* <button type="button" class="btn btn-info btn-sm" id="btnSaveUser">Save</button> *@
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSaveSerialNo"><i class="fa fa-save"></i>&nbsp;Save</button>
+                    <button type="button" class="btn btn-info btn-sm" id="btnUpdateSerialNo">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

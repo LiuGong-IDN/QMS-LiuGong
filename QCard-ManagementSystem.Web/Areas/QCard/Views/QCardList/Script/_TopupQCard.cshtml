@@ -1,0 +1,339 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function TopupQCardManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                var $monthInput = $("#VALID_TO_MONTH");
+                var monthVal = $monthInput.val();
+
+                if (monthVal && monthVal.length === 1) {
+                    $monthInput.val(("0" + monthVal));
+                }
+                var $cardInput = $("input[name='QCARD_NO']");
+                var cardVal = $cardInput.val();
+
+                if (cardVal) {
+                    // hapus semua non-digit lalu format ulang
+                    var cleanCard = cardVal.replace(/\D/g, '');
+                    var formattedCard = cleanCard.match(/.{1,4}/g)?.join('-') || cleanCard;
+                    $cardInput.val(formattedCard);
+                }
+                $("#btnReset").on("click", function () {
+                    location.reload();
+                });
+                var serialNoDataSource = new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: "@Url.Content("~/Core/DataSource/GetSerialNoQCard")",
+                            dataType: "json",
+                            data: function () {
+                                return {
+                                    customerId: $("#CUSTOMER_ID").val() || 0, // ambil dari input hidden
+                                    filter: "" // optional, bisa dikirim juga kalau perlu
+                                };
+                            }
+                        }
+                    }
+                });
+
+                // Add Material Detail
+                var selectedSerialNos = [];
+                var previousSerialNo = null; // ✅ Tambahkan ini
+                $("#btnAddSerialNo").on("click", function (e) {
+                    e.preventDefault();
+
+                    var newRow = `
+                        <tr>
+                            <td class="text-center align-middle">
+                                <a class="btnRemoveRow" title="Delete">
+                                    <i class="fas fa-trash-alt fa-lg"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <input name="SERIAL_NO[]" class="form-control serialNoDropdown" />
+                                <input type="hidden" name="CUSTOMER_ID" value="${CUSTOMER_ID}" />
+                            <td>
+                                <input type="text" name="MACHINE_TYPE[]" class="form-control machinetypeField" readonly />
+                            </td>
+                            <td>
+                                <input type="text" name="PRODUCT_MODEL[]" class="form-control productmodelField" readonly/>
+                            </td>
+                            <td>
+                                <input type="text" name="CATEGORY_CLAIM[]" class="form-control categoryclaimField" readonly/>
+                            </td>
+                            <td>
+                                <input name="PURCHASE_DATE[]" class="form-control purchasedateField" readonly/>
+                            </td>
+                        </tr>
+                    `;
+                    $("#SerialNoTable tbody").append(newRow);
+
+                    // apply kendo dropdown untuk Part No di row baru
+                    var $serialNoDropdown = $("#SerialNoTable tbody tr:last .serialNoDropdown").kendoDropDownList({
+                        dataTextField: "Text",
+                        dataValueField: "Value",
+                        dataSource: serialNoDataSource,
+                        filter: "contains",
+                        optionLabel: "Select Serial No...",
+                        focus: function () {
+                            previousSerialNo = this.value();
+                        },
+                        change: function (e) {
+                            var dataItem = this.dataItem(this.selectedIndex);
+                            var $row = $(this.element).closest("tr");
+                            var $machinetypeField = $row.find(".machinetypeField");
+                            var $productmodelField = $row.find(".productmodelField");
+                            var $categoryclaimField = $row.find(".categoryclaimField");
+                            var $purchasedateField = $row.find(".purchasedateField");
+                            var currentValue = this.value();
+
+                            selectedSerialNos = selectedSerialNos.filter(function (val) {
+                                return val !== previousSerialNo;
+                            });
+
+                            var duplicateFound = false;
+                            $(".serialNoDropdown").each(function () {
+                                var ddl = $(this).data("kendoDropDownList");
+                                if (ddl && ddl !== $serialNoDropdown && ddl.value() === currentValue) {
+                                    duplicateFound = true;
+                                    return false;
+                                }
+                            });
+
+                            if (duplicateFound) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "This Serial No. has already been selected. Please choose a different one."
+                                });
+                                this.value("");
+                                $machinetypeField.val("");
+                                $productmodelField.val("");
+                                $categoryclaimField.val("");
+                                $purchasedateField.val("");
+                                return;
+                            }
+
+                            if (dataItem && dataItem.Value) {
+                                // 🔍 Cek ke server apakah Serial No sudah pernah digunakan
+                                $.ajax({
+                                    url: "@Url.Content("~/Core/DataSource/GetSerialNoQCard")",
+                                    type: "GET",
+                                    dataType: "json",
+                                    data: {
+                                        serialNo: this.text(), // kirim serialNo ke SP
+                                        type: "",               // biarkan kosong karena kita pakai logika awal SP
+                                        customerId: $("#CUSTOMER_ID").val() || 0
+                                    },
+                                    success: function (response) {
+                                        // Response dari SP bisa berupa array atau object, kita sesuaikan
+                                        if (Array.isArray(response) && response.length > 0) {
+                                            response = response[0];
+                                        }
+
+                                        if (response.ExistsFlag === 1) {
+                                            Swal.fire({
+                                                icon: "info",
+                                                title: "Invalid Serial No",
+                                                text: response.Message || "This Serial No. has already been used."
+                                            });
+
+                                            $serialNoDropdown.value(""); // reset dropdown
+                                            $machinetypeField.val("");
+                                            $productmodelField.val("");
+                                            $categoryclaimField.val("");
+                                            $purchasedateField.val("");
+                                        } else {
+                                            // ✅ Serial No aman, isi kolom lain
+                                            selectedSerialNos.push(dataItem.Value);
+                                            $machinetypeField.val(dataItem.Name);
+                                            $productmodelField.val(dataItem.Description);
+                                            $categoryclaimField.val(dataItem.Category);
+
+                                            if (dataItem.Date) {
+                                                var date = new Date(dataItem.Date);
+                                                var formattedDate = date.toLocaleDateString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: 'short',
+                                                    year: 'numeric'
+                                                }).replace(/ /g, '-');
+                                                $purchasedateField.val(formattedDate);
+                                            } else {
+                                                $purchasedateField.val("");
+                                            }
+                                        }
+                                    },
+                                    error: function (xhr) {
+                                        let errMsg = xhr.responseJSON?.Message || xhr.responseJSON?.error || "Failed to validate Serial No.";
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: errMsg
+                                        });
+                                    }
+                                });
+                            } else {
+                                $machinetypeField.val("");
+                                $productmodelField.val("");
+                                $categoryclaimField.val("");
+                                $purchasedateField.val("");
+                            }
+
+                            previousSerialNo = null;
+                        }
+                    }).data("kendoDropDownList");
+                });
+
+                // hapus row
+                $(document).on("click", ".btnRemoveRow", function () {
+                    $(this).closest("tr").remove();
+                });
+                $("#btnDownloadTopupQCard").on("click", function () {
+                    window.location.href = "@Url.Content("~/QCard/QCardList/DownloadTemplate")";
+                });
+                $("#btnUploadSerialNoDetail").on("click", function () {
+                    var $modal = $.helper.getJqueryObject("SerialNoUploadModal"),
+                        $form = $modal.find("form");
+
+                    $.helper.form.clear($form);
+
+                    $(".k-upload-files").remove();
+                    $(".k-upload-status").remove();
+                    $(".k-upload.k-header").addClass("k-upload-empty");
+                    $(".k-upload-button").removeClass("k-state-focused");
+                    console.log(($("#TempCode")));
+                    $("#TempCode").val("");
+                    $("#SerialNoUploadGrid").data("kendoGrid").dataSource.data([]);
+                    $("#btnSubmitUpload").hide();
+                    $("#btnDownloadErrorUpload").hide();
+
+                    $modal.modal("show");
+                });
+                // SAVE Program
+                $("#btnSaveTopup").on('click', function (event) {
+                    event.preventDefault();
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    var $form = $("#TopupForm");
+                    var rowCount = $("#SerialNoTable tbody tr").length;
+                    if (rowCount === 0) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Add minimum one Serial No. before saving.",
+                        }).then(() => {
+                            $el.prop("disabled", false);
+                        });
+                        return;
+                    }
+                    // Ambil data machine detail
+                    var formData = $.helper.form.serializeObject($form);
+
+                    // Ambil data Material Table
+                    var serialnoData = [];
+                    var emptySerialFound = false;
+
+                    $("#SerialNoTable tbody tr").each(function () {
+                        var ddl = $(this).find("input[name='SERIAL_NO[]']").data("kendoDropDownList");
+
+                        if (!ddl || !ddl.value()) {
+                            emptySerialFound = true;
+                            return; // skip push
+                        }
+
+                        serialnoData.push({ SERIAL_NO: ddl.text() });
+                    });
+
+                    if (emptySerialFound) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please select Serial No. for all rows before saving.",
+                        }).then(() => {
+                            $el.prop("disabled", false);
+                        });
+                        return;
+                    }
+
+                    // Data untuk dikirim ke backend
+                    var dataToSave = {
+                        ID: formData.ID || 0,
+                        CARD_ID: formData.CARD_ID,
+                        DETAILS: serialnoData
+                    };
+
+                    console.log("Data to save:", dataToSave);
+
+                    $.ajax({
+                        url: "@Url.Content("~/QCard/QCardList/SaveTopup")",
+                        type: "POST",
+                        data: { topup: dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/QCard/QCardList";
+                                    }
+                                });
+                            }
+                        },complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+            }
+        };
+    }
+    function removeAllRow() {
+        selectedSerialNos = [];
+        $("#SerialNoTable tbody tr").remove();
+    }
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+</script>

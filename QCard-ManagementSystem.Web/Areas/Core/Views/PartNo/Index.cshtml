@@ -1,0 +1,98 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/PartNo/Script/_PartNo.cshtml")
+    @Html.Partial("~/Areas/Core/Views/PartNo/Script/_PartNoUpload.cshtml")
+}
+
+@section modals {
+    @Html.Partial("~/Areas/Core/Views/PartNo/Component/_PartNoForm.cshtml")
+    @Html.Partial("~/Areas/Core/Views/PartNo/Component/_PartNoUploadForm.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Part No. List</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+           <form data-grid="PartNoGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="partNoFilter"><b>Part No.</b></label>
+                                <input id="partNoFilter" type="text" class="form-control text-uppercase no-space" data-filter='{ "operator": "contains", "field": "PART_NO" }' />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                            <div class="form-group" style="margin-top:10px;">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("PartNoMaintenance", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+                                </text>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="form-group" style="margin-top:10px;">
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("PartNoMaintenance", Feature.CREATE_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-success" id="btnAddPartNo">
+                                        <i class="fa fa-plus"></i>Add Part
+                                    </a>
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("PartNoMaintenance", Feature.UPDATE_FEATURE))
+                                {
+                                    <a href="#" class="btn blue trigger" id="btnUploadPartNo">
+                                        <i class="fa fa-arrow-up"></i>Upload Part
+                                    </a>
+                                }
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("PartNoMaintenance", Feature.DOWNLOAD_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-reset" id="btnDownloadTemplatePartNo">
+                                        <i class="fa fa-download"></i>Download Template
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+           </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/Core/Views/PartNo/Grid/_PartNoGrid.cshtml")
+    </div>
+
+</div>
+<style>
+    .no-space {
+        margin: 0px !important;
+        padding: 10px !important;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        App.PartNoManagement = new PartNoManagement();
+        App.PartNoManagement.InitManagement();
+    });
+</script>

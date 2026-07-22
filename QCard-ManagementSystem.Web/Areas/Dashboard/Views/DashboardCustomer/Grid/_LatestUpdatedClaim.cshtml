@@ -1,0 +1,20 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<Modules.Dashboard.ViewModel.LatestUpdatedClaim>()
+    .Name("LatestUpdatedClaim")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.CLAIM_NO).Title("Claim No.").Width(150);
+        columns.Bound(o => o.STATUS).Title("Status").Width(90);
+        columns.Bound(o => o.UPDATED_DATE).Title("Date").Format("{0:dd-MMM-yyyy HH:mm:ss}").Width(160);
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No data to display"))
+    .DataSource(ds => ds
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/Dashboard/DashboardCustomer/GetDashboardCustomerLatestClaim")))
+        .PageSize(20))
+    .PersistSelection()
+    .Scrollable(s => s.Height("auto"))
+)

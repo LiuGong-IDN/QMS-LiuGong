@@ -1,0 +1,59 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<Modules.MyQCard.Model.ClaimVoucherDetail>()
+    .Name("ClaimVoucherDetailGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.PART_ID).Hidden();
+        columns.Bound(o => o.DISCOUNT).Hidden();
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(100);
+        columns.Bound(o => o.PART_NAME).Title("Description").Width(120);
+        columns.Bound(o => o.RETAIL_PRICE).Title("Retail Price").Width(130)
+        .HtmlAttributes(new { @class = "retailPrice", style = "text-align:right; white-space:normal" })
+            .ClientTemplate("Rp #= kendo.toString(RETAIL_PRICE, 'n0').replace(/,/g, '.') #");
+        columns.Bound(o => o.PICKUP_DATE).Title("Picked-up by Customer Date").ClientTemplate(
+            "#= (PICKUP_DATE && PICKUP_DATE.getFullYear && PICKUP_DATE.getFullYear() > 1) ? kendo.toString(PICKUP_DATE, 'dd-MMM-yyyy hh:mm:ss') : '' #"
+            ).Width(130);
+        columns.Bound(o => o.DELIVERY_NOTE_NO).Title("Delivery Note No.").Width(200);
+        columns.Bound(o => o.CLAIM_QTY).Title("Qty").Width(100)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible; padding-left: 0px;padding-right: 0px;" })
+            .Filterable(false)
+            .ClientTemplate(
+                @"<input type='number'
+                         class='claimQty form-control'
+                         style='width:70%; height:70%; text-align: right; margin:auto;'
+                         value='#: CLAIM_QTY #'
+                />"
+            );
+        columns.Bound(o => o.AVAILABLE_QTY).Title("Available Qty").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.PENDING_QTY).Title("Pending Qty").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.CLAIMED_QTY).Title("Claimed Qty").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.DISCOUNT).Title("Discount").Width(70)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.TOTAL_PART_PRICE).Title("Total").Width(120)
+            .HtmlAttributes(new { @class= "totalPrice", style = "text-align:right; white-space:normal" })
+            .ClientTemplate("Rp #= kendo.toString(TOTAL_PART_PRICE, 'n0').replace(/,/g, '.') #");
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Machines List to display"))
+    .PersistSelection()
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .Events(e => e.DataBound("onClaimVoucherDetailDataBound"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/MyQCard/ClaimHistory/GetClaimHistoryVoucherDetail")).Data("setParameter"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("CREATED_DATE").Descending())
+    )
+)
+<style>
+    .qty-disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+    }
+</style>

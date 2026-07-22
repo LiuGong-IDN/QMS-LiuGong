@@ -1,0 +1,42 @@
+﻿@using Kendo.Mvc.UI;
+
+<div id="RejectReasonModal" class="modal fade bs-modal-lg" abindex="-1" data-backdrop="static" data-keyboard="false" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Reject Reason</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formProcess">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <textarea id="ReasonRejectAdmin" name="ReasonReject" class="form-control"></textarea>
+                                            <span class="text-danger" id="ReasonReject"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="text-right pull-right">
+                                <a class="btn btn-default blue" id="btnRejectAdmin">
+                                    <i class="fa fa-times"></i> <span class="hidden-xs">Reject</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

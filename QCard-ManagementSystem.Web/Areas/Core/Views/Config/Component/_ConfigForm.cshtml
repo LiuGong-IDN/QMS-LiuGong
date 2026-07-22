@@ -1,0 +1,48 @@
+@model QCard.ManagementSystem.Domain.Modules.Core.Model.Config
+<div id="ConfigModal" class="modal fade bs-modal-lg" abindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" style="min-width: 50%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><label id="modalTitle"></label> Manage Config</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+            </div>
+            <div class="modal-body">
+                <form id="configForm">
+                    <input type="hidden" id="ModuleID" />
+                    <div class="form-group">
+                        <label>System Id</label>
+                        @Html.TextBoxFor(x => x.SYSTEM_ID, new { @class = "form-control", id = "SYSTEM_ID" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>System Type</label>
+                        @Html.TextBoxFor(x => x.SYSTEM_TYPE, new { @class = "form-control", id = "SYSTEM_TYPE" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Value Text</label>
+                        @Html.TextBoxFor(x => x.SYSTEM_VALUE_TEXT, new { @class = "form-control", id = "SYSTEM_VALUE_TEXT" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Value Numeric</label>
+                        @Html.TextBoxFor(x => x.SYSTEM_VALUE_NUM, new { @class = "form-control", id = "SYSTEM_VALUE_NUM" })
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        @Html.TextBoxFor(x => x.SYSTEM_DESC, new { @class = "form-control", id = "SYSTEM_DESC" })
+                        <span class="text-danger"></span>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-reset btn-sm" data-dismiss="modal"><i class="fa fa-times mr-1"></i> Close</button>
+                    @* <button type="button" class="btn btn-info btn-sm" id="btnSaveUser">Save</button> *@
+                    <button type="button" class="btn blue trigger btn-sm" id="btnSaveConfig"><i class="fa fa-save"></i>&nbsp;Save</button>
+                    <button type="button" class="btn blue trigger btn-sm" id="btnUpdateConfig"><i class="fa fa-save"></i>Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,56 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+@(Html.Kendo().Grid<Modules.MyQCard.Model.ClaimProgramDetail>()
+    .Name("ClaimProgramDetailGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.CLAIM_DETAIL_ID)
+            .Title("Program Details")
+            .Sortable(false).Width(80)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" })
+            .Filterable(false)
+            .ClientTemplate(
+                @"<a class=""k-grid-edit btnDetail cursor-pointer""
+                data-ID='#: PROGRAM_ID#'
+                data-name='#: PROGRAM_NAME#'
+                data-claimdetailid='#: CLAIM_DETAIL_ID#'
+                title=""Detail""><i class=""fa fa-file fa-lg""></i></a>&nbsp;"
+            );
+        columns.Bound(o => o.PROGRAM_CODE).Title("Program Category");
+        columns.Bound(o => o.PROGRAM_NAME).Title("Program Name");
+        columns.Bound(o => o.PACKAGE_QTY).Title("Package Qty")
+            .Width(80)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.CLAIMED_QTY).Title("Claimed Qty")
+            .Width(80)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.REMAINING_QTY).Title("Remaining Claim Qty")
+            .Width(100)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.CLAIM_UP_TO).Title("Qty on this claim up to")
+            .Width(80)
+            .HtmlAttributes(new { @class = "text-right" });
+        columns.Bound(o => o.CLAIM_QTY).Title("Claim Qty")
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible; padding-left: 0px;padding-right: 0px;" })
+            .Filterable(false)
+            .ClientTemplate(
+                @"<input type='number'
+                         class='claimQty form-control'
+                         style='width:70%; text-align: right; margin:auto;'
+                         value='#: CLAIM_QTY #'
+                />"
+            );
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Claim Program to display"))
+    .PersistSelection()
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/MyQCard/ClaimHistory/GetClaimHistoryProgramDetail")).Data("setParameter"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("CREATED_DATE").Descending())
+    )
+    .AutoBind(true)
+)

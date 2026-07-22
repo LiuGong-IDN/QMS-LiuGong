@@ -1,0 +1,386 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+
+    function ProgramAddManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                $("input.text-uppercase").on("input", function () {
+                    this.value = this.value.toUpperCase();
+                });
+                
+                $("#PURCHASE_DATE").kendoDatePicker({
+                    format: "yyyy-MM-dd",
+                    parseFormats: ["yyyy-MM-dd", "MM/dd/yyyy"],
+                    value: new Date()
+                });
+                $("#ASSET_TYPE_ID").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetAssetType")",
+                                dataType: "json"
+                            }
+                        }
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select product group...",
+                    change: function () {
+                        var assetTypeId = this.value();
+                        var modelDropdown = $("#MODEL_ID").data("kendoDropDownList");
+
+                        // refresh data model sesuai asset type
+                        modelDropdown.dataSource.transport.options.read.url =
+                            "@Url.Content("~/Core/DataSource/GetModelByAssetTypeList")?assetTypeId=" + assetTypeId;
+                        modelDropdown.dataSource.read();
+                        modelDropdown.value(""); // reset pilihan model
+
+                        $.ajax({
+                            url: "@Url.Content("~/Core/DataSource/GetFileImage")",
+                            type: "GET",
+                            data: {
+                                fileCategory: 'ASSET_TYPE',
+                                fileCategoryId: assetTypeId
+                            },
+                            success: function (res) {
+                                if (res && res.imageUrl) {
+                                    $("#MachineImagePreview").attr("src", res.imageUrl);
+                                } else {
+                                    // fallback jika tidak ada gambar
+                                    $("#MachineImagePreview").attr("src", "/img/liugongQCard.png");
+                                }
+                            },
+                            error: function () {
+                                $("#MachineImagePreview").attr("src", "/img/liugongQCard.png");
+                            }
+                        });
+                    }
+                });
+
+                $("#MODEL_ID").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: "@Url.Content("~/Core/DataSource/GetModelByAssetTypeList")",
+                                dataType: "json"
+                            }
+                        }
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select product model..."
+                });
+
+                $("#PRIORITY").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    optionLabel: "Select priority...",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                url: "@Url.Content("~/Core/DataSource/GetPriorityList")",
+                                dataType: "json"
+                            }
+                        }
+                    }
+                });
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                $("#btnReset").on("click", function () {
+                    location.reload();
+                });
+
+                var partNoDataSource = new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: "@Url.Content("~/Core/DataSource/GetPartNoList")",
+                            dataType: "json"
+                        }
+                    }
+                });
+
+                // Add Material Detail
+                var selectedPartNos = [];
+                var previousPartNo = null; // ✅ Tambahkan ini
+
+                $("#btnAddMaterialDetail").on("click", function (e) {
+                    e.preventDefault();
+
+                    var newRow = `
+                        <tr>
+                            <td class="text-center align-middle">
+                                <a class="btnRemoveRow" title="Delete">
+                                    <i class="fas fa-trash-alt fa-lg"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <input name="PART_NO[]" class="form-control partNoDropdown" />
+                            </td>
+                            <td>
+                                <input type="text" name="DESCRIPTION[]" class="form-control descriptionField" readonly />
+                            </td>
+                            <td>
+                                <input type="number" name="QTY[]" class="form-control" style="text-align: right;"/>
+                            </td>
+                        </tr>
+                    `;
+                    $("#MaterialTable tbody").append(newRow);
+
+                    var $ddl = $("#MaterialTable tbody tr:last .partNoDropdown");
+
+                    // --- Apply Kendo DropDownList dengan fetchPartNo ---
+                    $ddl.kendoDropDownList({
+                        dataTextField: "Text",
+                        dataValueField: "Value",
+                        filter: "contains",
+                        optionLabel: "Select Part No...",
+                        suggest: true,
+                        height: 400,
+
+                        filtering: function (e) {
+                            var filterValue = e.filter?.value || "";
+                            e.preventDefault(); // stop default autofilter
+
+                            fetchPartNo(filterValue, function (list) {
+                                var ds = createPartNoDataSource(list);
+                                $ddl.data("kendoDropDownList").setDataSource(ds);
+                            });
+                        },
+
+                        open: function () {
+                            fetchPartNo("", function (list) {
+                                var ds = createPartNoDataSource(list);
+                                $ddl.data("kendoDropDownList").setDataSource(ds);
+                            });
+                        },
+
+                        focus: function () {
+                            previousPartNo = this.value();
+                        },
+
+                        change: function () {
+                            var dataItem = this.dataItem(this.selectedIndex);
+                            var $row = $(this.element).closest("tr");
+                            var $descField = $row.find(".descriptionField");
+                            var currentValue = this.value();
+
+                            // --- Cek Duplicate ---
+                            var duplicateFound = false;
+                            $(".partNoDropdown").each(function () {
+                                var ddl = $(this).data("kendoDropDownList");
+                                if (ddl && ddl !== $ddl.data("kendoDropDownList") && ddl.value() === currentValue) {
+                                    duplicateFound = true;
+                                    return false;
+                                }
+                            });
+
+                            if (duplicateFound) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "This Part No. has already been selected. Please choose a different one."
+                                });
+                                this.value("");
+                                $descField.val("");
+                                return;
+                            }
+
+                            // --- Set Description ---
+                            if (dataItem) {
+                                $descField.val(dataItem.Name);
+                            } else {
+                                $descField.val("");
+                            }
+
+                            previousPartNo = null;
+                        }
+                    }).data("kendoDropDownList");
+                });
+                
+                $(document).on("click", ".btnRemoveRow", function () {
+                    var $row = $(this).closest("tr");
+                    var $dropdownInput = $row.find(".partNoDropdown");
+                    var dropdownInstance = $dropdownInput.length ? $dropdownInput.data("kendoDropDownList") : null;
+
+                    if (dropdownInstance) {
+                        var partNoValue = dropdownInstance.value();
+                        selectedPartNos = selectedPartNos.filter(function (val) {
+                            return val !== partNoValue;
+                        });
+                    }
+
+                    $row.remove();
+                });
+
+                $("#btnDownloadMaterialDetail").on("click", function () {
+                    window.location.href = "@Url.Content("~/Core/Program/DownloadTemplate")";
+                });
+                $("#btnUploadMaterialDetail").on("click", function () {
+                    var $modal = $.helper.getJqueryObject("MaterialUploadModal"),
+                        $form = $modal.find("form");
+
+                    $.helper.form.clear($form);
+
+
+                    $(".k-upload-files").remove();
+                    $(".k-upload-status").remove();
+                    $(".k-upload.k-header").addClass("k-upload-empty");
+                    $(".k-upload-button").removeClass("k-state-focused");
+                    $("#TempCode").val("");
+                    $("#MaterialUploadGrid").data("kendoGrid").dataSource.data([]);
+                    $("#btnSubmitUpload").hide();
+                    $("#btnDownloadErrorUpload").hide();
+
+                    $modal.modal("show");
+                });
+                // SAVE Program
+                $("#btnSaveProgram").on('click', function (event) {
+                    event.preventDefault();
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    var $form = $("#ProgramForm");
+
+                    // Ambil data machine detail
+                    var formData = $.helper.form.serializeObject($form);
+
+                    // Ambil data Material Table
+                    var materialData = [];
+                    $("#MaterialTable tbody tr").each(function () {
+                        var partNo = $(this).find("input[name='PART_NO[]']").val();
+                        var qty = $(this).find("input[name='QTY[]']").val();
+                        if (partNo) {
+                            materialData.push({ PART_NO: partNo, QTY: qty });
+                        }
+                    });
+                    if (materialData.length === 0) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please add at least one material before saving."
+                        });
+                        $el.prop("disabled", false);
+                        return; // stop proses submit
+                    }
+                    for (let i = 0; i < materialData.length; i++) {
+                        let qty = materialData[i].QTY;
+
+                        if (!qty || isNaN(qty) || Number(qty) <= 0) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: "Part No. Qty cannot be empty."
+                            });
+                            $el.prop("disabled", false);
+                            return;
+                        }
+                    }
+                    // Data untuk dikirim ke backend
+                    var dataToSave = {
+                        ID: formData.ID || 0,
+                        PROGRAM_CODE: formData.PROGRAM_CODE,
+                        PROGRAM_NAME: formData.PROGRAM_NAME,
+                        ASSET_TYPE_ID: formData.ASSET_TYPE_ID,
+                        MODEL_ID: formData.MODEL_ID,
+                        PRIORITY: formData.PRIORITY,
+                        CREATED_BY: 1,
+                        DETAILS: materialData
+                    };
+                    console.log("Data to save:", dataToSave);
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Program/Save")",
+                        type: "POST",
+                        data: { program : dataToSave },
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: res.Message
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/Core/Program";
+                                    }
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+            }
+        };
+    }
+
+    function removeAllRow() {
+        selectedPartNos = [];
+        $("#MaterialTable tbody tr").remove();
+    }
+    function fetchPartNo(filterText, callback) {
+        $.ajax({
+            url: "@Url.Content("~/Core/DataSource/GetPartNoList")", // <-- endpoint baru
+            type: "POST",
+            data: { filter: filterText },
+            dataType: "json",
+            success: function (data) {
+                callback(data);
+            },
+            error: function () {
+                Swal.fire("Error", "Failed to load Part No", "error");
+            }
+        });
+    }
+    function createPartNoDataSource(response) {
+        return new kendo.data.DataSource({
+            transport: {
+                read: function (options) {
+                    options.success(response);
+                }
+            }
+        });
+    }
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+            if (excludeIds && excludeIds.includes(id)) {
+                return;
+            }
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+</script>

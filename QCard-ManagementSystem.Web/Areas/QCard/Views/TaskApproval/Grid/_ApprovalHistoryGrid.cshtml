@@ -1,0 +1,23 @@
+﻿@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.QCard.Model.ApprovalHistory>()
+    .Name("ApprovalHistoryGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.DOCUMENT_APPROVAL_ID).Title("Action").Sortable(false).Width(60).HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" }).Filterable(false)
+        .ClientTemplate(
+             @"<a class=""k-grid-edit cursor-pointer btnDetailHistory"" data-modal='HistoryDetailModal' data-ID='#: ID#' title=""Details""><i class=""fa fa-file fa-lg""></i></a>&nbsp;"
+        );
+        columns.Bound(o => o.REQUESTED_BY).Title("Requested By").Width(120);
+        columns.Bound(o => o.SUBMITTED_DATE).Title("Submitted Date").Width(150).ClientTemplate("#= SUBMITTED_DATE ? kendo.toString(kendo.parseDate(SUBMITTED_DATE, 'yyyy-MM-dd HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') : '' #");
+        columns.Bound(o => o.STATUS_NAME).Title("Status").Width(90);
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Approval History List to display"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/qcard/taskapproval/GetApprovalHistory")).Data("setParameter"))
+    )
+    .AutoBind(true)
+)

@@ -1,0 +1,34 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+@using QCard.ManagementSystem.Domain.Modules.QCard.Model
+@(Html.Kendo().Grid<ClaimProcessDetailProgram>()
+    .Name("ClaimProcessProgramDetailGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.CLAIM_DETAIL_ID)
+            .Title("Program Details")
+            .Sortable(false)
+            .Width(110)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" })
+            .Filterable(false)
+            .ClientTemplate(
+                @"<a class=""k-grid-edit btnDetail cursor-pointer""
+                    data-ID='#: PROGRAM_ID#'
+                    data-name='#: PROGRAM_NAME#'
+                    data-claimdetailid='#: CLAIM_DETAIL_ID#'
+                    title=""Detail""><i class=""fa fa-file fa-lg""></i></a>"
+            );
+        columns.Bound(o => o.PROGRAM_CODE).Title("Program Category").Width(120);
+        columns.Bound(o => o.PROGRAM_NAME).Title("Program Name").Width(170);
+        columns.Bound(o => o.PACKAGE_QTY).Title("Package Qty").Width(90).HtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(o => o.CLAIM_QTY).Title("Claim Qty").Width(90).HtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(150);
+        columns.Bound(o => o.PART_NAME).Title("Description").Width(170);
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Claim Program to display"))
+    .Events(events => events.DataBound("onClaimGridDataBound"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .AutoBind(true)
+)

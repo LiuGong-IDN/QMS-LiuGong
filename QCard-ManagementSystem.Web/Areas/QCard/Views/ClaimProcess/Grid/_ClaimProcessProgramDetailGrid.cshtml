@@ -1,0 +1,76 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+@using QCard.ManagementSystem.Domain.Modules.QCard.Model
+@(Html.Kendo().Grid<ClaimProcessDetailProgram>()
+    .Name("ClaimProcessProgramDetailGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.CLAIM_DETAIL_ID)
+            .Title("Program Details")
+            .Sortable(false)
+            .Width(110)
+            .HtmlAttributes(new { @class = "text-center", style = "overflow: visible;" })
+            .Filterable(false)
+            .ClientTemplate(
+                @"<a class=""k-grid-edit btnDetail cursor-pointer""
+                    data-ID='#: PROGRAM_ID#'
+                    data-name='#: PROGRAM_NAME#'
+                    data-claimdetailid='#: CLAIM_DETAIL_ID#'
+                    title=""Detail""><i class=""fa fa-file fa-lg""></i></a>"
+            );
+        columns.Bound(o => o.PROGRAM_CODE).Title("Program Category").Width(120);
+        columns.Bound(o => o.PROGRAM_NAME).Title("Program Name").Width(170);
+        columns.Bound(o => o.PACKAGE_QTY).Title("Package Qty").Width(90).HtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(o => o.CLAIM_QTY).Title("Claim Qty").Width(90).HtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(150);
+        columns.Bound(o => o.PART_NAME).Title("Description").Width(170);
+        columns.Template(
+            @"#
+                if (AVAILABLE_QTY == 0) { #
+                    Back Order
+                # } else if (AVAILABLE_QTY < TOTAL_CLAIM_QTY) { #
+                    Partial Back Order
+                # } else if (AVAILABLE_QTY == TOTAL_CLAIM_QTY) { #
+                    Available
+                # } else { #
+                    -
+                # }
+            #"
+        )
+        .HtmlAttributes(new { @class = "statusCell", style = "text-align:center;" })
+        .Title("Status")
+        .Width(150);
+        columns.Bound(o => o.TOTAL_CLAIM_QTY).Title("Total Claim Qty").Width(100).HtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(o => o.AVAILABLE_QTY)
+            .Title("Available Qty")
+            .Width(110)
+            .ClientTemplate(
+                @"<input type='number' min='1'
+                    class='availableQty form-control is-number'
+                    style='width:70%; height:80%; text-align:right; margin:auto;'
+                    value='#: AVAILABLE_QTY #'
+                    data-total='#: TOTAL_CLAIM_QTY #'
+                />"
+            );
+        columns.Bound(o => o.BACK_ORDER_QTY)
+            .Title("Back Order Qty")
+            .Width(90)
+            .HtmlAttributes(new { @class = "backOrderCell", style = "text-align:right;" });
+
+        columns.Bound(o => o.UPDATED_DATE)
+            .Title("Updated Date")
+            .Width(110)
+            .ClientTemplate("#= UPDATED_DATE ? kendo.toString(kendo.parseDate(UPDATED_DATE), 'dd-MMM-yyyy HH:mm:ss') : '' #");
+        columns.Bound(o => o.PARTIAL_CONFIRMATION_DATE)
+            .Title("Last Confirmation Date")
+            .Width(150)
+            .ClientTemplate("#= PARTIAL_CONFIRMATION_DATE ? kendo.toString(kendo.parseDate(PARTIAL_CONFIRMATION_DATE), 'dd-MMM-yyyy HH:mm:ss') : '' #");
+        columns.Bound(o => o.PGI).Title("PGI").Width(90);
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Claim Program to display"))
+    .Events(events => events.DataBound("onClaimGridDataBound"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .AutoBind(true)
+)

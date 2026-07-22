@@ -1,0 +1,20 @@
+﻿@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.ProgramMaterial>()
+    .Name("MaterialGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(120);
+        columns.Bound(o => o.PART_NAME).Title("Part Name").Width(150);
+        columns.Bound(o => o.QTY).Title("Package Qty").Width(90).HtmlAttributes(new { style = "text-align: right;" });
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Material List to display"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/core/program/GetProgramMaterial")).Data("setParameter"))
+        .Sort(sort => sort.Add("ORDER_INDEX").Ascending())
+    )
+    .AutoBind(true)
+)

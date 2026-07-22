@@ -1,0 +1,1002 @@
+﻿<script type="text/javascript">
+    var SourceData;
+    var removedValue2Item = null;
+    var removedPreparingItem = null;
+    function ClaimProcessManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {
+                filterClaimStatusDropdown();
+
+                $("#ShippingAgent").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetShippingAgent")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    // index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select Shipping Agent..",
+                    change: function(e) {
+                        handleShippingAgentChange();
+                    }
+                });
+
+                let remainingInitial = parseRupiah($("#reminingBalance").val())
+                console.log(remainingInitial);
+                if(remainingInitial < 0) {
+                    $("#btnVerifyClaim").hide();
+                }
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                buildClaimProgramDetailGrid();
+                mergeCellProgramDetailGrid();
+
+                if($('#dataStatus').val() == 8 ){
+                    ShowDocumentType();
+                }
+                $('.k-grid').on('click', '.btnDetail', function (e) {
+                    var $el = $(this);
+
+                    var claimId = $("#claimId").val();
+                    var claimDetailId = $el.data('claimdetailid');
+                    var programId = $el.data('id');          // ← ADA
+                    var programName = $el.data('name');      // ← ADA
+
+                    var grid = $("#ClaimProcessVoucherDetailGrid").data("kendoGrid");
+                    var row = $el.closest("tr");
+                    var dataItem = grid.dataItem(row);
+
+                    // Ambil PART_NO
+                    var partNo = dataItem.PART_NO;
+
+                    $('#programDetailTitle').text("Part Detail - " + partNo);
+
+                    var $modal = $.helper.getJqueryObject('ProgramDetailModal');
+
+                    $.post(
+                        "@Url.Content("~/QCard/ClaimProcess/GetProgramDetailHistory")",
+                        { claimId, claimDetailId, programId },
+                        function (d) {
+                            console.log("Response:", d);
+
+                            SourceData = d;
+                            var grid = $("#ProgramDetailHistoryGrid").data("kendoGrid");
+                            grid.dataSource.data(SourceData);
+                            $modal.modal("show");
+                        }
+                    )
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    })
+                    .always(function () {
+                        $el.prop("disabled", false);
+                    });
+                });
+
+                // $('.k-grid').on('click', '.btnDetail', function (e) {
+                //     var $el = $(this);
+                //     var claimId = $("#claimId").val();
+                //     var claimDetailId = $el.data('claimdetailid');
+                //     $('#programDetailTitle').text("Part Claim Detail - Voucher");
+                //     var $modal = $.helper.getJqueryObject('ProgramDetailModal');
+
+                //     $.post(
+                //         "@Url.Content("~/QCard/ClaimProcess/GetProgramDetailHistory")",
+                //         { claimId: claimId, claimDetailId: claimDetailId, programId: programId },
+                //         function (d) {
+                //             SourceData = d;
+                //             var grid = $("#ProgramDetailHistoryGrid").data("kendoGrid");
+                //             grid.dataSource.data(SourceData);
+                //             $modal.modal("show");
+                //         }
+                //     )
+                //     .fail(function (xhr, status, err) {
+                //         Swal.fire({
+                //             icon: "error",
+                //             title: "Error",
+                //             text: `${status}: ${xhr.responseText || err}`
+                //         });
+                //     })
+                //     .always(function () {
+                //         $el.prop("disabled", false);
+                //     });
+                // });
+
+                $('#btnReject').on('click', function () {
+                    var $modal = $.helper.getJqueryObject('RejectReasonModal');
+                    $modal.modal("show");
+                });
+
+                $('#btnRejectAdmin').on('click', function (e) {
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    var $form = $(this).closest("form");
+                    var claimId = $("#claimId").val();
+                    var claimNo = $("#claimNo").val();
+                    var reaseonReject = $("#ReasonRejectAdmin").val();
+                    var raw = $("#latestGrandTotal").val() || "";
+
+                    var grandTotal = parseInt(
+                        raw.replace(/[^\d]/g, ""), // hapus Rp, spasi, titik
+                        10
+                    ) || 0;
+                    var actionName = "Reject"
+                    var dataToSave = {
+                        claimNo: claimNo,
+                        claimId: claimId,
+                        actionName: actionName,
+                        ReasonReject: reaseonReject,
+                        Grand_Total: grandTotal
+                    };
+
+                    $.ajax({
+                        url: "/QCard/ClaimProcess/UpdateClaimProcess",
+                        type: "POST",
+                        data: JSON.stringify(dataToSave),
+                        contentType: "application/json",
+                        success: function (res) {
+                            if (!res.Success) {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/QCard/ClaimProcess/Index";
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnClaimProcess").on("click", function () {
+                    var $el = $(this);
+
+
+                    var $form = $(this).closest("form");
+                    console.log($form);
+                    var claimId = $("#claimId").val();
+                    var dataToSave = buildDataToSave(claimId);
+                    console.log(dataToSave);
+                    if (!dataToSave) return;
+
+                    $el.prop("disabled", true);
+                    $.ajax({
+                        url: "/QCard/ClaimProcess/UpdateClaimProcess",
+                        type: "POST",
+                        data: JSON.stringify(dataToSave),
+                        contentType: "application/json",
+                        success: function (res) {
+                            console.log(res)
+                            if (!res.Success) {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/QCard/ClaimProcess/Index";
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnVerifyClaim").on("click", function () {
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    var $form = $(this).closest("form");
+                    var claimId = $("#claimId").val();
+
+                    var dataToSave = buildDataToSaveVerify(claimId);
+                    $.ajax({
+                        url: "/QCard/ClaimProcess/VerifyClaimProcess",
+                        type: "POST",
+                        data: {request: dataToSave, claimId: claimId},
+                        success: function (res) {
+                            if (!res.Success) {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/QCard/ClaimProcess/Index";
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnUpdatePartClaimQty").on("click", function () {
+                    var unConfirmDn = $("#unConfirmDn").val();
+                    if (!unConfirmDn || unConfirmDn.trim() === ""){
+                        console.log('tidak ada dn yang unconfirm')
+                        var $modal = $.helper.getJqueryObject('UpdateQtyModal');
+                        $modal.modal("show");
+                    } else {
+                        var $el = $(this);
+                        $el.prop("disabled", true);
+                        var claimId = $("#claimId").val();
+                        var dataToSave = buildDataToSave(claimId);
+                        dataToSave.DnNumber = unConfirmDn;
+                        postUpdateQty(dataToSave);
+                        $el.prop("disabled", false);
+                    }
+                });
+
+                $("#btnConfirmUpdatePartClaimQty").on("click", function () {
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+
+                    $("#DELIVERY_NOTE_NO").text(""); // reset error
+
+                    var claimId = $("#claimId").val();
+                    var DnNumber = $("#newDnNumber").val().trim();
+
+                    if (!DnNumber) {
+                        $("#DELIVERY_NOTE_NO").text("Delivery Note No. must not be empty");
+                        $el.prop("disabled", false);
+                        return;
+                    }
+
+                    var dataToSave = buildDataToSave(claimId);
+                    dataToSave.DnNumber = DnNumber;
+
+                    postUpdateQty(dataToSave);
+
+                    $el.prop("disabled", false);
+                });
+
+
+                $("#btnCreatePGI").on("click", function () {
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+                    var $form = $(this).closest("form");
+
+                    var claimId = $("#claimId").val();
+                    var pgi = $("#PgiNo").val();
+                    var type = "pgi";
+                    var dataToSave = {
+                        Type: type,
+                        ClaimId: claimId,
+                        PgiNo: pgi
+                    };
+
+                    $.ajax({
+                        url: "/QCard/ClaimProcess/ClaimProcessUpdatePartial",
+                        type: "POST",
+                        data: { request: dataToSave },
+                        success: function (res) {
+                            if (!res.Success) {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/QCard/ClaimProcess/Index";
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+
+                $("#btnCreateSPB").on("click", function () {
+                    var $el = $(this);
+                    $el.prop("disabled", true);
+                    var $form = $(this).closest("form");
+                    var claimId = $("#claimId").val();
+                    var spb = $("#SpbNo").val();
+                    var resi = $("#ResiNo").val();
+                    var type = "spb";
+
+                    var shippingAgentDdl = $("#ShippingAgent").data("kendoDropDownList");
+                    var shippingAgent = shippingAgentDdl.value();
+                    var notesValue = $('#SpbNotes').val();
+
+                    var dataToSave = {
+                        Type: type,
+                        ClaimId: claimId,
+                        SpbNo: spb,
+                        ResiNo: resi,
+                        ShippingAgent: shippingAgent,
+                        NOTES: notesValue
+                    };
+                    console.log("Data yang dikirim:", dataToSave);
+
+                    $.ajax({
+                        url: "/QCard/ClaimProcess/ClaimProcessUpdatePartial",
+                        type: "POST",
+                        data: { request: dataToSave },
+                        success: function (res) {
+                            if (!res.Success) {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "/QCard/ClaimProcess/Index";
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                    $el.prop("disabled", false);
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        ClaimProcessManagement = new ClaimProcessManagement();
+        ClaimProcessManagement.InitManagement();
+    });
+
+    function setParameterStatusHistory() {
+        var claimId = $("#claimId").val();
+        return {
+            claimId: claimId,
+        };
+    }
+
+    function ShowDocumentType() {
+        const pgiRadio = document.getElementById('pgiRadio');
+        const spbRadio = document.getElementById('spbRadio');
+        const divPGI = document.getElementById('divPGI');
+        const divSPB = document.getElementById('divSPB');
+
+        // Sembunyikan semua div di awal
+        divPGI.style.display = 'none';
+        divSPB.style.display = 'none';
+
+        // Event untuk PGI
+        pgiRadio.addEventListener('change', function () {
+            if (this.checked) {
+                divPGI.style.display = 'block';
+                divSPB.style.display = 'none';
+            }
+        });
+
+        // Event untuk SPB
+        spbRadio.addEventListener('change', function () {
+            if (this.checked) {
+                divSPB.style.display = 'block';
+                divPGI.style.display = 'none';
+            }
+            setTimeout(() => {
+            var ddl = $("#ShippingAgent").data("kendoDropDownList");
+            if (ddl) {
+                ddl.bind("change", handleShippingAgentChange);
+            }
+        }, 300);
+        });
+    }
+
+    function onClaimVoucherGridDataBound(e) {
+        var grid = e.sender;
+        grid.tbody.find(".discountField").on("input", function () {
+            updateTotalPrice($(this));
+        });
+        grid.tbody.find(".discountField").each(function () {
+            updateTotalPrice($(this));
+        });
+        grid.tbody.find(".availableQty").on("input", function () {
+            updateRowValues($(this));
+        });
+
+        var status = $('#dataStatus').val();
+
+        if (status != 2 && status != 7 && status != 8) {
+            // Jika status BUKAN 2 dan BUKAN 7
+            $(".availableQty").attr("readonly", "readonly");
+        } else {
+            // Jika status 2 ATAU 7
+            $(".availableQty").removeAttr("readonly");
+        }
+            grid.tbody.find(".availableQty").each(function () {
+            updateRowValues($(this));
+        });
+    }
+
+    function buildDataToSaveVerify(claimId) {
+        var grid = $("#ClaimProcessVoucherDetailGrid").data("kendoGrid");
+        var dataItems = grid.dataSource.view();
+        var partList = [];
+
+        $("#ClaimProcessVoucherDetailGrid tbody tr").each(function (i, row) {
+            var dataItem = dataItems[i];
+
+            var qty = $(row).find("input.claimQty").val();
+            var discount = $(row).find("input.discountField").val() || 0;
+
+            if (qty && parseInt(qty) > 0) {
+                partList.push({
+                    PART_ID: dataItem.PART_ID,
+                    DISCOUNT: parseFloat(discount),
+                    QTY: parseInt(qty)
+                });
+            }
+        });
+        return {
+            CLAIM_ID: claimId,
+            PART_LIST: partList
+        };
+    }
+
+    function buildClaimProgramDetailGrid() {
+
+        var gridProgramDetail = $("#ClaimProcessVoucherDetailGrid").data("kendoGrid");
+        if (gridProgramDetail) {
+            gridProgramDetail.dataSource.data(programDetailData);
+        } else {
+            console.log("Grid belum terinisialisasi saat data ingin diisi.");
+        }
+    }
+
+    function toRupiah(value) {
+        if (value == null || value === "") return "Rp 0";
+        return "Rp " + new Intl.NumberFormat("id-ID", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    }
+
+    function parseRupiah(str) {
+        if (!str) return 0;
+        str = str.replace(/[^0-9\-]/g, ""); // biarkan minus
+        return parseInt(str) || 0;
+    }
+
+    function updateTotalPrice(input) {
+        var discount = parseFloat(input.val()) || 0;
+
+        if(discount < 0) {
+            $(input).val(0);
+            discount = 0;
+        }
+        if(discount > 100) {
+            $(input).val(100);
+            discount = 100;
+        }
+
+        var row = input.closest("tr");
+        row.find(".discountField").text(discount);
+
+        var subTotalRow = row.find(".subTotal").text();
+        var subTotalValue = parseRupiah(subTotalRow)
+
+        let discountTotal = subTotalValue - (subTotalValue * (discount / 100));
+        row.find(".discountTotalPrice").text(toRupiah(discountTotal));
+
+        calculateSummary();
+    }
+
+    function calculateSummary() {
+        let claimPpn = parseFloat($("#claimPpn").val()) || 0;
+        let claimAmount = parseFloat(getClaimAmount()) || 0;
+        let ppn = Math.round(claimAmount * claimPpn / 100);
+
+
+        let currentVoucherAmount = parseRupiah($("#currentVoucherAmount").val());
+        let latestGrandTotal =  parseRupiah($("#latestGrandTotal").val());
+        let voucherWhenClaim = currentVoucherAmount + latestGrandTotal;
+
+        let grandTotal = claimAmount + ppn;
+        let remaining = voucherWhenClaim - (claimAmount + ppn);
+
+        if (remaining < 0)
+        {
+            $("#btnVerifyClaim").hide();
+        }
+        else {
+            $("#btnVerifyClaim").show();
+        }
+
+        $("#claimAmount").val(toRupiah(claimAmount));
+        $("#grandTotal").val(toRupiah(grandTotal));
+        $("#PPN").val(toRupiah(ppn));
+        $("#reminingBalance").val(toRupiah(remaining));
+    }
+
+    function getClaimAmount() {
+        let total = 0;
+
+        $(".discountTotalPrice").each(function () {
+            let text = $(this).text();
+            let num = parseInt(text.replace(/[^0-9]/g, "")) || 0;
+            total += num;
+        });
+        return total;
+    }
+
+    function updateRowValues(input) {
+        var available = parseFloat(input.val()) || 0;
+        var total = parseFloat(input.data("total")) || 0;
+
+        if (available > total) {
+            available = total;
+            input.val(total);
+        }
+
+        var backOrder = total - available;
+        if (backOrder < 0) backOrder = 0;
+
+        var statusText = "";
+        if (available === 0)
+            statusText = "Back Order";
+        else if (available < total)
+            statusText = "Partial Back Order";
+        else if (available === total)
+            statusText = "Available";
+        else
+            statusText = "-";
+
+        var row = input.closest("tr");
+        row.find(".statusCell").text(statusText);
+        row.find(".backOrderCell").text(backOrder);
+
+        updateStatusDropdownBasedOnGrid();
+    }
+    function updateStatusDropdownBasedOnGrid() {
+        const ddl = $("#claimStatus").data("kendoDropDownList");
+        if (!ddl) return;
+
+        const currentValue = ddl.value(); // simpan status sebelumnya
+
+        let allValid = true;
+        let hasBackOrder = false;
+
+        $("#ClaimProcessVoucherDetailGrid .availableQty").each(function () {
+            const available = parseFloat($(this).val()) || 0;
+            const total = parseFloat($(this).data("total")) || 0;
+
+            if (available !== total) {
+                allValid = false;
+            }
+
+            if (available === 0 || available < total) {
+                hasBackOrder = true;
+            }
+        });
+
+        const ds = ddl.dataSource;
+        const data = ds.data();
+
+        // === HANDLE VALUE 7 (Pending) ===
+        let item7 = data.find(x => x.Value == 7);
+
+        if (allValid) {
+            if (item7) {
+                removedValue2Item = { ...item7 };  // SIMPAN SEMUA PROPERTY!
+                ds.remove(item7);
+            }
+        } else {
+            if (!item7 && removedValue2Item != null) {
+                ds.add(removedValue2Item);         // PROPERTY NAME tetap ada
+                removedValue2Item = null;
+            }
+        }
+
+        // === HANDLE VALUE 4 (Preparing) ===
+        let preparing = data.find(x => x.Value == 4);
+
+        if (hasBackOrder) {
+            if (preparing) {
+                removedPreparingItem = { ...preparing };   // SIMPAN SEMUA PROPERTY!
+                ds.remove(preparing);
+            }
+        } else {
+            if (!preparing && removedPreparingItem != null) {
+                ds.add(removedPreparingItem);              // PROPERTY NAME tetap ada
+                removedPreparingItem = null;
+            }
+        }
+
+        // Kembalikan nilai sebelumnya — tanpa refresh
+        ddl.value(currentValue);
+    }
+    function filterClaimStatusDropdown() {
+        const status = $("#dataStatus").val();
+        $("#claimStatus").kendoDropDownList({
+            dataTextField: "Text",
+            dataValueField: "Value",
+            dataSource: {
+                transport: {
+                    read: {
+                        cache: false,
+                        url: "@Url.Content("~/Core/DataSource/GetClaimProcessStatusList")",
+                        dataType: "json",
+                        data: function() {
+                            return {
+                                status: $("#dataStatus").val(),
+                                filter: $("#claimStatus").data("kendoDropDownList").filterInput.val()
+                            };
+                        }
+                    },
+                },
+            },
+            //index: 0,
+            filter: "contains",
+            suggest: true,
+            optionLabel: "Select Status..",
+            dataBound: function () {
+                const ddl = this;
+                const data = ddl.dataSource.view();
+                if (data && data.length < 2) {
+                    ddl.value(data[0].Value);
+                    this.enable(false)
+                }
+                else {
+                    this.enable(true)
+                }
+                updateStatusDropdownBasedOnGrid();
+
+            },
+            select: function (e) {
+                const dataItem = this.dataItem(e.item.index());
+                if (dataItem && dataItem.disabled) {
+                    e.preventDefault();
+                }
+            },
+            change: function (e) {
+                var ddl = this;
+                ddl.close();
+                var value = this.value();
+                const divReason = document.getElementById('divReason');
+                const divDnNumber = document.getElementById('divDnNumber');
+                const divPgi = document.getElementById('divPgi');
+                if (status == 2) {
+                    if (value == 3) {
+                        divReason.style.display = 'block';
+
+                        divDnNumber.style.display = 'none';
+                        $("#DnNumber").val("");
+                    }
+                    else {
+                        divDnNumber.style.display = 'block';
+
+                        divReason.style.display = 'none';
+                        $("#ReasonReject").val("");
+                    }
+                }
+                else if (status == 4) {
+                    if (value == 3) {
+                        divReason.style.display = 'block';
+
+                        divPgi.style.display = 'none';
+                    }
+                    else {
+                        divPgi.style.display = 'block';
+
+                        divReason.style.display = 'none';
+                        $("#DnNumber").val("");
+                    }
+                }
+            }
+        });
+    }
+    function fillAvailableQty() {
+        var grid = $("#ClaimProcessVoucherDetailGrid").data("kendoGrid");
+
+        grid.tbody.find(".availableQty").each(function () {
+            var input = $(this);
+            var total = parseFloat(input.data("total")) || 0;
+
+            input.val(total);
+            updateRowValues(input);
+        });
+    }
+    function buildDataToSave(claimId) {
+        var formValues = {};
+        var claimNo = $("#claimNo").val();
+        let hasPositiveAvailableQty = false;
+
+        $('#formProcess input:not([type="hidden"]), #formProcess textarea, #formProcess select').each(function() {
+            var id = $(this).attr('id');
+            var value = $(this).val();
+            formValues[id] = value;
+        });
+        var raw = $("#latestGrandTotal").val() || "";
+
+        var grandTotal = parseInt(
+            raw.replace(/[^\d]/g, ""), // hapus Rp, spasi, titik
+            10
+        ) || 0;
+        var claimStatusId = $("#claimStatusId").val();
+        var ddlStatus = $("#claimStatus").data("kendoDropDownList");
+        var actionName = '';
+        if(ddlStatus)
+        {
+            var item = ddlStatus.dataItem();
+            actionName = item ? item.Name : null;
+        }
+        if (!actionName && claimStatusId) {
+            const statusMap = {
+                6: "Received"
+            };
+            actionName = statusMap[claimStatusId] || null;
+        }
+
+        var grid = $("#ClaimProcessVoucherDetailGrid").data("kendoGrid");
+        var gridData = [];
+        var isValid = true; // flag untuk validasi
+
+        grid.tbody.find("tr").each(function () {
+            var dataItem = grid.dataItem(this);
+            var availableQty = parseFloat($(this).find(".availableQty").val()) || 0;
+            var claimQty = parseFloat(dataItem.CLAIM_QTY) || 0;
+
+            if (typeof actionName === "string" && actionName.toLowerCase() !== "reject") {
+                // --- VALIDASI DI SINI ---
+                if (availableQty > claimQty) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Invalid Quantity",
+                        html: `Available Quantity (<b>${availableQty}</b>) cannot exceed Claim Quantity (<b>${claimQty}</b>) for part <b>${dataItem.PART_NO}</b>.`,
+                        confirmButtonText: "OK"
+                    });
+                    isValid = false;
+                    return false; // exit the .each() loop
+                }
+
+                // Koleksi apakah ada yg > 0
+                if (availableQty > 0) {
+                    hasPositiveAvailableQty = true;
+                }
+            }
+
+            var backOrderQty = claimQty - availableQty;
+            if (backOrderQty < 0) backOrderQty = 0;
+
+            gridData.push({
+                CLAIM_NO: claimNo,
+                CLAIM_DETAIL_ID: dataItem.CLAIM_DETAIL_ID,
+                PART_NO: dataItem.PART_NO,
+                PART_NAME: dataItem.PART_NAME,
+                CLAIM_QTY: claimQty,
+                AVAILABLE_QTY: availableQty,
+                BACK_ORDER_QTY: backOrderQty
+            });
+        });
+
+        if (!isValid) return null; // batalkan jika invalid
+
+        // === VALIDASI GLOBAL: Minimal 1 availableQty > 0 ===
+        if (typeof actionName === "string" && actionName.toLowerCase() !== "reject" && actionName.toLowerCase() !== "received") {
+            if (!hasPositiveAvailableQty) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Invalid Quantity",
+                    html: `At least <b>1 Available Quantity</b> must be greater than 0.`,
+                    confirmButtonText: "OK"
+                });
+                return null;
+            }
+        }
+        var dataToSave = {
+            claimNo: claimNo,
+            claimId: claimId,
+            Grand_Total: grandTotal,
+            actionName: actionName,
+            ...formValues,
+            ProgramDetails: gridData
+        };
+
+        // TAMBAHKAN MAPPING INI
+        if (formValues.SpbNotes !== undefined) {
+            dataToSave.NOTES = formValues.SpbNotes;
+            delete dataToSave.SpbNotes;
+        }
+
+        return dataToSave;
+    }
+
+    function postUpdateQty(dataToSave) {
+        console.log(dataToSave);
+        $.ajax({
+            url: "/QCard/ClaimProcess/UpdatePartClaimQty",
+            type: "POST",
+            data: JSON.stringify(dataToSave),
+            contentType: "application/json",
+            success: function (res) {
+                if (!res.Success) {
+                    if (!res.Validate) {
+                        ShowErrorMessage($form, JSON.parse(res.Message));
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: res.Message,
+                            icon: "error"
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "/QCard/ClaimProcess/Index";
+                        }
+                    });
+                }
+            }
+        })
+        .fail(function (xhr, status, err) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: `${status}: ${xhr.responseText || err}`
+            });
+        });
+    }
+
+    function mergeCellProgramDetailGrid() {
+        var grid = $("#ProgramDetailHistoryGrid").data("kendoGrid");
+        if (grid) {
+            grid.bind("dataBound", function () {
+
+                const rows = this.tbody.find("tr");
+                const mergeColumns = [0,1,5,6,7,8];  // kolom yang ingin di-merge
+                const sortedColumns = mergeColumns.slice().sort((a, b) => b - a); // sort desc
+
+                sortedColumns.forEach(function (colIndex) {
+                    let prevText = null;
+                    let prevCell = null;
+
+                    rows.each(function () {
+                        const cell = $(this).find("td").eq(colIndex);
+                        const text = cell.text().trim();
+
+                        if (!text) {
+                            prevText = null;
+                            prevCell = null;
+                            return;
+                        }
+
+                        if (prevText === text) {
+                            // increment rowspan
+                            prevCell[0].rowSpan++;
+                            cell.remove();
+                        } else {
+                            prevText = text;
+                            prevCell = cell;
+                        }
+                    });
+                });
+            });
+
+            // trigger jika ada data
+            if (grid.dataSource.view().length > 0) {
+                grid.trigger("dataBound");
+            }
+        } else {
+            setTimeout(function () {
+                ClaimProcessManagement.InitValidation();
+            }, 500);
+        }
+    }
+
+    function handleShippingAgentChange() {
+        var selectedText = $("#ShippingAgent").data("kendoDropDownList").text().toUpperCase();
+        var divSpbNotes = $('#divSpbNotes');
+        var spbNotesInput = $('#SpbNotes');
+
+        if (selectedText.includes("SELF") || selectedText.includes("PICKUP")) {
+            divSpbNotes.show();
+            spbNotesInput.prop('required', true);
+        } else {
+            divSpbNotes.hide();
+            spbNotesInput.prop('required', false).val('');
+        }
+    }
+</script>

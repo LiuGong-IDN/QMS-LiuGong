@@ -1,0 +1,75 @@
+﻿@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.RolePermissionView
+<div id="RolePermissionModal" class="modal fade bs-modal-lg" abindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="width:1200px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Manage Role Permission</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rolePermissionForm" data-grid="RolePermissionGrid" data-filter="true" data-logical-operator="and" method="post">
+                    <input type="hidden" id="ROLE_ID" />
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Role Name</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <input type="text" id="ROLE_NAME" class="form-control" data-filter='{ "operator": "contains", "field": "ROLE_NAME" }' />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Function Name</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <input type="text" id="FUNCTION_NAME" class="form-control" data-filter='{ "operator": "contains", "field": "FUNCTION_NAME" }' />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 text-right pull-right">
+                            <div class="row">
+                                <div class="col-md-6 col-xs-6 pull-right">
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="btn-group btn-group-justified" style="border-spacing:5px;">
+                                            <text>
+                                                <a class="btn blue trigger" id="btnSearchDetail">
+                                                    <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                                </a>
+                                                <a class="btn btn-reset" id="btnClearDetail">
+                                                    <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                                </a>
+                                            </text>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                @await Html.PartialAsync("~/Areas/Core/Views/Role/Grid/_RolePermissionGrid.cshtml")
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-reset btn-sm" data-dismiss="modal"><i class="fa fa-times"></i>Close</button>
+                    <button type="button" class="btn blue trigger btn-sm" id="btnSaveRolePermission"><i class="fa fa-save"></i>Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

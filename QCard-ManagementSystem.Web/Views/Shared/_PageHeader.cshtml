@@ -1,0 +1,140 @@
+﻿<div id="kt_header" class="kt-header kt-grid__item  kt-header--fixed " data-ktheader-minimize="on">
+    <div class="kt-header__top">
+        <div class="kt-container ">
+            <!-- begin:: Brand -->
+            <div class="kt-header__brand   kt-grid__item" id="kt_header_brand">
+                <img src="~/img/icons8-booking-96.png" class="kt-mr-5" />
+                <h3 class="kt-header__title kt-grid__item kt-font-light m-0">
+                    QCard.ManagementSystem
+                </h3>
+            </div>
+
+            <!-- end:: Brand -->
+            <!-- begin:: Header Topbar -->
+            <div class="kt-header__topbar">
+                <!--begin: User bar -->
+                <div class="kt-header__topbar-item kt-header__topbar-item--user">
+                    <div class="kt-header__topbar-wrapper" data-toggle="dropdown" data-offset="10px,10px" aria-expanded="false">
+                        <span class="kt-header__topbar-welcome"></span>
+                        <span class="kt-header__topbar-username">Guest</span>
+
+                        <!--use below badge element instead the user avatar to display username's first letter(remove kt-hidden class to display it) -->
+                        <span class="kt-badge kt-badge--username kt-badge--unified-success kt-badge--lg kt-badge--rounded kt-badge--bold kt-hidden-">im</span>
+                    </div>
+
+                    <div class="dropdown-menu dropdown-menu-fit dropdown-menu-right dropdown-menu-anim dropdown-menu-sm">
+                        <ul class="kt-nav kt-margin-t-10 kt-margin-b-10">
+                            <li class="kt-nav__item kt-nav__item--active">
+                                <a href="@Url.Content("~/core/account/logout")" class="kt-nav__link">
+                                    <span class="kt-nav__link-text">Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!--end: User bar -->
+            </div>
+            <!-- end:: Header Topbar -->
+        </div>
+    </div>
+    <div class="kt-header__bottom">
+        <div class="kt-container ">
+            <!-- begin: Header Menu -->
+            <button class="kt-header-menu-wrapper-close" id="kt_header_menu_mobile_close_btn"><i class="la la-close"></i></button>
+            <div class="kt-header-menu-wrapper" id="kt_header_menu_wrapper">
+                <div id="kt_header_menu" class="kt-header-menu kt-header-menu-mobile ">
+                    <ul class="kt-menu__nav ">
+                        <li class="kt-menu__item  kt-menu__item--submenu kt-menu__item--rel" data-ktmenu-submenu-toggle="click" aria-haspopup="true">
+                            <a href="@Url.Content("~/")" class="kt-menu__link">
+                                <span class="kt-menu__link-text">Beranda</span><i class="kt-menu__ver-arrow la la-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="kt-menu__item  kt-menu__item--submenu kt-menu__item--rel" data-ktmenu-submenu-toggle="click" aria-haspopup="true">
+                            <a href="javascript:;" class="kt-menu__link kt-menu__toggle"><span class="kt-menu__link-text">Pengaturan</span><i class="kt-menu__ver-arrow la la-angle-right"></i></a><div class="kt-menu__submenu kt-menu__submenu--classic kt-menu__submenu--left">
+                                <ul class="kt-menu__subnav">
+                                    <li class="kt-menu__item  kt-menu__item--submenu" data-ktmenu-submenu-toggle="hover" aria-haspopup="true">
+                                        <a href="@Url.Content("~/core/user")" class="kt-menu__link">
+                                            <span class="kt-menu__link-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1" class="kt-svg-icon">
+                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                        <rect id="bound" x="0" y="0" width="24" height="24" />
+                                                        <path d="M6,2 L18,2 C19.6568542,2 21,3.34314575 21,5 L21,19 C21,20.6568542 19.6568542,22 18,22 L6,22 C4.34314575,22 3,20.6568542 3,19 L3,5 C3,3.34314575 4.34314575,2 6,2 Z M12,11 C13.1045695,11 14,10.1045695 14,9 C14,7.8954305 13.1045695,7 12,7 C10.8954305,7 10,7.8954305 10,9 C10,10.1045695 10.8954305,11 12,11 Z M7.00036205,16.4995035 C6.98863236,16.6619875 7.26484009,17 7.4041679,17 C11.463736,17 14.5228466,17 16.5815,17 C16.9988413,17 17.0053266,16.6221713 16.9988413,16.5 C16.8360465,13.4332455 14.6506758,12 11.9907452,12 C9.36772908,12 7.21569918,13.5165724 7.00036205,16.4995035 Z" id="Combined-Shape" fill="#000000" />
+                                                    </g>
+                                                </svg>
+                                            </span>
+                                            <span class="kt-menu__link-text">User Akses</span>
+                                            <i class="fa fa-bookmark kt-font-twitter"></i>
+                                        </a>
+                                    </li>
+                                    <li class="kt-menu__item  kt-menu__item--submenu" data-ktmenu-submenu-toggle="hover" aria-haspopup="true">
+                                        <a href="@Url.Content("~/core/role")" class="kt-menu__link">
+                                            <span class="kt-menu__link-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1" class="kt-svg-icon">
+                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                        <polygon id="bound" points="0 0 24 0 24 24 0 24" />
+                                                        <path d="M11.2600599,5.81393408 L2,16 L22,16 L12.7399401,5.81393408 C12.3684331,5.40527646 11.7359848,5.37515988 11.3273272,5.7466668 C11.3038503,5.7680094 11.2814025,5.79045722 11.2600599,5.81393408 Z" id="Path-71" fill="#000000" opacity="0.3" />
+                                                        <path d="M12.0056789,15.7116802 L20.2805786,6.85290308 C20.6575758,6.44930487 21.2903735,6.42774054 21.6939717,6.8047378 C21.8964274,6.9938498 22.0113578,7.25847607 22.0113578,7.535517 L22.0113578,20 L16.0113578,20 L2,20 L2,7.535517 C2,7.25847607 2.11493033,6.9938498 2.31738608,6.8047378 C2.72098429,6.42774054 3.35378194,6.44930487 3.7307792,6.85290308 L12.0056789,15.7116802 Z" id="Combined-Shape" fill="#000000" />
+                                                    </g>
+                                                </svg>
+                                            </span>
+                                            <span class="kt-menu__link-text">Role</span>
+                                            <i class="fa fa-bookmark kt-font-twitter"></i>
+                                        </a>
+                                    </li>
+                                    <li class="kt-menu__item  kt-menu__item--submenu" data-ktmenu-submenu-toggle="hover" aria-haspopup="true">
+                                        <a href="@Url.Content("~/core/log")" class="kt-menu__link">
+                                            <span class="kt-menu__link-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1" class="kt-svg-icon">
+                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                        <polygon id="bound" points="0 0 24 0 24 24 0 24" />
+                                                        <path d="M11.2600599,5.81393408 L2,16 L22,16 L12.7399401,5.81393408 C12.3684331,5.40527646 11.7359848,5.37515988 11.3273272,5.7466668 C11.3038503,5.7680094 11.2814025,5.79045722 11.2600599,5.81393408 Z" id="Path-71" fill="#000000" opacity="0.3" />
+                                                        <path d="M12.0056789,15.7116802 L20.2805786,6.85290308 C20.6575758,6.44930487 21.2903735,6.42774054 21.6939717,6.8047378 C21.8964274,6.9938498 22.0113578,7.25847607 22.0113578,7.535517 L22.0113578,20 L16.0113578,20 L2,20 L2,7.535517 C2,7.25847607 2.11493033,6.9938498 2.31738608,6.8047378 C2.72098429,6.42774054 3.35378194,6.44930487 3.7307792,6.85290308 L12.0056789,15.7116802 Z" id="Combined-Shape" fill="#000000" />
+                                                    </g>
+                                                </svg>
+                                            </span>
+                                            <span class="kt-menu__link-text">Log</span>
+                                            <i class="fa fa-bookmark kt-font-twitter"></i>
+                                        </a>
+                                    </li>
+                                    <li class="kt-menu__item  kt-menu__item--submenu" data-ktmenu-submenu-toggle="hover" aria-haspopup="true">
+                                        <a href="#" class="kt-menu__link">
+                                            <span class="kt-menu__link-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1" class="kt-svg-icon">
+                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                        <rect id="bound" x="0" y="0" width="24" height="24" />
+                                                        <path d="M5,8.6862915 L5,5 L8.6862915,5 L11.5857864,2.10050506 L14.4852814,5 L19,5 L19,9.51471863 L21.4852814,12 L19,14.4852814 L19,19 L14.4852814,19 L11.5857864,21.8994949 L8.6862915,19 L5,19 L5,15.3137085 L1.6862915,12 L5,8.6862915 Z M12,15 C13.6568542,15 15,13.6568542 15,12 C15,10.3431458 13.6568542,9 12,9 C10.3431458,9 9,10.3431458 9,12 C9,13.6568542 10.3431458,15 12,15 Z" id="Combined-Shape" fill="#000000" />
+                                                    </g>
+                                                </svg>
+                                            </span>
+                                            <span class="kt-menu__link-text">Config</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                        </li>
+
+                        <li class="kt-menu__item  kt-menu__item--submenu kt-menu__item--rel" data-ktmenu-submenu-toggle="click" aria-haspopup="true">
+                            <a href="javascript:;" class="kt-menu__link kt-menu__toggle"><span class="kt-menu__link-text">Master Data</span><i class="kt-menu__ver-arrow la la-angle-right"></i></a><div class="kt-menu__submenu kt-menu__submenu--classic kt-menu__submenu--left">
+                                <ul class="kt-menu__subnav">
+                                    <li class="kt-menu__item  kt-menu__item--submenu" data-ktmenu-submenu-toggle="hover" aria-haspopup="true">
+                                        <a href="@Url.Content("~/masterdata/depoMaster")" class="kt-menu__link">
+                                            <span class="kt-menu__link-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1" class="kt-svg-icon">
+                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                        <rect id="bound" x="0" y="0" width="24" height="24" />
+                                                        <path d="M6,2 L18,2 C19.6568542,2 21,3.34314575 21,5 L21,19 C21,20.6568542 19.6568542,22 18,22 L6,22 C4.34314575,22 3,20.6568542 3,19 L3,5 C3,3.34314575 4.34314575,2 6,2 Z M12,11 C13.1045695,11 14,10.1045695 14,9 C14,7.8954305 13.1045695,7 12,7 C10.8954305,7 10,7.8954305 10,9 C10,10.1045695 10.8954305,11 12,11 Z M7.00036205,16.4995035 C6.98863236,16.6619875 7.26484009,17 7.4041679,17 C11.463736,17 14.5228466,17 16.5815,17 C16.9988413,17 17.0053266,16.6221713 16.9988413,16.5 C16.8360465,13.4332455 14.6506758,12 11.9907452,12 C9.36772908,12 7.21569918,13.5165724 7.00036205,16.4995035 Z" id="Combined-Shape" fill="#000000" />
+                                                    </g>
+                                                </svg>
+                                            </span>
+                                            <span class="kt-menu__link-text">Depo Master List</span>
+                                            <i class="fa fa-bookmark kt-font-twitter"></i>
+                                        </a>
+                                    </li>                                   
+                                </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end: Header Menu -->
+        </div>
+    </div>
+</div>

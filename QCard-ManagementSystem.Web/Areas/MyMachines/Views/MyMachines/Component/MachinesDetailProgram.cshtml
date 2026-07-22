@@ -1,0 +1,124 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.BasicDataResponse
+
+@section scripts {
+    @Html.Partial("~/Areas/MyMachines/Views/MyMachines/Script/_MachinesDetailProgram.cshtml")
+}
+@section modals {
+    @await Html.PartialAsync("~/Areas/MyMachines/Views/MyMachines/Component/ProgramDetail.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Machine - Program Claim</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6 text-right">
+            <button type="button"
+                    class="btn btn-reset"
+                    onclick="window.location.href='/MyMachines/MyMachines/Index'">
+                <i class="fa fa-arrow-left mr-1"></i> Back
+            </button>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            @{
+                var machine = Model.Data as Modules.MyMachines.Model.MachinesDetail;
+            }
+            <input type="hidden" id="machineID" value="@machine.ID" />
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="row detail-container">
+                        <div class="col-md-6 header-details">
+                            <div class="detail-item">
+                                <label class="detail-label">Serial No.</label>
+                                <span class="detail-value">@machine.SERIAL_NO</span>
+                            </div>
+                            <div class="detail-item">
+                                <label class="detail-label">Product Group</label>
+                                <span class="detail-value">@machine.MACHINE_TYPE</span>
+                            </div>
+                            <div class="detail-item">
+                                <label class="detail-label">Product Model</label>
+                                <span class="detail-value">@machine.MODEL</span>
+                            </div>
+                            <div class="detail-item">
+                                <label class="detail-label">Purchase Date</label>
+                                <span class="detail-value">@machine.PURCHASE_DATE.ToString("dd-MMM-yyyy")</span>
+                            </div>
+                            <div class="detail-item">
+                                <label class="detail-label">Service Party</label>
+                                <span class="detail-value">@machine.SERVICE_PARTY</span>
+                            </div>
+                        </div>
+                        <!-- Gambar -->
+                        <div class="col-md-6 text-center">
+                            <div id="MachineImageArea">
+                                <img id="MachineImagePreview" class="img-thumbnail img-product" src="@Url.Content(machine.IMAGE_PATH ?? "~/img/liugongQcard.png")" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Program Detail Section -->
+    <div id="divProgramDetail" class="portlet light bordered">
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1>
+                            <span>Claim Program</span><span class="small"> (select program to claim)</span>
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="portlet-body" style="padding-top:15px;">
+            <div class="row">
+                <div class="col-md-12">
+                    <form id="PdcForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="inputs inputs-full-width col-md-6" style="padding: 0;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label><b>Select PDC</b></label>
+                                        <input id="PDC_ID" name="PDC_ID" type="text" class="form-control" />
+                                        <span class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div>
+            @await Html.PartialAsync("~/Areas/MyMachines/Views/MyMachines/Grid/_ProgramGrid.cshtml")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 text-right">
+            <div class="form-group">
+                <a class="btn blue trigger" id="btnClaim" style="background-color:#002F75; border-color:#002F75;color:white;">
+                    <i class="fa fa-paper-plane"></i> <span class="hidden-xs">Claim</span>
+                </a>
+                <a class="btn btn-reset clear-trigger" id="btnReset">
+                    <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,79 @@
+﻿<div id="HistoryDetailModal" class="modal fade bs-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><label id="modalTitle">Approval History Detail</label></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Requested By -->
+                <div class="form-group">
+                    <div class="row data-row" id="row-REQUESTED_BY">
+                        <div class="col-md-12">
+                            <label><b>Requested By:</b></label>
+                            <input type="text" id="requestedBy" class="form-control" readonly />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submitted Date -->
+                <div class="form-group">
+                    <div class="row data-row" id="row-SUBMITTED_DATE">
+                        <div class="col-md-12">
+                            <label><b>Submitted Date:</b></label>
+                            <input type="text" id="submittedDate" class="form-control" readonly />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="form-group">
+                    <div class="row data-row" id="row-STATUS_NAME">
+                        <div class="col-md-12">
+                            <label><b>Status:</b></label>
+                            <input type="text" id="status" class="form-control" readonly />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evidence -->
+                <div class="form-group">
+                    <div class="row data-row" id="row-EVIDENCE_1">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <label for="evidence"><b>Evidence:</b></label>
+                            </div>
+                            <div class="col-md-9">
+                                <input type="text" id="evidence" name="evidence" class="form-control" readonly />
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn" id="btnDownloadEvidence"><i class="fa fa-download"></i> DOWNLOAD</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reason -->
+                <div class="form-group">
+                    <div class="row data-row" id="row-REASON">
+                        <div class="col-md-12">
+                            <label for="reason"><b>Reason:</b></label>
+                            <textarea id="reason" class="form-control" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-group">
+                    <div class="row data-row" id="row-NOTES">
+                        <div class="col-md-12">
+                            <label for="notes"><b>Notes:</b></label>
+                            <textarea id="notes" class="form-control" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

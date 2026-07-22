@@ -1,0 +1,16 @@
+/* here you can put your own css to customize and override the theme */
+.k-multiselect.form-control {
+    height: auto !important;
+}
+
+.k-calendar-view{
+    padding: 0px !important;
+}
+
+.k-calendar-th {
+    padding-right: 10px !important;
+}
+
+#nav-up {
+    padding-top: 0px !important;
+}

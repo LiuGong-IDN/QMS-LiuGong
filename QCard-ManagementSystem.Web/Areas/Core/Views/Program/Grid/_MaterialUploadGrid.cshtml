@@ -1,0 +1,31 @@
+﻿@using Kendo.Mvc.UI;
+@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel;
+
+@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.Core.Model.ProgramMaterialUploadResponse>()
+    .Name("MaterialUploadGrid")
+    .ToolBar(toolbar => { toolbar.Custom().Text(" "); })
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.NO).Title("No.").Width(60).HtmlAttributes(new { style = "text-align: center;white-space:normal" });
+        columns.Bound(o => o.STATUS).Title("Status").Width(120).HtmlAttributes(new { style = "text-align: center;white-space:normal" });
+        columns.Bound(o => o.PART_NO).Title("Part No.").Width(120).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.UPLOADED_PART_NAME).Title("Uploaded Part Name").Width(150).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.REGISTERED_PART_NAME).Title("Registered Part Name").Width(160).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.PART_NAME_MATCH_STATUS).Title("Part Name Match Status").Width(170).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+        columns.Bound(o => o.QTY).Title("Package Qty").Width(120).HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(o => o.MESSAGE).Title("Message").Width(120).HtmlAttributes(new { style = "text-align: left;white-space:normal" });
+    })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .NoRecords(conf => conf.Template("No Data List to display"))
+    .Pageable(pageable => pageable.PageSizes(new[] { 5, 10, 20, 100, 200 }).ButtonCount(5))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/Core/Program/ReadUploadedData")).Data("sendTempCode"))
+        .PageSize(10)
+        .Sort(sort => sort.Add("NO").Ascending())
+    )
+    .AutoBind(false)
+)

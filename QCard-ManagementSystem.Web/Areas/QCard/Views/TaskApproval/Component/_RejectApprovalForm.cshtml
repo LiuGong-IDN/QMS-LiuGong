@@ -1,0 +1,42 @@
+﻿@using QCard.ManagementSystem.Infrastructure.Session
+
+@{
+    var role = SessionManager.Roles;
+}
+<div id="RejectApprovalModal" class="modal fade bs-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><label id="modalTitle">Reject Confirmation</label></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <form id="RejectApprovalForm" enctype="multipart/form-data">
+                    <input type="hidden" id="FormTypeId" name="FormTypeId" />
+                    <input type="hidden" id="DocumentApprovalId" name="DocumentApprovalId" />
+                    <input type="hidden" id="Notes" name="Notes" />
+                    <input type="hidden" id="EvidenceFileHidden" name="EvidenceFile" />
+                    <div class="col-md-12">
+                        <div class="form-group row">
+                            <label for="RejectReason" class="col-md-12 col-form-label">Reason:</label>
+                            <div class="col-md-12">
+                                <textarea type="text" id="RejectReason" name="reject_reason" class="form-control" placeholder="Enter reason for rejection" rows="2" required></textarea>
+                            </div>
+                        </div>
+                        <input type="hidden" id="ID" name="ID" data-bind="value: ID" />
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-reset btn-sm" data-dismiss="modal">
+                    <i class="fa fa-times"></i>&nbsp;Close
+                </button>
+                <button type="button" class="btn blue trigger btn-sm" id="btnSubmitReject" data-roles='@Newtonsoft.Json.JsonConvert.SerializeObject(SessionManager.Roles)'>
+                    <i class="fa fa-save"></i>&nbsp;Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,95 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+@using QCard.ManagementSystem.Infrastructure.Session
+@section scripts {
+    @Html.Partial("~/Areas/QCard/Views/ClaimProcess/Script/_ClaimProcess.cshtml")
+}
+@{
+    var role = SessionManager.Roles;
+}
+@{
+    var roleName = role != null && role.Any()
+        ? role.First()
+        : "";
+}
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Claim Process</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            <form data-grid="ClaimProcessGrid" data-filter="true" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="CLAIM_NO-FILTER"><b>Claim No.</b></label>
+                                <input id="CLAIM_NO-FILTER" type="text" class="form-control text-uppercase no-space"/>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="SERIAL_NO-FILTER"><b>Serial No.</b></label>
+                                <input id="SERIAL_NO-FILTER" type="text" class="form-control text-uppercase no-space"/>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="STATUS-FILTER"><b>Status</b></label>
+                                <input id="STATUS-FILTER" type="text" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ClaimProcess", Feature.SEARCH_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnReset">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>
+                                </text>
+                                <text class="pull-right">
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ClaimProcess", Feature.DOWNLOAD_FEATURE))
+                                    {
+                                        <a class="btn blue trigger" id="btnDownloadPendingParts">
+                                            <i class="fa fa-download"></i> <span class="hidden-xs">Download Pending Parts</span>
+                                        </a>
+                                        <a class="btn btn-success" id="btnDownloadAll">
+                                            <i class="fa fa-download"></i> <span class="hidden-xs">Download All</span>
+                                        </a>
+                                    }
+                                </text>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/QCard/Views/ClaimProcess/Grid/_ClaimProcessGrid.cshtml")
+    </div>
+</div>
+<style>
+    .form-control.no-space {
+        padding-left: 12px !important;
+    }
+</style>
+<script>
+    window.currentRoleName = '@roleName';
+</script>

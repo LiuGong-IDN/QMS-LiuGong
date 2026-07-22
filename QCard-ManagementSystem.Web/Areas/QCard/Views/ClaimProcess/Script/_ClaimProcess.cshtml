@@ -1,0 +1,120 @@
+﻿<script type="text/javascript">
+    function ClaimProcessManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+                this.ApplyUrlFilters();
+            },
+            InitControls: function () {
+                $("input.text-uppercase").on("input", function () {
+                    this.value = this.value.toUpperCase();
+                });
+
+                $("input.no-space").on("input", function () {
+                    this.value = this.value.replace(/[^A-Za-z0-9\/]/g, "");
+                });
+
+                $("#STATUS-FILTER").kendoDropDownList({
+                    dataTextField: "Text",
+                    dataValueField: "Value",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                cache: false,
+                                url: "@Url.Content("~/Core/DataSource/GetClaimStatusList")",
+                                dataType: "json"
+                            },
+                        },
+                    },
+                    index: 0,
+                    filter: "contains",
+                    suggest: true,
+                    optionLabel: "Select Status.."
+                });
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                $("#btnDownloadPendingParts").on("click", function () {
+                window.location.href = '@Url.Action("ExportClaimToExcel", "ClaimProcess", new { area = "QCard" })' + '?type=PendingParts';
+                });
+                $("#btnDownloadAll").on("click", function () {
+                window.location.href = '@Url.Action("ExportClaimToExcel", "ClaimProcess", new { area = "QCard" })' + '?type=All';
+                });
+
+                $("#btnReset").on("click", function () {
+                    $("#STATUS-FILTER").data("kendoDropDownList").value("");
+                    $("#CLAIM_NO-FILTER").val("");
+                    $("#SERIAL_NO-FILTER").val("");
+                });
+            },
+            ApplyUrlFilters: function () {
+                console.log('apply filter');
+                // Ambil parameter dari URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const statusParam = urlParams.get('status');
+
+                if (statusParam) {
+                    const statusDdl = $("#STATUS-FILTER").data("kendoDropDownList");
+                    if (statusDdl) {
+                        statusDdl.value(statusParam);
+
+                        // Trigger search otomatis
+                        setTimeout(() => {
+                            $("#btnSearch").trigger("click");
+                        }, 500);
+                    }
+                }
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        ClaimProcessManagement = new ClaimProcessManagement();
+        ClaimProcessManagement.InitManagement();
+    });
+
+    function setParameter() {
+        var claimNo = $("#CLAIM_NO-FILTER").val();
+        var serialNo = $("#SERIAL_NO-FILTER").val();
+
+        var statusDdl = $("#STATUS-FILTER").data("kendoDropDownList");
+        var status = statusDdl ? statusDdl.value() : null;
+
+        return {
+            claimNo: claimNo,
+            serialNo: serialNo,
+            status: status
+        };
+    }
+        function onDataBound(e) {
+        var grid = this;
+        var roleName = (window.currentRoleName || "").toLowerCase();
+
+        grid.tbody.find(">tr").each(function () {
+            var dataItem = grid.dataItem(this);
+            if (!dataItem) return;
+
+            let isOpened = true;
+
+            if (roleName.includes("admin")) {
+                isOpened = dataItem.IsOpenedByAdmin;
+            }
+            else if (roleName.includes("pdc")) {
+                isOpened = dataItem.IsOpened;
+            }
+            else if (roleName.includes("customer")) {
+                isOpened = dataItem.IsOpenedByCust;
+            }
+
+            if (isOpened === false) {
+                $(this).addClass("trBoldClass");
+            } else {
+                $(this).removeClass("trBoldClass");
+            }
+        });
+    }
+
+</script>

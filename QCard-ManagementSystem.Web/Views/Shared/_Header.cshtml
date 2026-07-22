@@ -1,0 +1,148 @@
+﻿@using QCard.ManagementSystem.Infrastructure.Session
+@using Microsoft.AspNetCore.Http;
+
+@{
+    var fullName = @SessionManager.FirstName + " " + @SessionManager.LastName;
+    var company = " - " + @SessionManager.Company;
+    var displayName = "";
+    if (fullName.ToString().Length > 20)
+    {
+        displayName = fullName.ToString().Substring(0, 20) + "...";
+    }
+    else
+    {
+        displayName = fullName.ToString();
+    }
+
+    displayName = displayName + company;
+}
+
+<div class="page-header navbar navbar-fixed-top" style="background: #002F75;background-size: cover;">
+    <div class="page-header-inner">
+        <div class="col-md-12" style="padding-left:0;">
+            <div class="logodiv col-md-6">
+                <div class="page-logo">
+                    <div class="col-md-3 dvlogo">
+                        <a href="@Url.Content("~/Home")" style="color:white;font-weight:bold;font-size: 18px;">
+                            <img src="~/img/liugongQcard.png" alt="logo" alt="logo" style="margin-top: 15px;height:50px" class="logo-default">
+                        </a>
+                    </div>
+                </div>
+                <div class="dvtoggler" style="margin-top:-3px; margin-left:25px; float:left;">
+                    <div class="menu-toggler sidebar-toggler">
+                    </div>
+                </div>
+            </div>
+            <a href="javascript:;" class="menu-toggler responsive-toggler" data-toggle="collapse" data-target=".navbar-collapse"> </a>
+            <div class="col-md-3 userdiv pull-right">
+                <div class="page-top">
+                    <div class="top-menu">
+                        <ul class="nav navbar-nav pull-right">                           
+                            <li class="dropdown dropdown-user dropdown-dark">
+                                <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" style=" height:99%">
+                                    @*<span class="username username-hide-on-mobile" style="color:whitesmoke; vertical-align: top; margin-top:-7%; text-align:right; font-size:13px">@foreach (var role in roles){@role.NAME} </span>*@
+                                    <span class="username username-hide-on-mobile" title="@fullName" style="color:whitesmoke; margin-top:-7%; text-align:right; font-size:15px">Welcome, @displayName <br/><span style="font-size:12px" id="datetime"></span> </span>
+                                    @*<img alt="Default Profile Picture" class="img-circle" src="~/Content/img/avatar-3.png"/>*@
+                                    <i class="fas fa-angle-down" style="width:30px"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-default">
+                                    @*<li>
+                                    <a href="~/Home/Profile">
+                                    <i class="icon-user"></i> My Profile
+                                    </a>
+                                    </li>*@
+                                    @*<li class="divider"></li>*@
+                                    <li>
+                                        <a href="@Url.Content("~/core/account/logout")">
+                                            <i class="icon-logout"></i> Log Out
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
+
+<style>
+    .page-sidebar {
+        padding-top: 20px;
+        transition: all 0.3s ease;
+    }
+
+        .page-sidebar .nav-item > a {
+            display: block;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            border-radius: 6px;
+            margin: 4px 8px;
+        }
+
+            .page-sidebar .nav-item > a:hover {
+                background: #004080;
+                color: #fff;
+            }
+
+        .page-sidebar .nav-item.active > a {
+            background: #003366;
+            color: #fff;
+        }
+        
+    .page-logo {
+        display: flex;
+        align-items: center;
+        background: #fff;
+    }
+
+        .page-logo img {
+            max-height: 60px;
+        }
+
+    .dvtoggler {
+        margin-left: 10px;
+    }
+
+    .dvlogo{
+        padding-left:22px;
+    }
+
+</style>
+
+<script>
+    // create a function to update the date and time
+    function updateDateTime() {
+        // create a new `Date` object
+        const now = new Date();
+        const optionsDate = {
+            // weekday: 'long',
+            year: 'numeric',
+            month: 'short',
+            day:'numeric',
+            // hour:'numeric',
+            // minute: 'numeric',
+            // second: 'numeric',
+        }
+
+        const optionTime = {
+            hour:'numeric',
+            minute: 'numeric',
+        }
+
+        // get the current date and time as a string
+        const currentDate = now.toLocaleString('en-IN', optionsDate);
+        const currentTime = now.toLocaleTimeString('en-GB', optionTime);
+
+        // update the `textContent` property of the `span` element with the `id` of `datetime`
+        document.querySelector('#datetime').textContent = currentDate + ', ' + currentTime;
+    }
+
+    // call the `updateDateTime` function every second
+    setInterval(updateDateTime, 1000);
+</script>

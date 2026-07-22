@@ -1,0 +1,23 @@
+﻿@(Html.Kendo().Grid<QCard.ManagementSystem.Domain.Modules.QCard.Model.SerialNoQCard>()
+    .Name("SerialNoGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.SERIAL_NO).Title("Serial No.").Width(120);
+        columns.Bound(o => o.ASSET_TYPE_NAME).Title("Product Group").Width(150);
+        columns.Bound(o => o.MODEL_NAME).Title("Product Model").Width(90);
+        columns.Bound(o => o.CATEGORY_PROGRAM).Title("Category Claim").Width(90);
+        columns.Bound(o => o.PURCHASE_DATE).Title("Purchase Date").Width(90).ClientTemplate("#= kendo.toString(PURCHASE_DATE, 'dd-MMM-yyyy') #");
+        columns.Bound(o => o.TOPUP_DATE).Title("Top Up Date").Width(90).ClientTemplate("#= kendo.toString(TOPUP_DATE, 'dd-MMM-yyyy') #");
+    })
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .NoRecords(conf => conf.Template("No Material List to display"))
+    .Sortable()
+    .Scrollable(s => s.Height("auto"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Read(read => read.Url(Url.Content("~/qcard/qcardlist/GetSerialNoQCard")).Data("setParameter"))
+        .Sort(sort => sort.Add("TOPUP_DATE").Descending())
+    )
+    .AutoBind(true)
+)

@@ -1,0 +1,675 @@
+﻿<script type="text/javascript">
+
+    // ==============================
+    // State label untuk chart
+    // ==============================
+    const stateLabelsQcard = {
+        current: "Selected Month",
+        prev: "Previous Month"
+    };
+
+    const stateLabelsClaim = {
+        current: "Selected Period",
+        prev: "Previous Week"
+    };
+
+    // ==============================
+    // Modul Dashboard Admin Management
+    // ==============================
+    class DashboardAdminManagement {
+
+        // Entry point untuk inisialisasi
+        initManagement() {
+            this.initControls();
+            this.initValidation();
+            this.initHandlers();
+            this.initFunction();
+        }
+
+        // Inisialisasi control Kendo UI
+        initControls() {
+            // QCard period picker (pilih bulan)
+            $("#qCardPeriod").kendoDatePicker({
+                start: "year",
+                depth: "year",
+                format: "MMMM yyyy",
+                rounded: "large",
+                value: new Date(),
+                close: this.getQCardStatistic.bind(this)
+            });
+
+            // Claim period range picker (maks 7 hari)
+            $("#claimPeriod").kendoDateRangePicker({
+                labels: false,
+                format: "dd-MMM-yyyy",
+                inputMode: "numeric",
+                adaptiveMode: "auto",
+                size: "small",
+                startInputPlaceholder: "Start date",
+                endInputPlaceholder: "End date",
+                range: {
+                    start: new Date(new Date().setDate(new Date().getDate() - 6)), // default 7 hari terakhir
+                    end: new Date()
+                },
+                change: function (e) {
+                    // Batasi agar range tidak lebih dari 7 hari
+                    const range = e.sender.range();
+                    if (range.start && range.end) {
+                        const diffDays = Math.ceil((range.end - range.start) / (1000 * 60 * 60 * 24));
+                        if (diffDays > 6) {
+                            const newEnd = new Date(range.start);
+                            newEnd.setDate(newEnd.getDate() + 6);
+                            e.sender.range({ start: range.start, end: newEnd });
+                            e.sender.close();
+                        }
+                    }
+                },
+                close: function () {
+                    // Pastikan method ada sebelum dipanggil
+                    this.getClaimStatistic && this.getClaimStatistic();
+                }.bind(this)
+            }).data("kendoDateRangePicker");
+
+            // Claimed Program period picker
+            $("#claimedProgramPeriod").kendoDatePicker({
+                start: "year",
+                depth: "year",
+                format: "MMMM yyyy",
+                rounded: "large",
+                value: new Date(),
+                close: this.getMostClaimedProgram.bind(this)
+            });
+
+            // Top Customers period picker
+            $("#topCustomersPeriod").kendoDatePicker({
+                start: "year",
+                depth: "year",
+                format: "MMMM yyyy",
+                rounded: "large",
+                value: new Date(),
+                close: this.getTopCustomer.bind(this)
+            });
+
+            // Top Product Group period picker
+            $("#topProductGroupPeriod").kendoDatePicker({
+                start: "year",
+                depth: "year",
+                format: "MMMM yyyy",
+                rounded: "large",
+                value: new Date(),
+                close: this.getTopProductGroup.bind(this)
+            });
+
+            // Top Product Model period picker
+            $("#topProductModelPeriod").kendoDatePicker({
+                start: "year",
+                depth: "year",
+                format: "MMMM yyyy",
+                rounded: "large",
+                value: new Date(),
+                close: this.getTopProductModel.bind(this)
+            });
+        }
+
+        // Placeholder validasi (bisa ditambahkan)
+        initValidation() { }
+
+        // Handler global (resize dsb.)
+        initHandlers() {
+            let resizeTimeout;
+            $(window).on('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    this.getQCardStatistic();
+                    this.getClaimStatistic();
+                }, 200);
+            });
+        }
+
+        // Fungsi yang dipanggil saat modul aktif
+        initFunction() {
+            this.loadDashboardData();
+        }
+
+        // Load data dashboard (menggabungkan beberapa call)
+        async loadDashboardData() {
+            try {
+                // Section 1: Summary
+                await this.getDataSummary();
+
+                // Section 2: Statistik utama (jalankan paralel)
+                await Promise.all([
+                    this.getQCardStatistic(),
+                    this.getClaimStatistic()
+                ]);
+
+                // Section 3: Ranking / list (jalankan paralel)
+                await Promise.all([
+                    this.getMostClaimedProgram(),
+                    this.getTopCustomer(),
+                    this.getTopProductGroup(),
+                    this.getTopProductModel()
+                ]);
+            } catch (err) {
+                // Fallback error log jika perlu
+                console.error('loadDashboardData error', err);
+            }
+        }
+
+        // === Section 1: Data Summary ===
+        async getDataSummary() {
+            // Menggunakan $.ajax dengan callback karena pola proyek; bisa di-refactor ke fetch/await
+            $.ajax({
+                url: "@Url.Content("~/Dashboard/DashboardAdmin/GetDashboardAdminSummary")",
+                method: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                success: (res) => {
+                    const data = res.Data;
+                    if (res.Success == false || res.Success == "false") {
+                        Swal.fire({
+                            title: "Error",
+                            text: res.Message,
+                            icon: "error"
+                        });
+                        return;
+                    }
+
+                    // Tampilkan hasil summary, guard null-safe
+                    $('#totalQCard').text(data && data.TOTAL_QCARD != null ? data.TOTAL_QCARD : 0);
+                    $('#totalSerialNo').text(data && data.TOTAL_SERIAL != null ? data.TOTAL_SERIAL : 0);
+                    $('#totalClaim').text(data && data.TOTAL_CLAIM != null ? data.TOTAL_CLAIM : 0);
+                }
+            })
+            .fail(function (xhr, status, err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `${status}: ${xhr.responseText || err}`
+                });
+            });
+        }
+
+        // === Section 2: Statistik QCard ===
+        getQCardStatistic() {
+            // Guard: pastikan control tersedia
+            const dp = $("#qCardPeriod").data("kendoDatePicker");
+            if (!dp) { console.warn('kendoDatePicker qCardPeriod not initialized'); return; }
+
+            var selectedDate = dp.value();
+            if (!selectedDate) { console.warn('qCardPeriod selectedDate null'); return; }
+
+            var qCardPeriod = kendo.toString(selectedDate, "yyyy-MM");
+            var qCardPeriodFrom = kendo.toString(selectedDate, "MMMM yyyy");
+            var title = "Q-Card from " + qCardPeriodFrom;
+
+            $.ajax({
+                url: "@Url.Content("~/Dashboard/DashboardAdmin/GetDashboardAdminQCardStatistics")",
+                method: 'GET',
+                data: { currentMonth: qCardPeriod },
+                dataType: 'json',
+                success: (res) => {
+                    if (res.Success == false || res.Success == "false") {
+                        Swal.fire({ title: "Error", text: res.Message, icon: "error" });
+                        return;
+                    }
+
+                    // Hitung total current / prev, guard kalau Data kosong
+                    const arr = Array.isArray(res.Data) ? res.Data : [];
+                    const totalCurrent = arr
+                        .filter(x => x.STATE === "current")
+                        .reduce((sum, x) => sum + (x.VALUE || 0), 0);
+                    const totalPrev = arr
+                        .filter(x => x.STATE === "prev")
+                        .reduce((sum, x) => sum + (x.VALUE || 0), 0);
+
+                    $('#totalQCardStatistic').text(totalCurrent);
+                    this.addScoreElement('QCard', 'avgQCardScore', 'backgroundQCardScore', totalCurrent, totalPrev);
+                    this.renderChart("qcard-chart", arr, title, stateLabelsQcard, "DAYS");
+                }
+            })
+            .fail(function (xhr, status, err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `${status}: ${xhr.responseText || err}`
+                });
+            });
+        }
+
+        // === Section 2: Statistik Claim ===
+        getClaimStatistic() {
+            const claimPeriod = $("#claimPeriod").data("kendoDateRangePicker");
+            if (!claimPeriod) { console.warn('kendoDateRangePicker claimPeriod not initialized'); return; }
+
+            const range = claimPeriod.range();
+            if (!range || !range.start || !range.end) {
+                console.warn('claimPeriod range not fully selected'); 
+                return;
+            }
+
+            var startDateCurrent = kendo.toString(range.start, 'yyyy-MM-dd');
+            var endDateCurrent = kendo.toString(range.end, 'yyyy-MM-dd');
+
+            var prevWeek = this.getPreviousWeekRange(range.start, range.end);
+
+            // NOTE: ada bug kecil di penulisan title sebelumnya (concatenation di dalam kendo.toString).
+            // Betulkan menjadi concatenation normal agar tampil benar.
+            var title = 'Claim from ' + kendo.toString(range.start, 'dd-MMM-yyyy') + ' to ' + kendo.toString(range.end, 'dd-MMM-yyyy');
+
+            $.ajax({
+                url: "@Url.Content("~/Dashboard/DashboardAdmin/GetDashboardAdminClaimStatistics")",
+                method: 'GET',
+                data: { startDateCurrent: startDateCurrent, endDateCurrent: endDateCurrent, startDatePrev: prevWeek.startDatePrevStr, endDatePrev: prevWeek.endDatePrevStr },
+                dataType: 'json',
+                success: (data) => {
+                    const arr = Array.isArray(data.Data) ? data.Data : [];
+                    const totalCurrent = arr
+                        .filter(x => x.STATE === "current")
+                        .reduce((sum, x) => sum + (x.VALUE || 0), 0);
+                    const totalPrev = arr
+                        .filter(x => x.STATE === "prev")
+                        .reduce((sum, x) => sum + (x.VALUE || 0), 0);
+
+                    $('#totalClaimStatistic').text(totalCurrent);
+
+                    this.addScoreElement('Claim', 'avgClaimScore', 'backgroundClaimScore', totalCurrent, totalPrev);
+                    this.renderChart("claim-chart", arr, title, stateLabelsClaim, "DAY_TEXT");
+                }
+            })
+            .fail(function (xhr, status, err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `${status}: ${xhr.responseText || err}`
+                });
+            });
+        }
+
+        // === Section 3: Most Claimed Program ===
+        getMostClaimedProgram() {
+            const selectedDate = kendo.toString($("#claimedProgramPeriod").data("kendoDatePicker").value(), "yyyy-MM");
+            const claimedProgramId = document.getElementById("listClaimedProgram");
+            if (!claimedProgramId) { console.warn('listClaimedProgram element not found'); return; }
+            claimedProgramId.innerHTML = "";
+
+            $.ajax({
+                url: "@Url.Content("~/Dashboard/DashboardAdmin/GetDashboardMostClaimedProgram")",
+                method: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: { selectedDate: selectedDate },
+                success: function(d) {
+                    var data = d.Data;
+                    claimedProgramId.innerHTML = "";
+
+                    // Header row
+                    const headerItem = document.createElement("li");
+                    headerItem.innerHTML = `
+                        <span class="list-text-header"><strong>Name</strong></span>
+                        <span class="list-value-header"><strong>Total Claim</strong></span>
+                    `;
+                    headerItem.classList.add("header-row");
+                    claimedProgramId.appendChild(headerItem);
+
+                    if (!data || data.length === 0) {
+                        const emptyItem = document.createElement("li");
+                        emptyItem.innerHTML = `
+                            <span class="list-text-data">No data available</span>
+                            <span class="list-value-data">-</span>
+                        `;
+                        emptyItem.classList.add("empty-row");
+                        claimedProgramId.appendChild(emptyItem);
+                    } else {
+                        // Gunakan DocumentFragment untuk performa jika list panjang
+                        const frag = document.createDocumentFragment();
+                        data.forEach(dataItem => {
+                            const listItem = document.createElement("li");
+                            listItem.innerHTML = `
+                                <span class="list-text-data">${dataItem.TEXT}</span>
+                                <span class="total">
+                                    <span class="list-value-data">${dataItem.VALUE}</span>
+                                </span>
+                            `;
+                            frag.appendChild(listItem);
+                        });
+                        claimedProgramId.appendChild(frag);
+                    }
+                }
+            })
+            .fail(function (xhr, status, err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `${status}: ${xhr.responseText || err}`
+                });
+            });
+        }
+
+        // === Section 3: Top Customer ===
+        getTopCustomer() {
+            const selectedDate = kendo.toString($("#topCustomersPeriod").data("kendoDatePicker").value(), "yyyy-MM");
+            const topCustomerId = document.getElementById("listTopCustomer");
+            if (!topCustomerId) { console.warn('listTopCustomer element not found'); return; }
+            topCustomerId.innerHTML = "";
+
+            $.ajax({
+                url: "@Url.Content("~/Dashboard/DashboardAdmin/GetDashboardTopCustomer")",
+                method: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: { selectedDate: selectedDate },
+                success: function(d) {
+                    var data = d.Data;
+                    topCustomerId.innerHTML = "";
+
+                    const headerItem = document.createElement("li");
+                    headerItem.innerHTML = `
+                        <span class="list-text-header"><strong>Name</strong></span>
+                        <span class="list-value-header"><strong>Total Claim</strong></span>
+                    `;
+                    headerItem.classList.add("header-row");
+                    topCustomerId.appendChild(headerItem);
+
+                    if (!data || data.length === 0) {
+                        const emptyItem = document.createElement("li");
+                        emptyItem.innerHTML = `
+                            <span class="list-text-data">No data available</span>
+                            <span class="list-value-data">-</span>
+                        `;
+                        emptyItem.classList.add("empty-row");
+                        topCustomerId.appendChild(emptyItem);
+                    } else {
+                        const frag = document.createDocumentFragment();
+                        data.forEach(dataItem => {
+                            const listItem = document.createElement("li");
+                            listItem.innerHTML = `
+                                <span class="list-text-data">${dataItem.TEXT}</span>
+                                <span class="total">
+                                    <span class="list-value-data">${dataItem.VALUE}</span>
+                                </span>
+                            `;
+                            frag.appendChild(listItem);
+                        });
+                        topCustomerId.appendChild(frag);
+                    }
+                }
+            })
+            .fail(function (xhr, status, err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `${status}: ${xhr.responseText || err}`
+                });
+            });
+        }
+
+        // === Section 3: Top Product Group ===
+        getTopProductGroup() {
+            const selectedDate = kendo.toString($("#topProductGroupPeriod").data("kendoDatePicker").value(), "yyyy-MM");
+            const topProductGroup = document.getElementById("listTopProductGroup");
+            if (!topProductGroup) { console.warn('listTopProductGroup element not found'); return; }
+            topProductGroup.innerHTML = "";
+
+            $.ajax({
+                url: "@Url.Content("~/Dashboard/DashboardAdmin/GetDashboardTopProductGroup")",
+                method: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: { selectedDate: selectedDate },
+                success: function(d) {
+                    var data = d.Data;
+                    topProductGroup.innerHTML = "";
+
+                    const headerItem = document.createElement("li");
+                    headerItem.innerHTML = `
+                        <span class="list-text-header"><strong>Name</strong></span>
+                        <span class="list-value-header"><strong>Total Purchased</strong></span>
+                    `;
+                    headerItem.classList.add("header-row");
+                    topProductGroup.appendChild(headerItem);
+
+                    if (!data || data.length === 0) {
+                        const emptyItem = document.createElement("li");
+                        emptyItem.innerHTML = `
+                            <span class="list-text-data">No data available</span>
+                            <span class="list-value-data">-</span>
+                        `;
+                        emptyItem.classList.add("empty-row");
+                        topProductGroup.appendChild(emptyItem);
+                    } else {
+                        const frag = document.createDocumentFragment();
+                        data.forEach(dataItem => {
+                            const listItem = document.createElement("li");
+                            listItem.innerHTML = `
+                                <span class="list-text-data">${dataItem.TEXT}</span>
+                                <span class="total">
+                                    <span class="list-value-data">${dataItem.VALUE}</span>
+                                </span>
+                            `;
+                            frag.appendChild(listItem);
+                        });
+                        topProductGroup.appendChild(frag);
+                    }
+                }
+            })
+            .fail(function (xhr, status, err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `${status}: ${xhr.responseText || err}`
+                });
+            });
+        }
+
+        // === Section 3: Top Product Model ===
+        getTopProductModel() {
+            const selectedDate = kendo.toString($("#topProductModelPeriod").data("kendoDatePicker").value(), "yyyy-MM");
+            const topProductModel = document.getElementById("listTopProductModel");
+            if (!topProductModel) { console.warn('listTopProductModel element not found'); return; }
+            topProductModel.innerHTML = "";
+
+            $.ajax({
+                url: "@Url.Content("~/Dashboard/DashboardAdmin/GetDashboardTopProductModel")",
+                method: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: { selectedDate: selectedDate },
+                success: function(d) {
+                    var data = d.Data;
+                    topProductModel.innerHTML = "";
+
+                    const headerItem = document.createElement("li");
+                    headerItem.innerHTML = `
+                        <span class="list-text-header"><strong>Name</strong></span>
+                        <span class="list-value-header"><strong>Total Purchased</strong></span>
+                    `;
+                    headerItem.classList.add("header-row");
+                    topProductModel.appendChild(headerItem);
+
+                    if (!data || data.length === 0) {
+                        const emptyItem = document.createElement("li");
+                        emptyItem.innerHTML = `
+                            <span class="list-text-data">No data available</span>
+                            <span class="list-value-data">-</span>
+                        `;
+                        emptyItem.classList.add("empty-row");
+                        topProductModel.appendChild(emptyItem);
+                    } else {
+                        const frag = document.createDocumentFragment();
+                        data.forEach(dataItem => {
+                            const listItem = document.createElement("li");
+                            listItem.innerHTML = `
+                                <span class="list-text-data">${dataItem.TEXT}</span>
+                                <span class="total">
+                                    <span class="list-value-data">${dataItem.VALUE}</span>
+                                </span>
+                            `;
+                            frag.appendChild(listItem);
+                        });
+                        topProductModel.appendChild(frag);
+                    }
+                }
+            })
+            .fail(function (xhr, status, err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `${status}: ${xhr.responseText || err}`
+                });
+            });
+        }
+
+        // ==============================
+        // Additional helpers
+        // ==============================
+        getPreviousWeekRange(startDateCurrent, endDateCurrent) {
+            var start = new Date(startDateCurrent);
+            var end = new Date(endDateCurrent);
+
+            var startPrev = new Date(start);
+            startPrev.setDate(startPrev.getDate() - 7);
+
+            var endPrev = new Date(end);
+            endPrev.setDate(endPrev.getDate() - 7);
+
+            return {
+                startDatePrevStr: kendo.toString(startPrev, 'yyyy-MM-dd'),
+                endDatePrevStr: kendo.toString(endPrev, 'yyyy-MM-dd')
+            };
+        }
+
+        // Buat marker lingkaran untuk legend chart
+        createLegendCircleMarker(e) {
+            const rect = e.rect || { origin: { x: 0, y: 0 }, size: { width: 16, height: 16 } };
+            const cx = rect.origin.x + rect.size.width / 2;
+            const cy = rect.origin.y + rect.size.height / 2;
+
+            // radius: gunakan proporsional agar tidak terlalu besar
+            const r = Math.min(rect.size.width, rect.size.height) / 2 * 3.5;
+
+            const geometry = new kendo.geometry.Circle([cx, cy], r);
+            return new kendo.drawing.Circle(geometry, {
+                fill: { color: e.options.border.color },
+                stroke: { color: '#fff', width: 1 }
+            });
+        }
+
+        // ===== Render chart dengan Kendo ====
+        renderChart(containerId, data, title, stateLabels, category) {
+            // Extract categories unik, guard kalau data kosong
+            const arr = Array.isArray(data) ? data : [];
+            let categories = [...new Set(arr.map(u => u[category]))];
+
+            $("#" + containerId).kendoChart({
+                chartArea: { height: 300 },
+                title: { text: title, align: 'start' },
+                legend: {
+                    position: 'bottom',
+                    align: 'start',
+                    spacing: 50,
+                    item: { markers: { visual: this.createLegendCircleMarker } }
+                },
+                seriesDefaults: {
+                    type: 'line',
+                    labels: { visible: true, background: 'transparent' }
+                },
+                series: ['current', 'prev'].map(state => ({
+                    name: stateLabels[state],
+                    color: state === 'current' ? '#ED6C00' : '#D8D9DB',
+                    data: arr
+                        .filter(u => u.STATE === state)
+                        .map(u => ({ category: u[category], value: u.VALUE }))
+                })),
+                valueAxis: { line: { visible: false } },
+                categoryAxis: {
+                    categories,
+                    labels: { rotation: 'auto' },
+                    majorGridLines: { visible: false }
+                },
+                tooltip: { visible: true, shared: true }
+            });
+        }
+
+        // ===== Tambah elemen score kecil (persentase perubahan) ====
+        addScoreElement(type, elementId, backgroundElementId, totalCurrent, totalPrev) {
+            const isGood = totalCurrent > totalPrev;
+            const isBad = totalCurrent < totalPrev;
+            const isSame = totalCurrent === totalPrev;
+
+            // Hitung persen perubahan (guard division by zero)
+            let percentChange = 0;
+            if (totalPrev > 0) {
+                percentChange = ((totalCurrent - totalPrev) / totalPrev) * 100;
+            } else if (totalCurrent > 0) {
+                // sebelumnya 0, sekarang ada nilai => anggap 100% (business rule)
+                percentChange = 100;
+            }
+
+            const vsText = type === 'QCard' ? 'vs last month' : 'vs last week';
+            const formattedPercent = (percentChange >= 0 ? '+' : '') + percentChange.toFixed(1) + '%';
+
+            // Icon indicator
+            const icon = document.createElement('i');
+            if (isSame) {
+                icon.className = 'fa fa-minus-circle';
+            } else {
+                icon.className = isGood ? 'fa fa-arrow-circle-o-up' : 'fa fa-arrow-circle-o-down';
+            }
+            icon.setAttribute('aria-hidden', 'true');
+
+            const scoreText = ` (${formattedPercent})`;
+            const textNode = document.createTextNode(scoreText + ' ' + vsText);
+
+            const scoreElement = document.getElementById(elementId);
+            const backgroundElement = document.getElementById(backgroundElementId);
+
+            if (!scoreElement || !backgroundElement) {
+                console.warn('Element not found:', elementId, backgroundElementId);
+                return;
+            }
+
+            // Reset dan append
+            scoreElement.innerHTML = '';
+            scoreElement.appendChild(icon);
+            scoreElement.appendChild(textNode);
+
+            // Pilih warna berdasarkan kondisi
+            let color, backgroundColor;
+            if (isSame || percentChange === 0) {
+                color = '#555555';            // abu tua
+                backgroundColor = '#e0e0e0';  // abu muda
+            } else if (isGood) {
+                color = '#1eb400';            // hijau
+                backgroundColor = '#ecffe6';  // hijau muda
+            } else {
+                color = '#f94040';            // merah
+                backgroundColor = '#ffe5e5';  // merah muda
+            }
+
+            scoreElement.style.cssText = `
+                color: ${color};
+                font-size: 12px;
+                text-align: center;
+                padding: 1px;
+                font-weight: 600;
+            `;
+
+            backgroundElement.style.cssText = `
+                background-color: ${backgroundColor};
+                border-radius: 5px;
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
+                padding: 2px 6px;
+            `;
+        }
+
+    } // end class DashboardAdminManagement
+
+    // Inisialisasi module saat document ready
+    $(document).ready(() => {
+        const dashboard = new DashboardAdminManagement();
+        dashboard.initManagement();
+    });
+</script>

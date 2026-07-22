@@ -1,0 +1,78 @@
+﻿@using QCard.ManagementSystem.Domain.Modules.Core.ViewModel
+
+@section scripts {
+    @Html.Partial("~/Areas/Core/Views/Config/Script/_Config.cshtml")
+}
+
+@section modals {
+    @Html.Partial("~/Areas/Core/Views/Config/Component/_ConfigForm.cshtml")
+}
+
+<div class="portlet light margin-bottom-0">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="page-head">
+                <div class="page-title">
+                    <h1>
+                        <span>Config Maintenance</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+           <form data-grid="ConfigGrid" data-filter="true" data-logical-operator="and" method="post">
+                @Html.AntiForgeryToken()
+                <div class="inputs inputs-full-width">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="keyFilter"><b>Key</b></label>
+                                <input id="keyFilter" type="text" class="form-control" data-filter='{ "operator": "contains", "field": "SYSTEM_TYPE" }' />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                                <text>
+                                    @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ConfigMaintenance", Feature.SEARCH_FEATURE))
+                                    {
+                                    <a class="btn blue trigger" id="btnSearch">
+                                            <i class="fa fa-search"></i> <span class="hidden-xs">Search</span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-reset" id="btnClear">
+                                        <i class="fa fa-refresh"></i> <span class="hidden-xs">Reset</span>
+                                    </a>    
+                                </text>
+                            </div>
+                           
+                        <div class="col-md-6 text-right">
+                            <div class="form-group">
+                                @if (QCard.ManagementSystem.Service.Modules.Core.Service.FunctionService.HasPermission("ConfigMaintenance", Feature.CREATE_FEATURE))
+                                {
+                                    <a href="#" class="btn btn-success" id="btnAddConfig" onclick="App.ConfigManagement.CreateConfig()">
+                                        <i class="fa fa-plus"></i>Add Config
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+           </form>
+        </div>
+        @await Html.PartialAsync("~/Areas/Core/Views/Config/Grid/_ConfigGrid.cshtml")
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        App.ConfigManagement = new ConfigManagement();
+        App.ConfigManagement.InitManagement();
+    });
+</script>

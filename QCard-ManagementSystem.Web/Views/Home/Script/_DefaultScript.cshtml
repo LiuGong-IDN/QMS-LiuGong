@@ -1,0 +1,45 @@
+﻿
+@using QCard.ManagementSystem.Infrastructure.Session;
+@using QCard.ManagementSystem.Domain.Constants;
+
+<style type="text/css">
+    .select2-container {
+        z-index: 1000000000;
+    }
+</style>
+
+<script type="text/javascript">
+    var currentCardTitle = "";
+    var SourceDataLocCodes = [];
+    $(document).ready(function () {
+        DashboardScriptManager = new DashboardScriptManager();
+        DashboardScriptManager.Init();
+    });
+
+    function onDataBound(e) {
+        ShowOriginalKendoToolTip();
+    }
+
+    function DashboardScriptManager() {
+        return {
+
+            Init: function () {
+                this.InitControl();
+                this.InitHandlers();
+                this.InitValidation();
+                onDataBound();
+            },
+
+            InitControl: function () {
+            },
+
+            InitValidation: function () {
+
+            },
+
+            InitHandlers: function () {
+
+            },
+        };
+    }
+</script>

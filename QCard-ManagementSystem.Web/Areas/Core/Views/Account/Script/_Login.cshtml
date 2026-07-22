@@ -1,0 +1,12 @@
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var token = "@Model.Token"; //$("#Token").val();
+        var return_url = "@Model.ReturnUrl";// $("#ReturnUrl").val();
+        console.log("token", token);
+        if (token != null && token != "") {
+            localStorage.setItem("token", token);
+            window.location.href = "@Url.Content("~")" + return_url + "?token=" + token;
+        }
+    });
+</script>

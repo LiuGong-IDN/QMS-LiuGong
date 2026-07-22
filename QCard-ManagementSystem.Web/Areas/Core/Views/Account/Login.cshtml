@@ -1,0 +1,61 @@
+﻿@model QCard.ManagementSystem.Domain.Modules.Core.ViewModel.LoginViewModel
+@{
+	Layout = "_LoginLayout";
+}
+
+@section scripts {
+	@Html.Partial("~/Areas/Core/Views/Account/Script/_Login.cshtml")
+}
+
+<div class="container" id="loginView">
+	<div class="form-box">
+		<div class="logo">
+			<img src="~/img/liugong.png" alt="logo" class="logo-default">
+		</div>
+		@* <div class="header-text1">
+			Q-Mys
+		</div> *@
+		<div class="header-text2">
+			Q-Card Management System
+		</div>
+
+		<div class="kt-login__signin">
+			<form id="loginform" method="post" asp-controller="Account" asp-action="Login" asp-route-returnurl="@Model.ReturnUrl" class="kt-form">
+				<div class="form-group input-container">
+					<i class="fa fa-user icon"></i>
+					@Html.TextBoxFor(x => x.PhoneNumberOrEmail, new {
+					autocomplete = "off",
+										placeholder = "Email / Mobile No.",
+										@class = "form-control form-control-solid placeholder-no-fix"
+										})
+				</div>
+				@Html.ValidationMessageFor(x => x.PhoneNumberOrEmail)
+
+				<div class="form-group input-container">
+					<i class="fa fa-lock icon"></i>
+					@Html.PasswordFor(x => x.UserPwd, new {
+										autocomplete = "off",
+										placeholder = "Password",
+										@class = "form-control form-control-solid placeholder-no-fix"
+										})
+				</div>
+				@Html.ValidationMessageFor(x => x.UserPwd)
+
+
+				<div class="kt-login__actions">
+					<button id="kt_login_signin_submit" type="submit" class="btn btn-brand btn-elevate btn-primary">Login</button>
+				</div>
+				<div style="margin-top:10px;" class="text">
+					Don’t have an account? Register
+					<a href="/Core/Account/Register">here.</a>
+				</div>
+
+				<div class="text">
+					Forgot password? Click
+					<a href="/Core/Account/ForgotPassword">here.</a>
+				</div>
+			</form>
+		</div>
+
+	</div>
+</div>

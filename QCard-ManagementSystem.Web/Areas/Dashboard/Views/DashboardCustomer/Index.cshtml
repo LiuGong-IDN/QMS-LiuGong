@@ -1,0 +1,103 @@
+﻿@await Html.PartialAsync("~/Areas/Dashboard/Views/Style/_StyleDashboard.cshtml")
+<div class="portlet light margin-bottom-0">
+    <!-- === 1. Summary Cards === -->
+    <div class="row mb-4 summary-card">
+        <div id="machineCard" class="col-md-3 flex-item">
+            <a href="@Url.Action("Index", "MyMachines", new { area = "MyMachines" })">
+                <div class="portlet light bordered interactive-card">
+                    <div class="portlet-body">
+                        <div class="card shadow-sm rounded-3 p-3 custom-card">
+                            <img src="~/img/icon/Excavator.png" alt="Gears Icon" class="card-icon" />
+                            <div class="card-text">
+                                <div id="totalSerialNo" class="card-number">0</div>
+                                <div class="card-label">Total Machine</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div id="totalClaimCard" class="col-md-3 flex-item">
+            <a href="@Url.Action("Index", "ClaimHistory", new { area = "MyQCard" })">
+                <div class="portlet light bordered interactive-card">
+                    <div class="portlet-body">
+                        <div class="card shadow-sm rounded-3 p-3 custom-card">
+                            <img src="~/img/icon/Total Claim.png" alt="Data Icon" class="card-icon" />
+                            <div class="card-text">
+                                <div id="totalClaim" class="card-number">0</div>
+                                <div class="card-label">Total Claim</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div id="qcardExpiredCard" class="col-md-6 flex-item ml-auto">
+            <a href="@Url.Action("Index", "QCardView", new { area = "MyQCard" })">
+                <div class="portlet light bordered interactive-card">
+                    <div class="portlet-body">
+                        <div class="card shadow-sm rounded-3 p-3 custom-card">
+                            <img src="~/img/icon/Time.png" alt="Data Icon" class="card-icon" />
+                            <div class="card-text">
+                                <div id="qcardExpired" class="card-number"><span id="daysLeft">0</span> days left</div>
+                                <div class="card-label">Q-Card expired</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- === 2. Q-Card & Claim Statistics Charts=== -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div id="divQCardChart" style="min-height:500px;" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Remaining Claim Programs</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="mb-2">
+                            <div class="datepicker-label">
+                                <label for="SERIAL_NO-FILTER" class="col-auto">Serial No.</label>
+                                <div class="col-auto">
+                                    <input id="SERIAL_NO-FILTER" name="SERIAL_NO-FILTER" class="form-control"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="remaining-claim-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div id="divClaimChart" style="min-height:500px;" class="portlet light bordered">
+                <div class="portlet-body">
+                    <div class="card shadow-sm rounded-3 p-3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="page-head">
+                                    <div class="page-title">
+                                        <h1><span class="section-title">Latest Claim Update</span></h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        @await Html.PartialAsync("~/Areas/Dashboard/Views/DashboardCustomer/Grid/_LatestUpdatedClaim.cshtml")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="hr-darkblue" />

@@ -1,0 +1,308 @@
+﻿<script type="text/javascript">
+    var SourceDataLocCodes = [];
+    var tempUL = "";
+    var Id = "";
+    //variable section
+
+    //function section
+    function CustomerManagement() {
+        return {
+            InitManagement: function () {
+                this.InitControls();
+                this.InitValidation();
+                this.InitHandlers();
+            },
+            InitControls: function () {            
+            },
+            InitValidation: function () {
+            },
+            InitHandlers: function () {
+                // BUTTON SEARCH
+                $("#btnSearch").on('click', function (e) {
+                    $('#CustomerGrid').data("kendoGrid").dataSource.page(1);
+
+                });
+                
+                $("#btnClear").on("click", function (e) {
+                    e.preventDefault();
+
+                    var $form = $(this).closest("form");
+
+                    $form.find("input[type='text']").val("");
+
+                    });
+
+                // --- EDIT CUSTOMER ---
+                $(".k-grid").on("click", ".k-grid-edit", function () {
+                    var $el = $(this),
+                        $tr = $el.closest("tr"),
+                        $grid = $el.closest(".k-grid").data("kendoGrid"),
+                        dataItem = $grid.dataItem($tr),
+                        $modal = $.helper.getJqueryObject($el.data("modal")),
+                        $form = $modal.find("form");
+
+                    Id = $el.data("id");
+
+                    $.post("@Url.Content("~/Core/Customer/GetCustomerByID")", { ID: Id }, function (d) {
+                        var data = d.data;
+                        Id = data.ID;
+
+                        document.getElementById("modalTitle").innerHTML = "Manage Customer";
+                        clearValidation($modal);
+
+                        // tombol save disembunyikan, update ditampilkan
+                        $("#btnSaveCustomer").hide();
+                        $("#passwordGroup").hide();
+                        $("#btnUpdateCustomer").show();
+
+                        // isi semua field form dengan data customer
+                        $.helper.form.fill($form, data);
+
+                        // tampilkan modal
+                        $modal.modal("show");
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    })
+                    .always(function () {
+                        $el.prop("disabled", false);
+                    });
+                });
+                $("#btnAddCustomer").unbind("click").on("click", function () {
+                        console.log('button add customer')
+                        var $modal = $.helper.getJqueryObject("CustomerModal"),
+                            $form = $modal.find("form");
+
+                        document.getElementById("modalTitle").innerHTML = "Add Customer";
+                        clearValidation($modal);
+                        $.helper.form.clear($form);
+
+                        $("#btnSaveCustomer").show();
+                        $("#btnUpdateCustomer").hide();
+
+                        $modal.modal("show");
+                });
+
+                // --- SAVE CUSTOMER ---
+                   $("#btnSaveCustomer").off("click").on("click", function () {
+                    var $el = $(this),
+                        $modal = $(this).closest(".modal"),
+                        $form = $modal.find("form"),
+                        formData = $.helper.form.serializeObject($form);
+
+                    $el.prop("disabled", true);
+
+                    var Id = $("#ID").val() || "";
+
+                    var dataToSave = {
+                        ID: Id,
+                        COMPANY_CODE: formData.COMPANY_CODE,
+                        COMPANY_NAME: formData.COMPANY_NAME,
+                        ADDRESS: formData.ADDRESS
+                    };
+
+                    console.log(dataToSave);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Customer/Save")",
+                        type: "POST",
+                        data: dataToSave,
+                        success: function (res) {
+                            if (res.Success == false || res.Success == "false") {
+                                if (!res.Validate) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: res.Message,
+                                        icon: "error"
+                                    });
+                                }
+                            } else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("CustomerGrid");
+                            }
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    })
+                    .fail(function (xhr, status, err) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: `${status}: ${xhr.responseText || err}`
+                        });
+                    });
+                });
+
+                    // --- UPDATE CUSTOMER ---
+                $(document).on("click", "#btnUpdateCustomer", function (e) {
+                    e.preventDefault();
+
+                    var $el = $(this);
+                    var $modal = $("#CustomerModal");
+                    var $form = $modal.find("form");
+
+                    // Validasi ID harus ada
+                    var customerId = $("#ID").val();
+                    if (!customerId || customerId === "0") {
+                        Swal.fire("Error", "Customer ID is missing", "error");
+                        return;
+                    }
+
+                    $el.prop("disabled", true);
+                    var formData = $.helper.form.serializeObject($form);
+
+                    // Siapkan data + CSRF Token
+                    var dataToSave = {
+                        ID: customerId,
+                        COMPANY_CODE: formData.COMPANY_CODE,
+                        COMPANY_NAME: formData.COMPANY_NAME,
+                        ADDRESS: formData.ADDRESS,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    };
+
+                    console.log("Update data:", dataToSave);
+
+                    $.ajax({
+                        url: "@Url.Content("~/Core/Customer/Update")",
+                        type: "POST",
+                        data: dataToSave,
+                        success: function (res) {
+                            if (!res.Success || res.Success === "false") {
+                                if (!res.Validate && res.Message) {
+                                    ShowErrorMessage($form, JSON.parse(res.Message));
+                                } else {
+                                    Swal.fire("Error", res.Message, "error");
+                                }
+                            } else {
+                                Swal.fire("Success!", "", "success");
+                                $modal.modal("hide");
+                                $.helper.grid.refresh("CustomerGrid");
+                            }
+                        },
+                        error: function (xhr, status, err) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: `${status}: ${xhr.responseText || err}`
+                            });
+                        },
+                        complete: function () {
+                            $el.prop("disabled", false);
+                        }
+                    });
+                });
+
+                // --- DELETE CUSTOMER ---
+                $(".k-grid").on("click", ".k-grid-delete", function () {
+                    var $el = $(this);
+                    Id = $el.data("id");
+                    Swal.fire({
+                        title: "Delete this data?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "@Url.Content("~/Core/Customer/Delete")",
+                                type: "POST",
+                                data: { id: Id },
+                                success: function (res) {
+                                    if (res.Success == false || res.Success == "false") {
+                                        Swal.fire({
+                                            title: "Error",
+                                            text: res.Message,
+                                            icon: "error"
+                                        });
+                                    } else {
+                                        Swal.fire("Success!", "", "success");
+                                        $.helper.grid.refresh("CustomerGrid");
+                                    }
+                                }
+                            })
+                            .fail(function (xhr, status, err) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: `${status}: ${xhr.responseText || err}`
+                                });
+                            });
+                        }
+                    });
+                });
+
+                // --- UPLOAD CUSTOMER ---
+                $("#btnUploadCustomer").on("click", function () {
+                    var $modal = $.helper.getJqueryObject("CustomerUploadModal"),
+                        $form = $modal.find("form");
+
+                    $.helper.form.clear($form);
+
+                    $modal.modal("show");
+                    $("#TempCode").val("");
+                    $("#CustomerUploadGrid").data("kendoGrid").dataSource.data([]);
+                    $("#btnSubmitUpload").hide();
+                    $("#btnDownloadErrorUpload").hide();
+                    $("#uploadPC .k-upload-files, #uploadPC .k-upload-status").remove();
+                });
+
+
+                    // --- DOWNLOAD TEMPLATE ---
+                $("#btnTemplateCustomer").on("click", function (e) {
+                    e.preventDefault();
+
+                    // Trigger download
+                    window.location.href = $(this).attr("href");
+
+                    // Kembalikan state tombol setelah download dimulai
+                    setTimeout(function() {
+                        $btn.prop("disabled", false);
+                        $btn.html(originalHtml);
+                    }, 2000);
+                });
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        App.CustomerManagement = new CustomerManagement();
+        App.CustomerManagement.InitManagement();
+    });
+
+    function setParameter() {
+        var companyCode = $("#companyCode").val();
+        var companyName = $("#companyName").val();
+
+
+        return {
+            companyCode: companyCode,
+            companyName: companyName,
+        };
+    }
+
+    $.helper.form.fill = function ($form, dataItem, excludeIds) {
+        $form.find(':input').each(function () {
+            let id = $(this).attr('id');
+
+            // Skip kalau ID masuk daftar exclude
+            if (excludeIds && excludeIds.includes(id)) {
+                return; // lanjut ke elemen berikutnya
+            }
+
+            // Isi sesuai dataItem
+            if (id && dataItem[id] !== undefined) {
+                $(this).val(dataItem[id]);
+            }
+        });
+    };
+</script>
